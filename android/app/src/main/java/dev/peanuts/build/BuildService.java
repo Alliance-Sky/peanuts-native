@@ -503,6 +503,19 @@ public final class BuildService extends Service {
         }
     }
 
+    /** The full check of the shaders this build kept, when it is due, the phone charges and no game runs (ReuseCheck): in the packer, after the build; else later */
+    private void startCheck(BuildRequest r, File dump) {
+        try {
+            File jobFile = Upstream.jobFileOf(Upstream.workOf(dump, r.titleId));
+            ReuseCheck.remember(getNoBackupFilesDir(), r.titleId, jobFile);   // for a start later, from the launcher (ReuseCheck.startAny)
+            String why = ReuseCheck.start(this, jobFile, r.titleId);
+            if (why == null) log("reuse check: the full check of the kept shaders starts in the background (a game that starts stops it)");
+            else if (!why.equals("nothing due")) log("reuse check: later (" + why + ")");
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            log("reuse check: " + e);
+        }
+    }
+
     /** One game's build, its steps in order; returns {the card's message, the failure code ("" when it is ready)} */
     private String[] run(BuildRequest r, String place) {
         final long startedAt = System.currentTimeMillis();
@@ -554,6 +567,7 @@ public final class BuildService extends Service {
             message = name + " is ready to play." + reused(r, dump) + shadersLeftOut(r, dump);
             progress("done", 100, message);
             dev.peanuts.ui.CrackedCount.never(() -> cracked(r, dump, startedAt), e -> Log.w(TAG, "peanuts cracked: the build is not counted: " + e));   // after done; a failure in it is logged, never the build's
+            startCheck(r, dump);
         } catch (IOException e) {
             message = e.getMessage() == null ? e.toString() : e.getMessage();
             code = category(e);
