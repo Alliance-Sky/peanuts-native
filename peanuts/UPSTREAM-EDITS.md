@@ -3258,4 +3258,4 @@ Added `01008C0016544000` (`Sea of Stars`, `0.1.9`, `Alliance-Sky`) to `peanuts/r
 
 ### Crisis Core –Final Fantasy VII– Reunion
 
-The [base-game profile](../dm/games/01004BC0166CC000/README.md) registers an Android bring-up target. Its generated shader tables remain unmodified. The real-time picture is not yet correct.
+The [base-game profile](../dm/games/01004BC0166CC000/README.md) registers an Android bring-up target. Its generated shader tables remain unmodified. The matching-bank test cleared the first station encounter; it did not test later progression.
