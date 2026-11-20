@@ -3255,3 +3255,7 @@ entry's new symptom; the key itself is this Peanuts-only profile's.
 | `dm/games/01008C0016544000/{shader_map,shader_facts,shader_pairs,pso_pairs}.tsv` | generated | `v0` + `v983040` union tables from `shader_split.py` | allow-listed in `peanuts/upstream-unmarked.txt` |
 
 Added `01008C0016544000` (`Sea of Stars`, `0.1.9`, `Alliance-Sky`) to `peanuts/release-titles.txt` and `peanuts/games.tsv` after 20+ minutes of verified 60 fps Turnip play on OnePlus 13R (`v983040`).
+
+### Crisis Core –Final Fantasy VII– Reunion
+
+The [base-game profile](../dm/games/01004BC0166CC000/README.md) registers an Android bring-up target. Its generated shader tables remain unmodified. The real-time picture is not yet correct.
