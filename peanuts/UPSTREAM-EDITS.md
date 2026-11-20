@@ -223,6 +223,7 @@ Also gated, but not `#ifdef`-paired with upstream code (new Peanuts-owned files/
     not `shutil.copystat` / `copy2`. A microSD card or a USB drive on Android refuses `os.utime` (EPERM), which stopped Prepare at "Finishing the pack"
     after the whole build; there the copy is kept without its time and the next pack copies it again
     (`docs/reference/packing.md`, found on Hogwarts Legacy, `dm/games/0100F7E00C70E000/README.md`)
+15. `dm/gfx/vk_android/vka_draw.c` — depth / stencil dynamic state set again at each render pass (Qualcomm 512.676 loses it at a new pass)
 
 `dm/host/hle_fpslock.c`'s new `EXTRA_VSYNCS_U8` lock kind is also upstream-worthy infra; its two
 per-game rows (Link's Awakening, Echoes of Wisdom) should instead move to a Peanuts-owned
@@ -2958,3 +2959,16 @@ Left as they are (upstream text, no checker needs a change): `docs/reference`, `
 `docs/banana-native-README*` pages, `dm/games/README.md`'s notes and table rows, `android/NOTICE.md`'s sections on the removed gates, and code
 comments that name a Switch 2 game. The shared Switch 2 support (NVN2, Program-n and the Switch 2 dump layout, `Edition.java`, the `Switch2/`
 storage folder name, `wide_shape.h` for `aspect_plan.h`, `boot_nro.py`) stays.
+
+### Depth and stencil state set again in each render pass (2026-11-20)
+
+Qualcomm's driver 512.676.53 (Adreno 740) loses the depth / stencil dynamic state at a new render pass; a pass that sets none of it because it equals the last pass's draws with other depth state (Pokémon: Let's Go's lit pass after its shadow pass came out black). The replay now forgets the cached depth / stencil states at each pass begin, on every driver ([the entry](../docs/reference/rendering.md#depth-and-stencil-state-lost-at-a-new-render-pass-on-qualcomms-driver-android)).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/gfx/vk_android/vka_draw.c` | 3 | `ds_forget` and its forward declaration; called at each pass begin unless `DM_VK_DS_PASS=0` | `PEANUTS(upstream-candidate)` |
+| `dm/gfx/vk_android/vka_ctl.c` | 1 | `DM_VK_DS_PASS` in the live table | `PEANUTS(upstream-candidate)` |
+| `docs/reference/rendering.md`, `docs/env_switches.tsv`, `docs/agents/symptoms.md` | 1 each | the entry, the switch row, the regenerated symptom index | `PEANUTS(upstream-candidate)` (a span in the reference, in the row's and the index line's text) |
+| `docs/advanced_settings.tsv` | 1 | the switch's row, written by `dm/tools/advanced_switches.py --write` | none: a developer row has no free-text column for one |
+
+Upstream candidate: yes, a general fix with no Peanuts dependency.
