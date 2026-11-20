@@ -2877,3 +2877,7 @@ The Hundred Line -Last Defense Academy- (`010093C0215B4000`) keeps its shaders i
 |---|---|---|---|
 | `dm/gfx/tools/mvgl.py` | 3 | `wide` also takes 24-byte data entries; `data_entry` gives the entry size; `Archive` reads the entries by it | `PEANUTS begin`/`end`, `PEANUTS` |
 | `peanuts/tests/test_mvgl_wide.py` | 3 | `test_reader_24`: an archive with 24-byte entries reads, and `data_entry` gives 16 for the 16-byte one | `PEANUTS begin`/`end`, `PEANUTS` (a Peanuts-owned file) |
+
+### FANTASIAN Neo Dimension
+
+The [experimental profile](../dm/games/01001BB01E8E2000/README.md) registers the 1.0.0 and 1.0.2 executables. Its shader indexes come from 1.0.2; their generated files are listed in `upstream-unmarked.txt`.
