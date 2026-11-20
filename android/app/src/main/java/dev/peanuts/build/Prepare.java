@@ -222,7 +222,7 @@ final class Prepare {
         // The translator calls at once (4 on a phone with 14 GB or more, 2 on an 8 GB one) are set by PackService from the phone's memory (BuildMemory), not by a line here:
         // a fixed 4 in env.txt ran an 8 GB phone out of memory (Fire Emblem Engage on a Thor Base, issue #10). A line env.txt has still applies, up to that count
         // 4. the service, as the panel starts it (once it runs no other job)
-        ownFile = file;
+        ownFile = file;   // the service's messages of this job only (Link.onMessage)
         bind();
         waitForPacker(p);
         long startedAt = System.currentTimeMillis();   // a pause job.json says was written before this start is the last run's (a Resume of a paused job)
@@ -425,7 +425,7 @@ final class Prepare {
         File file = Upstream.jobFile(job);
         log("modded prepare: job " + file + " (" + (resumedMod ? "resumed, it was " + Upstream.jobState(job) : "new") + "), pack " + packDir);
         BuildLogShare.remember(c, id, workDir);
-        ownFile = file;
+        ownFile = file;   // the service's messages of this job only (Link.onMessage)
         bind();
         waitForPacker(p);
         try {
