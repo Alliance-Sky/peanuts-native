@@ -195,6 +195,7 @@ class Stale(unittest.TestCase):
         # (on the merge with the build queue, #448: the job file is Prepare.ownFile, and another job's message sets otherRuns, which waitForPacker waits on)
         self.assertRegex(on, r'File own = ownFile;\s*if \(f != null && own != null && !new File\(f\)\.getAbsolutePath\(\)\.equals\(own\.getAbsolutePath\(\)\)\) \{[\s\S]*?return true;')
         self.assertLess(on.index('.equals(own.getAbsolutePath())'), on.index('fromService = j'))
+        self.assertLess(on.index('.equals(own.getAbsolutePath())'), on.index('heard = true;\n            return'))   # Link.heard: this build's job only
         self.assertEqual(len(re.findall(r'ownFile = file;[^\n]*\n\s*bind\(\);', s)), 2)   # set before each bind: the build and the modded build
 
 

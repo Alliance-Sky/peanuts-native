@@ -839,7 +839,6 @@ def follow_parent_cpus():
             time.sleep(2)
     threading.Thread(target=watch, daemon=True).start()
 # PEANUTS end
-
 def find_x18_words():
     """x18_words over all the code, in 1 MB pieces"""
     pieces = []

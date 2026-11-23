@@ -246,9 +246,9 @@ class Wiring(unittest.TestCase):
         # the equivalent (scripts/pack_android.py EQUIV: a pack whose key was made with it counts as up to date) is the current file without the forks, and
         # nothing else: only then does a rewrite with it come out the same. main's PR #164 changed the rewriter under this branch (2026-11-20), and the file
         # kept here was still the one before #164: every pack rewritten before #164 would have counted as up to date, where main rewrites them. On dev 0.1.7
-        # #177 changed it again (its second pass, 2590f2d2), and 0.1.7 with #290's allocator cuts: the file kept is main's at 54b9ce16, and it follows every
+        # #177 changed it again (its second pass, 2590f2d2), and 0.1.7 with #290's allocator cuts: the file kept was main's at 54b9ce16, and on dev 0.1.8 #481 changed the rewriter again (its worker processes on Windows) and keeps main's file as its own equivalent, so the one kept here is 0.1.8's at e13378e6; it follows every
         # rewriter change on the branch this lands on
-        name = 'patch_nso.py.54b9ce16465e'
+        name = 'patch_nso.py.e13378e630c8'   # dev 0.1.8's file (e13378e6, #481); 0.1.7's, patch_nso.py.54b9ce16465e, is #481's equivalent and stays
         equiv = REPO / 'dm/tools/rewriter_equiv' / name
         self.assertTrue(equiv.is_file())
         for before in ('6bc30f06074b', 'eaf706b807d5', '2590f2d24457'):   # the files before #164, before #177 and before #290
