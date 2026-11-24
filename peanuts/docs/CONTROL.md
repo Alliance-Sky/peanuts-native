@@ -87,6 +87,7 @@ rest of the file.
 | `companion` | `-e cmd companion -e do list` | The catalog against the library: one row a game in `data.companions` (below). With `title_id`, that game alone |
 | | `-e cmd companion -e do install -e title_id 0100F2C0115B6000` | The catalog's newest companion for the game, downloaded and checked as the catalog screen does. One that is installed and older is replaced |
 | | `-e cmd companion -e do update -e title_id 0100F2C0115B6000` | The same, refused (`not_installed`) when the game has none |
+| | `-e cmd companion -e do install -e path /sdcard/Download/010015100B514000-SuperMarioWonderDS-1.0.1.dsmod.zip` | Settings › Dual-screen companions › Install from file with a path instead of the picker: a `.dsmod.zip` on the device, no network. The file names its game; `title_id` with it refuses another game's file (`wrong_title`). An older version than the installed one wants `-e confirm true`. See below |
 | | `-e cmd companion -e do remove -e title_id 0100F2C0115B6000 -e confirm true` | Deletes the game's companion package. The game and its saves stay |
 
 `job` takes an optional `title_id`: the command is refused (`no_job`) when the job is another game's.
@@ -147,7 +148,7 @@ keeps no choice of its own. For a game that started Game owned before 0.1.8 (opt
 It reads the catalog from the network and downloads a package, so its answer comes later: `last_result` is
 `pending` until the work has ended (a list takes a second or two, an install as long as the download).
 Nothing is installed that the catalog screen would not install: the package's digest must match the
-catalog's, and its runtime must not be newer than the app's.
+catalog's, and its runtime must not be newer than the app's. `install` with `path` takes a file instead (below).
 
 `data.companions` of a list: `title_id`, `name`, `package`, `installed` (a version, `?` when the package
 does not record one, null), `catalog` (the newest version, null when the catalog has none for the game),
@@ -164,6 +165,24 @@ After a change the library rows in `status.json` are read anew in the same write
 | `no_companion` | The catalog has no companion for the game |
 | `not_installed` | `remove` or `update` of a game that has none |
 | `failed` | The app's installer refused or could not finish: `message` has its reason (a game runs, no network, the download does not match the catalog, the package needs a newer app) |
+
+`install` with `path` reads the file on the device (the app's All files access) and installs it with the same
+installer as the catalog's: the same checks of the package, the runtime and a running game, and the swap that
+keeps the version it replaces under Versions. A file has no published checksum, so instead every entry of the
+zip and the module library's checksum in its manifest are checked, and the companion shows as unverified. It
+goes beside the game's pack; for a game that is not in the library yet, where its build will look (the
+app's `packs/peanuts`), and `message` says so. `data`: `title_id`, `name` (the companion's), `package`,
+`version`, `was`, `changed` (false when that version is installed already), `in_library`, `built`.
+
+| Code | Meaning |
+|---|---|
+| `no_file` | `path` is not a file the app can read |
+| `not_companion` | The file is not a dual-screen companion (not a zip, or no package.json and dualscreen/manifest.json, or it names no game) |
+| `damaged` | The zip is damaged (a bad entry, cut off, a module library that does not match the manifest's checksum, no version) |
+| `wrong_title` | The file is another game's companion than `title_id` |
+| `needs_newer_app` | The companion needs a newer companion runtime than this app has |
+| `needs_confirm` | The file is an older version than the installed one: add `-e confirm true` |
+| `failed` | The installer could not finish: `message` has its reason (a game runs, no room) |
 
 ### `reimport`
 
@@ -277,7 +296,8 @@ Ready can be `build` here.
   (`reimport` replaces one `.nup` by one made from the same dumps, and asks first.)
 - Anything that puts code or host switches into the game from a file: GPU driver installs, mods, the extra
   environment, env files. (`game ctl` reaches only a game that already runs. `set gpu_driver` only picks a
-  driver that is installed already.)
+  driver that is installed already. `companion` with `path` installs a companion file with the checks of
+  Install from file, the screen's own button.)
 - Rebuild of a game that is built (other than by `reimport`), keys, firmware and folder setup, a game's second-screen
   choice, the rest of the in-game panel, pausing a game, answering a dialog. These come later.
 - Installing an app update and pinning a shortcut: Android asks the user itself.

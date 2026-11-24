@@ -178,6 +178,7 @@ public final class CompanionSection {
             if (hasVersions) SectionUi.add(buttons, ui.button("Versions", SectionUi.QUIET, v -> dev.peanuts.ui.CompanionVersions.open((Activity) c, titleId, () -> { installedKnown = false; render(); })), !busy);
             buttonsRow = buttons.getChildCount() > 0 ? buttons : null;
             if (buttonsRow != null) body.addView(buttons, SectionUi.lp(0, 0));
+            if (root != null && c instanceof Activity) body.addView(ui.setting("📦", "Install from file", "A .dsmod.zip on this device. No internet needed.", busy ? null : v -> installFromFile()), SectionUi.lp(0, 0));
             // A pack built before the app kept the game's original code, which the last start could not add: the companion works with less, and only this row says so
             if (have != null && packNotice != null) body.addView(ui.setting("⚠️", packNotice[0], packNotice[1], null), SectionUi.lp(0, 0));
             String ss = secondScreen(c, titleId);
@@ -208,6 +209,20 @@ public final class CompanionSection {
                     render();
                 });
             }, "peanuts-install").start();
+        }
+
+        /** Install from file: the companions page picks the file and installs it with the catalog's installer (dev.peanuts.CompanionImport), for this game
+         *  only; the rows read the installed version again when this page has the focus back */
+        void installFromFile() {
+            c.startActivity(new android.content.Intent().setClassName(c.getPackageName(), "dev.peanuts.CatalogActivity").putExtra(dev.peanuts.CatalogActivity.EXTRA_TITLE, titleId));
+            android.view.ViewTreeObserver.OnWindowFocusChangeListener[] back = new android.view.ViewTreeObserver.OnWindowFocusChangeListener[1];
+            back[0] = has -> {
+                if (!has) return;
+                box.getViewTreeObserver().removeOnWindowFocusChangeListener(back[0]);
+                installedKnown = false;
+                render();
+            };
+            box.getViewTreeObserver().addOnWindowFocusChangeListener(back[0]);
         }
 
         void remove(String pkg) {

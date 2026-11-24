@@ -215,6 +215,27 @@ class CtlTest(unittest.TestCase):
         self.assertEqual(self.request('cmd=companion', 'do=remove', 'title_id=' + TITLE, 'confirm=no'), 'bad needs_confirm')
         self.assertEqual(self.run_cmd('companion_state').split(), ['none', 'installed', 'not_installed', 'installed', 'update'])
 
+    def test_the_companion_command_from_a_file(self):   # Install from file without the picker: the file names its game, title_id with it must be that game
+        f = 'path=/sdcard/Download/010015100B514000-SuperMarioWonderDS-1.0.1.dsmod.zip'
+        self.assertEqual(self.request('cmd=companion', 'do=install', f), 'ok companion null false null')
+        self.assertEqual(self.request('cmd=companion', 'do=install', f, 'title_id=' + TITLE, 'id=f1'), 'ok companion f1 false ' + TITLE)
+        self.assertEqual(self.request('cmd=companion', 'do=install', f, 'confirm=true'), 'ok companion null false null')   # an older version than the installed one
+        self.assertEqual(self.request('cmd=companion', 'do=install', f, 'confirm=maybe'), 'bad bad_args')
+        self.assertEqual(self.request('cmd=companion', 'do=update', f, 'title_id=' + TITLE), 'bad bad_args')               # path is for install only
+        self.assertEqual(self.request('cmd=companion', 'do=remove', f, 'title_id=' + TITLE, 'confirm=true'), 'bad bad_args')
+        self.assertEqual(self.request('cmd=companion', 'do=install', f, 'title_id=12'), 'bad bad_args')
+        cmd = (CTL / 'CompanionCmd.java').read_text(encoding='utf-8')
+        self.assertIn('CompanionImport.install(c, f, f.getName(), id, confirm, null)', cmd)   # the screen's own install, not a second one
+        self.assertIn('new Request.Bad("no_file"', cmd)
+        self.assertIn('new Request.Bad("needs_confirm", e.getMessage() + " Add -e confirm true to install it anyway.")', cmd)
+        doc = (REPO / 'peanuts/docs/CONTROL.md').read_text(encoding='utf-8')
+        self.assertIn('-e cmd companion -e do install -e path ', doc)
+        for code in ('no_file', 'not_companion', 'damaged', 'wrong_title', 'needs_newer_app'):   # CompanionFile.Refused's codes and the file's own
+            self.assertIn(f'| `{code}` |', doc, code)
+        refused = (REPO / 'android/app/src/main/java/dev/peanuts/CompanionFile.java').read_text(encoding='utf-8')
+        for code in ('not_companion', 'damaged', 'wrong_title', 'needs_newer_app'):
+            self.assertIn(f'"{code}"', refused, code)
+
     def test_pages_of_the_status_file(self):
         """The pages Up.pageOf names are the ones CONTROL.md lists, and what it reads of upstream's MainActivity by name is there (a rename shows only as a
         command's error on the phone): the Advanced page of Banana Native v0.3.26 is a page of its own, and Up.page closes it before it changes the page"""

@@ -120,10 +120,45 @@ public final class Installer {
             try {
                 download(item.url, zip, item.size, progress);
                 verify(zip, item, progress);   // throws on a mismatch or a missing digest - never "installs as unverified"
-                return extractAndActivate(zip, item.titleId, item.packageName, item.version, item.tag, item.url, root, knownBuildId, ctx, progress);
+                return extractAndActivate(zip, item.titleId, item.packageName, item.version, item.tag, item.url, true, root, knownBuildId, ctx, progress);
             } finally {
                 zip.delete();
             }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /** What {@link #installFile} did: the package and version now active, the version before (null: none), and the build-id warning (null: none) */
+    public static final class FileInstall {
+        public final CompanionFile.Kind kind;
+        public final String packageName, version, was, warning;
+        FileInstall(CompanionFile.Kind kind, String packageName, String version, String was, String warning) { this.kind = kind; this.packageName = packageName; this.version = version; this.was = was; this.warning = warning; }
+        public boolean changed() { return kind != CompanionFile.Kind.SAME; }
+    }
+
+    /**
+     * Installs a companion from a file on the device (Install from file, the companion command's path) into root with the catalog install's own steps:
+     * the same per-package lock, repair, "close the game first", extraction (zip slip refused), package.json and manifest check for the title, min_runtime
+     * refusal and atomic swap that archives the version it replaces. What it cannot have is the catalog's digest: {@link CompanionFile#read} checked every
+     * entry's CRC and the module library's sha256 instead, and installed.json says "verified": false. info: CompanionFile.read of zip. wantTitle (null:
+     * any game) refuses a companion of another game; an older version than the installed one is refused (CompanionFile.Refused.OLDER) unless allowOlder.
+     * Off the main thread.
+     */
+    public static FileInstall installFile(File zip, CompanionFile.Info info, File root, String wantTitle, String wantName, boolean allowOlder, Context ctx, Progress progress) throws IOException {
+        String pkg = CompanionFile.packageName(info, dev.peanuts.settings.CompanionSection.packageFor(root, info.titleId));
+        ReentrantLock lock = lockFor(pkg);
+        lock.lock();
+        try {
+            refuseIfGameRunning(ctx);
+            repairLocked(root, pkg);
+            String have = installedVersion(root, pkg);
+            CompanionFile.Kind kind = CompanionFile.decide(info, wantTitle, wantName, have, RUNTIME_VERSION, allowOlder);
+            if (kind == CompanionFile.Kind.SAME) return new FileInstall(kind, pkg, have, have, null);
+            if (!root.isDirectory() && !root.mkdirs()) throw new IOException("cannot create " + root);
+            String warning = extractAndActivate(zip, info.titleId, pkg, info.version, "file", "file:" + (info.fileName == null ? "" : info.fileName), false, root, null, ctx, progress);
+            delete(versionDir(root, pkg, info.version));   // an archived copy of the version now active would list it twice under Versions
+            return new FileInstall(kind, pkg, info.version, have, warning);
         } finally {
             lock.unlock();
         }
@@ -321,7 +356,8 @@ public final class Installer {
         } finally { c.disconnect(); }
     }
 
-    private static String extractAndActivate(File zip, String titleId, String packageName, String version, String tag, String url, File root, String knownBuildId, Context ctx, Progress progress) throws IOException {
+    /** verified: the zip matched a publisher's digest (the catalog's install); false for a file from the device (installFile), shown as "unverified" */
+    private static String extractAndActivate(File zip, String titleId, String packageName, String version, String tag, String url, boolean verified, File root, String knownBuildId, Context ctx, Progress progress) throws IOException {
         File fresh = new File(root, packageName + ".new");
         delete(fresh);
         if (!fresh.mkdirs()) throw new IOException("cannot create " + fresh);
@@ -334,7 +370,7 @@ public final class Installer {
             refuseIfIncompatible(fresh);   // before anything is activated - fresh is still just a staging folder, safe to abandon on throw (the finally below deletes it)
             String warning = buildIdWarning(fresh, knownBuildId);
             try (OutputStream o = new FileOutputStream(new File(fresh, "installed.json"))) {
-                o.write(new JSONObject().put("version", version).put("tag", tag).put("url", url).put("verified", true).toString(2).getBytes(StandardCharsets.UTF_8));
+                o.write(new JSONObject().put("version", version).put("tag", tag).put("url", url).put("verified", verified).toString(2).getBytes(StandardCharsets.UTF_8));
             }
             // Found in review: the game-running check at install()'s entry only covers the moment the download started; download+verify+extract
             // above can take minutes, long enough for the user to start the game in the meantime. Re-check right before the swap, which is the actual

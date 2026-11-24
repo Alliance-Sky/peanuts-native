@@ -142,7 +142,9 @@ public final class Request {
             case "set": need("key"); need("value"); titleId(false); break;
             case "companion": {
                 String a = action();
-                titleId(!a.equals("list"));
+                if (str("path") != null && !a.equals("install")) throw new Bad("bad_args", "path is for do=install only: a companion from a file on the device");
+                titleId(!a.equals("list") && str("path") == null);   // a file names its game; title_id with it must be that game
+                if (str("path") != null) flag("confirm");   // an older version than the installed one wants confirm (CompanionCmd: needs_confirm)
                 if (a.equals("remove") && !on("confirm")) throw new Bad("needs_confirm", "companion remove deletes the game's companion package: add -e confirm true");
                 break;
             }

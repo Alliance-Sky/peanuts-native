@@ -168,7 +168,8 @@ GPL-3.0-or-later), which is used on the computer only and is not part of the app
 ## Companions
 
 Open Settings, then Screens, then Dual-screen companions, to see every companion and every release of it. You can install, update, remove or
-roll back to an earlier release, and each download is checked against its published checksum before it is used. A
+roll back to an earlier release, and each download is checked against its published checksum before it is used.
+Without the internet, **Install from file** there takes a companion's `.dsmod.zip` from the device, with the same checks. A
 game without a companion shows its live stats on the bottom screen, or its cover, or leaves the screen to Android
 (Settings, Screens, **Games without a companion**). Companion screens give haptic feedback when you
 tap them.

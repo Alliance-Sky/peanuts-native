@@ -737,6 +737,23 @@ What you should see: **… is active. It loads at the game's next start.** A ver
 
 Each download is checked against its published checksum. A release without a checksum cannot be installed.
 
+### How do I install a companion without the internet?
+
+Install it from its `.dsmod.zip` file, the same file the catalog downloads (for example `010015100B514000-SuperMarioWonderDS-1.0.1.dsmod.zip` from the [eden-duo-companions](https://github.com/igawa6/eden-duo-companions) releases, copied to the device).
+
+1. Open Settings › Screens › **Dual-screen companions** and tap **Install from file**. In a game's own page it is the **Companion** section › **Install from file**: that one takes only that game's companion.
+2. Pick the `.dsmod.zip` file.
+3. The app says what happened: **Installed** with the companion's name, version and game, **Updated … from version …**, or why it was not installed.
+
+The file goes through the same installer as a catalog download: it must be a companion for one game, its zip must be whole and its module must match the checksum in its manifest, and it must not need a newer app. A file has no published checksum, so the companion shows as **unverified**. A file for a game that is not in your library yet is installed too: the app says so, and the companion is used once you add and build the game. A file older than the installed version asks first; the installed version stays on the device under **Versions**. Close the game before you install. **Update** and **Rebuild** later install the catalog's version when it is newer.
+
+What the refusals mean:
+
+- **This file is not a dual-screen companion:** it is not a `.dsmod.zip`, or not a whole one. Pick the companion's file.
+- **This companion file is damaged:** download it again.
+- **This companion is for another game:** you picked it from another game's page. Use that game's page, or Settings.
+- **This companion needs a newer version of the app:** update the app first.
+
 ### How do I remove a companion, or turn the second screen off for one game?
 
 Remove: tap **Remove** in Settings › Screens › **Dual-screen companions** or in the game's **Game** tab, or **Remove companion** in the Versions sheet. Close the game first. The game and its saves stay, and the catalog can install the companion again.
