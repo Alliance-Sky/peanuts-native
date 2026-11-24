@@ -2369,8 +2369,7 @@ GPU ran 401 to 550 of 680 MHz (AYN Thor; #113 on an 8 Gen 3: with the clock pinn
 kernel context with the flag and the "highest" constraint and submits one CP_NOP to it at each replayed submission (at most every `PN_GPU_FLOOR_BEAT_MS`, 8),
 which applies the floor device-wide; it lapses within the kernel's idle interval when no frames come. It runs only where vka_dev.c found the "highest only" form
 of the constraint and `DM_VK_GPU_FLOOR` is above 0; `PN_GPU_FLOOR_BEAT=0` turns it off (live). On the Thor (2026-11-23) in Super Mario Odyssey's light start
-screens the GPU ran 401 MHz with the beat off and 680 MHz with it on, switched live twice. Off by default since 0.1.8's release (`PN_GPU_FLOOR_BEAT=1` turns it on): with it the
-app's own windows lost their images for single frames on the Thor. The entry:
+screens the GPU ran 401 MHz with the beat off and 680 MHz with it on, switched live twice. The entry:
 [frame-rate.md](../docs/reference/frame-rate.md#the-kgsl-clock-floor-reaches-the-clock-only-through-flagged-commands-on-host-dcvs-adreno-android).
 
 | File | Hunks | Change | Marker |

@@ -9,12 +9,7 @@
 // (at most every PN_GPU_FLOOR_BEAT_MS, default 8). Each submit applies the constraint device-wide (kgsl_pwrctrl_set_constraint): the clock goes to the highest
 // level at once, and the kernel holds it until the owning command has retired and its interval (QCOM_KGSL_IDLE_TIMEOUT, 80 ms by default) has passed, re-armed by
 // every later submit. With no frames (paused, in the background) the beat stops and the floor lapses within that interval. The game's own commands are untouched.
-// Off by default since 0.1.8's release (PN_GPU_FLOOR_BEAT=1 turns it on; live). It runs only where vka_dev.c found the "highest only" form of the constraint (g_kg_host)
-// and DM_VK_GPU_FLOOR > 0. Why off: on the AYN Thor with the 0.1.8 release the app's own windows drawn by Android (the second screen's stats page, the in-game
-// panel) lost their images for single frames a few times a second while it ran (a 5 s screenrecord of the second screen: the cover, the icons and the gear gone or
-// left as stray pixels about 12 times, the whole screen black once; stripes over the card in The Witcher 3), at 13 % GPU load. A kernel context of our own
-// submitting every 8 ms beside Turnip's and the system GL driver's was the one GPU-level change of 0.1.8 in that process; its own frame rate gain was not
-// measured (59.8 fps with and without it in Bonneton). See frame-rate.md's entry.
+// PN_GPU_FLOOR_BEAT=0 turns it off (the old behaviour; live). It runs only where vka_dev.c found the "highest only" form of the constraint (g_kg_host) and DM_VK_GPU_FLOOR > 0.
 #if defined(__ANDROID__)
 #include <errno.h>
 #include <fcntl.h>
@@ -48,7 +43,6 @@ enum { PN_CTX_NO_GMEM_ALLOC = 0x2, PN_CTX_PREAMBLE = 0x10, PN_PWR_CONSTRAINT = 0
 
 static int ioc(int fd, unsigned long req, void *arg) { int r; do r = ioctl(fd, req, arg); while (r < 0 && (errno == EINTR || errno == EAGAIN)); return r < 0 ? -errno : 0; }
 static uint64_t mono_ns(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return (uint64_t)t.tv_sec * 1000000000ull + (uint64_t)t.tv_nsec; }
-enum { BEAT_DEFAULT = 0 };   // PN_GPU_FLOOR_BEAT unset: off (the header's "Why off")
 static int env_int(const char *k, int def) { const char *e = getenv(k); return e && *e ? atoi(e) : def; }
 
 static pthread_mutex_t g_mu = PTHREAD_MUTEX_INITIALIZER;
@@ -56,7 +50,7 @@ static int g_state;   // 0 not set up, 1 ready, -1 off (switched off, or set-up 
 static int g_fd = -1; static unsigned g_ctx, g_buf_id; static uint64_t g_buf_va; static uint64_t g_last_ns, g_beats, g_fail;
 
 static int setup(void) {
-    if (!env_int("PN_GPU_FLOOR_BEAT", BEAT_DEFAULT)) { PLOG("GPU clock floor beat: off (PN_GPU_FLOOR_BEAT=1 turns it on)"); return -1; }
+    if (!env_int("PN_GPU_FLOOR_BEAT", 1)) { PLOG("GPU clock floor beat: off (PN_GPU_FLOOR_BEAT=0)"); return -1; }
     g_fd = open("/dev/kgsl-3d0", O_RDWR | O_CLOEXEC);
     if (g_fd < 0) { PLOG("GPU clock floor beat: /dev/kgsl-3d0 not opened (%d): off", errno); return -1; }
     struct pn_kgsl_drawctxt_create c = {PN_CTX_NO_GMEM_ALLOC | PN_CTX_PREAMBLE | PN_PWR_CONSTRAINT, 0};
@@ -84,7 +78,7 @@ fail:
 
 // vka_dev.c vka_gpu_floor, at each replayed submission's start, on kernels that take only the "highest" constraint: pct is DM_VK_GPU_FLOOR's level (0: no floor)
 void peanuts_gpu_floor_beat(int pct) {
-    if (pct <= 0 || g_state < 0 || !env_int("PN_GPU_FLOOR_BEAT", BEAT_DEFAULT)) return;   // (live through DM_CTL "env": the floor lapses within the kernel's interval)
+    if (pct <= 0 || g_state < 0 || !env_int("PN_GPU_FLOOR_BEAT", 1)) return;   // (live through DM_CTL "env": the floor lapses within the kernel's interval)
     uint64_t now = mono_ns();
     if (g_state && now - g_last_ns < (uint64_t)env_int("PN_GPU_FLOOR_BEAT_MS", 8) * 1000000ull) return;
     pthread_mutex_lock(&g_mu);
