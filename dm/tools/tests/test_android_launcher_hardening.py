@@ -36,6 +36,11 @@ class PinLoop(unittest.TestCase):
         self.assertLess(start.index('if (!started) return;'), start.index('pinStart();'))
         self.assertLess(start.index('stopped = false;'), start.index('pinStart();'))
 
+    def test_a_recreated_screen_knows_the_placement(self):
+        # attach() (a screen recreated while the game runs) calls pinStart: with pinnedAway process-wide it undoes the old screen's placement in top-app
+        self.assertIn('private static boolean pinnedAway;', self.g)
+        self.assertIn('pinStart();', body(self.g, 'prewarmTick();   // PEANUTS: restore the progress cover after recreation', '\n    }\n'))
+
 
 class UserSavesTab(unittest.TestCase):
     def test_the_shown_tab_is_held_weakly(self):

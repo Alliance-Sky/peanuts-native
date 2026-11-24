@@ -299,7 +299,10 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
      * top-app the placement is undone (Native.unpinThreads): Android's move between cpusets left the threads where they were placed
      */
     private final Runnable pinRun = this::pinTick;
-    private boolean topResumed = true, pinnedAway;
+    private boolean topResumed = true;
+    // PEANUTS: static, process-wide as hostInBackground: a screen recreated while the game runs (attach: a fold, a turn) knows the old screen's placement is in
+    // force, and its pinStart undoes it in top-app (an instance field started false there, and the threads stayed on the fast cores)
+    private static boolean pinnedAway;
     private void pinTick() {
         boolean asked = Prefs.pinThreads(this, titleId());
         // PEANUTS: stopped (Home, another app full screen) the game is suspended and Android has the process in background: no placement each second for it
