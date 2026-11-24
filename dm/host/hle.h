@@ -103,6 +103,7 @@ typedef struct sf_req {
 typedef Result (*sf_serve)(sf_req *r);
 unsigned sf_new_object(int slot);                                      // hle_sf.c: the next object ID of a domain session (2, 3, ...; 1 is the session's own)
 uint32_t sf_new_session(const char *name, sf_serve serve);             // hle_sf.c: a host session answered by serve (a moved interface of a plain session)
+int sf_session_slot(uint32_t h);                                        // hle_sf.c: the slot (sf_req.slot) of a host session handle, -1 for none
 int hle_signal_event_handle(uint32_t write_end);                        // hle_thread.c: signal a kernel event by its write end (any thread); 0 when the handle is gone
 // PEANUTS end
 uint32_t hle_new_event(uint32_t *write_end);   // hle_thread.c: a new kernel event's read end (a service's handle copied to its client); its write end in *write_end, none when NULL (never signaled)

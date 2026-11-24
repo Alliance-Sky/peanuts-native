@@ -38,6 +38,7 @@ static uint32_t sf_new(const char *name, int domain, sf_answer answer) {
 // PEANUTS begin: sessions of services that read their requests (hle.h)
 uint32_t sf_new_session(const char *name, sf_serve serve) { uint32_t h = sf_new(name, 0, NULL); g_sf[h - SF_H0].serve = serve; return h; }
 unsigned sf_new_object(int slot) { pthread_mutex_lock(&g_sf_mu); unsigned o = g_sf[slot].next_obj++; pthread_mutex_unlock(&g_sf_mu); return o; }
+int sf_session_slot(uint32_t h) { return sf_slot(h); }
 // PEANUTS end
 
 // PEANUTS begin (upstream-candidate): Scarlet and Violet 4.0.0 initialize BLE during boot. Model a console with no nearby or connected devices.
