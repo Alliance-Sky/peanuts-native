@@ -2729,7 +2729,7 @@ also lacked markers (upstream-update.sh's hunk check).
 |---|---|---|---|
 | `docs/banana-native-README.md`, `docs/banana-native-README.github.md` | links, first line | relative to `docs/`; the credits link goes to the kept README | `<!-- PEANUTS: ... -->` first line |
 | `AGENTS.md` | 1 | the Player pages link goes to `docs/banana-native-README.github.md` (the file stays at 1,500 words) | `<!--PEANUTS-->` |
-| `docs/guides/README.md`, `docs/nxnative.md`, `docs/players/{about,features,history,how-it-works,performance,videos}.md` | 1-2 each | "Back to the main page" and the credits link go to the kept copies | `<!-- PEANUTS: ... -->` at the line's end |
+| `docs/guides/README.md`, `docs/nxnative.md`, `docs/players/about.md`, `docs/players/features.md`, `docs/players/history.md`, `docs/players/how-it-works.md`, `docs/players/performance.md`, `docs/players/videos.md` | 1-2 each | "Back to the main page" and the credits link go to the kept copies | `<!-- PEANUTS: ... -->` at the line's end |
 | `docs/reference/nvn-objects.md`, `docs/reference/threads.md` | 1 each | the `NVNsampler` entry and the Mystery Dungeon line, added for 0.1.8 | `PEANUTS(upstream-candidate)`, `PEANUTS` |
 | `docs/reference/rendering.md`, `docs/reference/services.md` | 1 each | the texture registration entry; the three Android input entries (sensor rate, six-axis history, join screen) | `<!-- PEANUTS -->`, `PEANUTS begin`/`end` |
 | `dm/games/010075101EF84000/README.md`, `dm/games/0100F9D023176000/README.md` | new | Stray's and Viewfinder's notes | `<!-- PEANUTS: a Peanuts Native profile ... -->` |
