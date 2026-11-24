@@ -23,7 +23,7 @@ You need three things from your own console first: your game dumps, your `prod.k
 5. Tap **Firmware**, then **Folder** or **Zip file**, and pick your firmware dump. The row reads **Reading the firmware…** and then **Firmware added from …**. Do this after the keys: the fonts cannot be read without them.
 6. Tap **Show my games**. You should see a grid of covers. A game that can be built has a **Build** label on its cover.
 7. Optional: install a GPU driver in Settings › Graphics › **GPU driver**. See [Which driver is recommended?](#which-driver-is-recommended)
-8. Tap a cover. Its sheet opens with the rows **Base**, **Update**, **DLC** and **Companion**. Check them and tap **Build**. Android asks to allow notifications: allow it, so you can see the progress outside the app.
+8. Tap a cover. Its sheet opens with the rows **Base**, **Update**, **DLC** and **Dual-screen companion**. Check them and tap **Build**. Android asks to allow notifications: allow it, so you can see the progress outside the app.
 9. Wait. The cover shows **Building · N %**. You can leave the app.
 10. When the build ends you see **… is ready to play.** and the cover gets a green check. Tap the cover to play.
 
@@ -150,7 +150,7 @@ Some games also need the fonts to start at all, for example Echoes of Wisdom. If
 2. Add **Keys**, pick the **Game folder**, set **Updates & DLC** if those files are in other folders, and add **Firmware**.
 3. Tap **Show my games**.
 
-Then tap a game's cover to open its sheet. Check the **Base**, **Update**, **DLC** and **Companion** rows and tap **Build**. The build imports the game, prepares it and installs the companion. Only one build runs at a time.
+Then tap a game's cover to open its sheet. Check the **Base**, **Update**, **DLC** and **Dual-screen companion** rows and tap **Build**. The build imports the game, prepares it and installs the companion. Only one build runs at a time.
 
 Later, change the folders in Settings › Library. **Rescan** reads them again.
 
@@ -702,19 +702,19 @@ On Home, open Settings with the top-screen gear or press **X**, as shown under t
 
 ### Which games have a companion?
 
-Settings › Screens › **Companions** shows the catalog: **Your games** first, then **Other companions · add the game first**. Most games on the tested list have a companion: the README's table says which. The catalog is read online, so the list can change without an app update.
+Settings › Screens › **Dual-screen companions** shows the catalog: **Your games** first, then **For games you have not added yet**. Most games on the tested list have a companion: the README's table says which. The catalog is read online, so the list can change without an app update.
 
 ### How do I install a companion for the first time?
 
 With the build (the usual way):
 
 1. Tap the game's cover to open its sheet.
-2. Look at the **Companion** row. It shows the companion's name, version and size, and its switch is on: **Install after the build**.
+2. Look at the **Dual-screen companion** row. It shows the companion's version and size, and **Installs after the build** while its switch is on.
 3. Tap **Build**. The companion is downloaded and installed as the last step.
 
 Later, for a game that is already built:
 
-1. Open Settings › Screens › **Companions**.
+1. Open Settings › Screens › **Dual-screen companions**.
 2. Find the game under **Your games** and tap **Install**.
 3. Wait for the line at the top to read **Installed …**.
 
@@ -724,8 +724,8 @@ What you should see: the row reads **installed** with the version and **up to da
 
 ### How do I see which version is installed, update it, or go back to an earlier one?
 
-- **See the version:** the **Companion** row in the game's sheet, in Settings › Screens › **Companions**, or in the game's **Game** tab. It reads **installed** and the version, then **up to date** or the newer version that is available.
-- **Update:** tap **Update** in Settings › Screens › **Companions** or in the game's **Game** tab. **Rebuild** also updates it.
+- **See the version:** the **Dual-screen companion** row in the game's sheet, in Settings › Screens › **Dual-screen companions**, or in the game's **Game** tab. It reads **installed** and the version, then **up to date** or the newer version that is available.
+- **Update:** tap **Update** in Settings › Screens › **Dual-screen companions** or in the game's **Game** tab. **Rebuild** also updates it.
 - **Go back to an earlier version:**
   1. Open the game's sheet and tap **Versions…** (in the game's **Game** tab the button is **Versions**).
   2. The sheet lists every release, newest first, with its date and size. The installed one is marked **installed**. Tap a row to read its release notes.
@@ -737,7 +737,7 @@ Each download is checked against its published checksum. A release without a che
 
 ### How do I remove a companion, or turn the second screen off for one game?
 
-Remove: tap **Remove** in Settings › Screens › **Companions** or in the game's **Game** tab, or **Remove companion** in the Versions sheet. Close the game first. The game and its saves stay, and the catalog can install the companion again.
+Remove: tap **Remove** in Settings › Screens › **Dual-screen companions** or in the game's **Game** tab, or **Remove companion** in the Versions sheet. Close the game first. The game and its saves stay, and the catalog can install the companion again.
 
 Turn it off without removing it:
 
@@ -772,8 +772,8 @@ The companions are published with screenshots and a description of each at https
 
 The catalog is read from the internet each time. Offline:
 
-- Settings › Screens › **Companions** shows **Catalog unavailable:** and you cannot install or update.
-- A game's sheet may read **No companion in the catalog for this game** even though one exists. Go online and tap Settings › Library › **Rescan**.
+- Settings › Screens › **Dual-screen companions** says **The catalog could not be loaded** and you cannot install or update.
+- A game's sheet may read **No dual-screen companion is available for this game** even though one exists. Go online and tap Settings › Library › **Rescan**.
 - A build still finishes. The game is ready to play without the companion, and you can install it later.
 - A companion that is already installed keeps working. It is on the device.
 - The Versions sheet needs the catalog too, so you cannot switch versions offline.

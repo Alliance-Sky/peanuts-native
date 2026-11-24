@@ -152,7 +152,9 @@ After an app update, rebuilding every game is strongly recommended: hold the cov
 - **Console mode**: Docked or Handheld, for all games in Settings and per game on its page. It can also be changed
   while the game runs, from the in-game panel.
 - **Resolution scale** (first version): 0.5x to 2x of the size the game draws at. Not every effect follows it.
-- **Mods** (first version): hold the cover, **Game** tab, **Mods**. Install a mod from a folder or a zip. It is on
+- **Mods & Cheats**: hold the cover, then **Mods & Cheats**. Cheats work for every game: add a cheat file, a zip or a
+  folder, and each cheat has a switch that works at once, also from the in-game panel's **Mods** tab. Install a mod
+  from a folder or a zip. It is on
   from the game's next start, and each mod has a switch and a delete button. A mod that changes the game's code gets
   a build with mods, which starts by itself (it waits while another build runs). Until that build is ready, the game
   starts without that mod. After a failed build, tap **Build with mods** to try again.
@@ -165,9 +167,10 @@ GPL-3.0-or-later), which is used on the computer only and is not part of the app
 
 ## Companions
 
-Open Settings, then Companions, to see every companion and every release of it. You can install, update, remove or
+Open Settings, then Screens, then Dual-screen companions, to see every companion and every release of it. You can install, update, remove or
 roll back to an earlier release, and each download is checked against its published checksum before it is used. A
-game without a companion leaves the bottom screen free for Android. Companion screens give haptic feedback when you
+game without a companion shows its live stats on the bottom screen, or its cover, or leaves the screen to Android
+(Settings, Screens, **Games without a companion**). Companion screens give haptic feedback when you
 tap them.
 
 The companions themselves are published in
