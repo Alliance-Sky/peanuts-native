@@ -765,6 +765,7 @@ Games read this count as a position in their own command memory and size their h
 - **Fix:** implement submission-local backing and filter finalized texture descriptors from churn walks, stabilizing memory residency to ~7.9 GiB.
 - **Found on:** [The Legend of Zelda: Ocarina of Time](../../dm/games/0400486024DEC000/README.md).
 
+<!-- PEANUTS(upstream-candidate): NVNsampler layout and zeroed trailing bytes for agl's sampler pool deduplication -->
 ### `NVNsampler` layout and uninitialized trailing bytes thrash sampler pool deduplication
 
 - **Symptom:** intermittent 1-frame bloom / exposure brightness flashes in still scenes on both Turnip and Stock Qualcomm, accompanied by ~1,400 `nvnSamplerPoolRegisterSampler` calls per second (`DM_VK_SAMP_LOG=1`) and occasional wrong-LOD bindings (`lod 1..1`–`4..4` instead of `0..0`) on mip-chain passes.
