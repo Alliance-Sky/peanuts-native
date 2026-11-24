@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import dev.nxnative.android.R;
 import dev.peanuts.PeanutsPrefs;
+import dev.peanuts.build.BuiltWith;
 import dev.peanuts.build.PackNote;
 import dev.peanuts.build.Reimport;
 import dev.peanuts.build.SpaceEstimate;
@@ -136,6 +137,7 @@ public final class GameSheet {
         if (without != null) PUi.add(box, PUi.warnChip(a, "Built without DLC shaders", "Built without DLC shaders", String.format(Locale.getDefault(),
                 "Built without %,d of its %,d shaders. They come with DLC that was not imported. The base game runs, and what the DLC adds is "
                 + "drawn without them. Import again takes the DLC found now.", without[0], without[1])), 12);
+        if (ready) renderBuiltWith();
         // Base
         LibraryScanner.Source b = title.base;
         boolean baseGone = b != null && !b.file.exists();
@@ -463,6 +465,34 @@ public final class GameSheet {
             long need = SpaceEstimate.totalNeeded(importBytes + unpackBytes, packBasis, needsImport);
             PUi.add(box, PUi.small(a, "Needs about " + SpaceEstimate.words(need) + " free, a rough estimate." + SpaceEstimate.unpackSentence(unpackBytes)), 14);
         }
+    }
+
+    private BuiltWith.Result builtWith;   // the release that made this game's shaders, once read for this sheet
+    private boolean readingBuiltWith;
+
+    /**
+     * "Built with 0.1.7" (BuiltWith): a quiet line for this app version's shaders or ones the upgrade takes at the next start, a warning chip that points to
+     * Rebuild for older ones, nothing when the version is not known. The library headers are read once per sheet on a thread (a slow SD card must not hold the
+     * sheet, as the space line's walk); the sheet renders again when they say something
+     */
+    private void renderBuiltWith() {
+        if (builtWith == null) {
+            if (readingBuiltWith || title.packDir == null) return;
+            readingBuiltWith = true;
+            File pack = title.packDir;
+            String titleId = title.titleId;
+            new Thread(() -> {
+                BuiltWith.Result r = BuiltWith.of(pack, titleId, dev.nxnative.android.BuildConfig.NX_DMSH_VK_CHAIN);
+                a.runOnUiThread(() -> {
+                    builtWith = r;
+                    if (r.kind != BuiltWith.Kind.UNKNOWN && current == this && dialog != null && dialog.isShowing()) render();
+                });
+            }, "peanuts-built-with").start();
+            return;
+        }
+        String label = BuiltWith.label(builtWith), warning = BuiltWith.warning(builtWith);
+        if (warning != null) PUi.add(box, PUi.warnChip(a, label, label, warning), 12);
+        else if (label != null) PUi.add(box, PUi.small(a, label), 12);
     }
 
     /** The state the pipeline gets, from the sheet as it is now */

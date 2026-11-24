@@ -869,6 +869,8 @@ A game built with 0.1.7 does not need a new build for its shaders: the first tim
 
 In general, rebuilding every game after an app update is recommended. An update can change how a game's code and shaders are prepared, and a game built by an older version keeps the old result until it is built again. Hold the game's cover, open **Storage**, tap **Build again**, then **Rebuild**. Your saves are not touched. It is quick when the game's code is otherwise current. What the update changed is made again, which can take as long as a first build (all the shaders, when the update changed how they are translated); what it did not change is kept from the last build.
 
+The game's sheet, opened with **Build again**, says which app version made its graphics. "Built with 0.1.7" or "Built with this app version" is fine: shaders from 0.1.7 update themselves in a few seconds the next time the game starts. A warning **Built with 0.1.3**, or any version before 0.1.7, means the game still plays but misses the graphics fixes since then, and only **Rebuild** brings them.
+
 ### Will I lose my saves?
 
 No. An update keeps the app's storage, and saves are in it. Uninstalling can delete them: Android asks whether to keep the app's data. Use **Back up saves** first.
