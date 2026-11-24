@@ -371,7 +371,7 @@ def main():
     phone = Phone(serial, a.package)
     check = Check(phone, a.title.upper(), a.keep, a.backup or os.path.join(tempfile.gettempdir(), f'incremental-check-{a.package}'))
     try:
-        if a.package not in phone.sh('pm list packages'): raise SetupError(f'{a.package} is not installed')
+        if f'package:{a.package}' not in phone.sh('pm list packages').split(): raise SetupError(f'{a.package} is not installed')   # whole lines: a.package must not pass as the start of another app's id
         if phone.run_as('echo ok', check=False).strip() != 'ok': raise SetupError(f'{a.package} is not debuggable (run-as)')
         check.save_settings()
     except SetupError as e:
