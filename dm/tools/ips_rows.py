@@ -60,7 +60,9 @@ def main(argv):
     a = list(argv[1:])
     pch = None
     if '--pchtxt' in a:
-        i = a.index('--pchtxt'); pch = a[i + 1]; del a[i:i + 2]
+        i = a.index('--pchtxt')
+        if i + 1 >= len(a): sys.exit(__doc__)   # --pchtxt without its file
+        pch = a[i + 1]; del a[i:i + 2]
     if len(a) != 3: sys.exit(__doc__)
     src, mod_path, out = a
     with open(src, 'rb') as f: patch = f.read()
