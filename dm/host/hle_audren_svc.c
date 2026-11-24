@@ -113,7 +113,7 @@ static int adpcm_step(vstate *s, const rwb *w) {   // decodes sample s->dnext of
 }
 static float adpcm_at(const vstate *s, int64_t i) { return i == s->dnext - 1 ? s->d1 * (1.0f / 32768.0f) : i == s->dnext - 2 ? s->d0 * (1.0f / 32768.0f) : 0; }
 static int64_t wb_len(const vstate *s, const rwb *w) {   // samples of the buffer from its start sample, within its data
-    int64_t have = s->fmt == 6 ? (int64_t)(w->size / 8) * 14 : (int64_t)(w->size / (2 * (s->nch ? s->nch : 1)));
+    int64_t have = s->fmt == 6 ? (int64_t)(w->size / 8) * 14 : (int64_t)(w->size / (2 * (uint64_t)(s->nch ? s->nch : 1)));   // (64-bit: a channel count of 0x80000000 from the game made the 32-bit product 0, a division by zero)
     int64_t e = w->end < have ? w->end : have;
     return e > w->start ? e - w->start : 0;
 }
@@ -206,10 +206,12 @@ static int render_frame(ren_t *r, int16_t *out) {
             }
         }
     }
-    for (int depth = MIX_MAX; depth >= 1; depth--)   // the submixes, the deepest first
+    int dep[MIX_MAX], deepest = 0;   // each mix's depth, once a frame (the loop below asked mix_depth for every mix at every depth: up to 32 x 32 walks of 32 hops, 200 frames a second)
+    for (int k = 0; k < r->nmix; k++) { dep[k] = mix_depth(r, &r->mix[k]); if (dep[k] > deepest) deepest = dep[k]; }
+    for (int depth = deepest; depth >= 1; depth--)   // the submixes, the deepest first
         for (int k = 0; k < r->nmix; k++) {
             const rmix *m = &r->mix[k]; rmix *d;
-            if (!m->use || mix_depth(r, m) != depth || !(d = mix_by_id(r, m->dest))) continue;
+            if (!m->use || dep[k] != depth || !(d = mix_by_id(r, m->dest))) continue;
             for (uint32_t s = 0; s < m->nbuf && m->off + s < MIXBUF; s++)
                 for (uint32_t b = 0; b < d->nbuf && d->off + b < MIXBUF; b++) {
                     float g = m->vol * m->m[s][b]; if (g == 0) continue;
@@ -295,7 +297,7 @@ static Result open_renderer(sf_req *q) {
     pthread_mutex_lock(&g_ren_mu);
     unsigned obj = q->domain ? sf_new_object(q->slot) : 0;
     uint32_t sess = q->domain ? 0 : sf_new_session("audren:r", dm_audren_serve);
-    ren_t *r = ren_new(q->domain ? q->slot : (int)(sess - 0xd0000u), obj, 1);
+    ren_t *r = ren_new(q->domain ? q->slot : sf_session_slot(sess), obj, 1);
     if (!r) { pthread_mutex_unlock(&g_ren_mu); LOG("[RED] audren: more than %d renderers open", REN_MAX); return RES_FAIL; }
     r->rate = p[0] > 0 ? p[0] : 48000; r->samples = p[1] > 0 ? p[1] : 240; r->mixbufs = p[2]; r->voices = p[4]; r->limit = 100;
     r->nv = r->voices > 0 && r->voices <= VOICE_MAX ? r->voices : VOICE_MAX;
@@ -422,7 +424,7 @@ Result dm_audren_serve(sf_req *q) {
             pthread_mutex_lock(&g_ren_mu);
             unsigned obj = q->domain ? sf_new_object(q->slot) : 0;
             uint32_t sess = q->domain ? 0 : sf_new_session("audren:d", dm_audren_serve);
-            ren_new(q->domain ? q->slot : (int)(sess - 0xd0000u), obj, 2);
+            ren_new(q->domain ? q->slot : sf_session_slot(sess), obj, 2);
             pthread_mutex_unlock(&g_ren_mu);
             if (q->domain) q->child = obj; else q->move = sess;
             return RES_OK;

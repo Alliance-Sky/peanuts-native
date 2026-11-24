@@ -787,4 +787,12 @@ peanuts-cheats-alias: $(B)/t_cheats_alias
 peanuts-host: peanuts-cheats-alias
 $(B)/t_cheats_alias: t_cheats.c t_peanuts_cheats_plat.c ../hle_cheats.c ../../peanuts/peanuts_cheats.h ../../peanuts/peanuts_cheats.inc ../dm.h ../dm_input.h $(GAME_H) | $(B)
 	$(CLANG) -O1 -g -Wall -Wno-unused-function $(PN_ASIF) -DPN_CODE=0 -DPN_TEST_ALIAS=1 -I.. $(GINC) -o $@ t_cheats.c t_peanuts_cheats_plat.c -lpthread
+# t_peanuts_audren_svc: the audio renderer service of an SDK with no renderer of its own (hle_audren_svc.c with hle_sf.c, included): the mixer through two submixes,
+# an absurd channel count, a renderer on the session it moves to the client and its close
+.PHONY: peanuts-audren-svc
+peanuts-audren-svc: $(B)/t_peanuts_audren_svc
+	$(B)/t_peanuts_audren_svc
+peanuts-host: peanuts-audren-svc
+$(B)/t_peanuts_audren_svc: t_peanuts_audren_svc.c ../hle_audren_svc.c ../hle_sf.c ../hle.h ../dm.h $(GAME_H) | $(B)
+	$(CLANG) -O1 -g -Wall -Wno-unused-function -fsanitize=address,undefined $(PN_ASIF) -D_GNU_SOURCE -I.. $(GINC) -o $@ t_peanuts_audren_svc.c -lpthread -lm
 # PEANUTS end
