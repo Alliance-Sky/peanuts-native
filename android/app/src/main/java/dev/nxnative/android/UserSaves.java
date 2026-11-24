@@ -201,7 +201,10 @@ public final class UserSaves {   // public: Settings › Users lists a user's sa
         Tab(MainActivity a, Game g, LinearLayout row, View... views) { this.a = new WeakReference<>(a); this.g = g; this.row = row; this.views = views; }
     }
 
-    private static Tab tab;
+    // Weak: the tab's views hold the activity (a static reference kept a destroyed launcher screen, a turn's or a fold's, until the next Saves tab). The cards'
+    // click listeners hold the Tab while its views show
+    private static WeakReference<Tab> tab;
+    private static Tab tab() { WeakReference<Tab> w = tab; return w == null ? null : w.get(); }
 
     /** MainActivity.gameTab: the user cards above the Saves tab's rows, with two or more users or a removed user's save; nothing with one user */
     static void picker(MainActivity a, LinearLayout content, Game g) {
@@ -216,13 +219,15 @@ public final class UserSaves {   // public: Settings › Users lists a user's sa
         row.setBaselineAligned(false);
         scroll.addView(row);
         Ui.add(content, scroll, 8);
-        tab = new Tab(a, g, row, label, scroll);
-        fill(tab);
+        Tab t = new Tab(a, g, row, label, scroll);
+        tab = new WeakReference<>(t);
+        fill(t);
     }
 
     /** MainActivity.gameTab: the line under the rows that names the save folder, kept on the picked user's */
     static void where(TextView t, Game g) {
-        if (tab != null && tab.g.titleId.equals(g.titleId)) tab.where = t;
+        Tab tb = tab();
+        if (tb != null && tb.g.titleId.equals(g.titleId)) tb.where = t;
     }
 
     /** MainActivity.gameTab: Copy to another user, above Delete save data, with two or more users or a removed user's save */
@@ -231,7 +236,8 @@ public final class UserSaves {   // public: Settings › Users lists a user's sa
         Ui.Setting s = new Ui.Setting(a, "", "Copy to another user", v -> copy(a, g)).chevron(a);
         dev.peanuts.users.UserFace.rowIcon(a, s.view, "user");
         saves.addView(s.view);
-        if (tab != null && tab.g.titleId.equals(g.titleId)) tab.copy = s;
+        Tab tb = tab();
+        if (tb != null && tb.g.titleId.equals(g.titleId)) tb.copy = s;
         copyLine(a, g, s);
     }
 
@@ -242,7 +248,7 @@ public final class UserSaves {   // public: Settings › Users lists a user's sa
 
     /** SaveUi.run, when a backup, restore, import, delete or copy is done: the cards and lines again */
     static void changed(MainActivity a, Game g) {
-        Tab t = tab;
+        Tab t = tab();
         if (t == null || t.a.get() != a || !t.g.titleId.equals(g.titleId) || !t.row.isAttachedToWindow()) return;
         fill(t);
     }
