@@ -2683,6 +2683,10 @@ int vka_tex_b2t_mirror(VkCommandBuffer cb, const vka_img *im, const tex_t *t, un
     vk.vkCmdPushDescriptorSetKHR(cb, VK_PIPELINE_BIND_POINT_COMPUTE, g_tiled_wb_layout, 0, 2, writes);
     vk.vkCmdPushConstants(cb, g_tiled_wb_layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof g, g);
     vk.vkCmdDispatch(cb, (uint32_t)groups, 1, 1);
+    // PEANUTS(upstream-candidate): recorded between the game's dispatches (copy_bt), so their last compute push is no longer what is bound (another layout disturbs set 0): the next
+    // dispatch pushes again (vka_draw.c push_same, DM_VK_PUSH_DEDUP), as after nf_pass and the NaN scan. Without it a dispatch with the same descriptors as the one before the copy
+    // ran with this pass's two storage buffers bound
+    vka_dyn_invalidate();
     vka_barrier(cb);   // later copies and reads of the storage see it
     vka_tex_gw_opaque((uint64_t)(uintptr_t)t->mem + base, bytes);   // other images over the range are uploaded again once the write is done (the copy's own image is gpu_owned: it keeps its content)
     static _Atomic unsigned logs; unsigned n = atomic_fetch_add(&logs, 1);
