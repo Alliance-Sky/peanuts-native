@@ -186,7 +186,7 @@ class AnimalCrossing(unittest.TestCase):
         self.assertTrue(all(why.startswith('ACNH 60 FPS + SpeedFix (tmouh): ') for *_, why in cuts))
         self.assertEqual(len({o for o, *_ in cuts}), len(cuts), 'no offset twice')
         self.assertFalse(getattr(m, 'CUTS', {}), "the game's own code has no cut")
-        for rel, sha in m.SPEEDFIX_SHA256.items():
+        for rel, sha in m._SPEEDFIX_SHA256.items():
             self.assertEqual(hashlib.sha256((ACNH / rel).read_bytes()).hexdigest(), sha, rel)
 
     def test_the_game_data_rows(self):

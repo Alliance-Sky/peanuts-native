@@ -14,7 +14,7 @@ import hashlib, os
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _MAIN = 'ff1d1c05670db6021c85b624a710b963'   # 3.0.3 (v2228224)
-SPEEDFIX_SHA256 = {
+_SPEEDFIX_SHA256 = {
     'speedfix60/main.tsv': 'be0da9559c4981877edbd5ce3406676095231f875e2dfa61e56938ea7063b32b',
     'speedfix60/romfs.tsv': 'e4fa67842fd1c3505fd06403d9354b875c1c8fbd5926b5bf2d6645f964ecf84f',
 }
@@ -24,7 +24,7 @@ def _rows(rel):
     """The cut rows (offset, original hex, new hex, reason) of a speedfix60 rows file: <offset> <original> <new>, the comment line above a group its reason"""
     path = os.path.join(_HERE, *rel.split('/'))
     with open(path, 'rb') as f: data = f.read()
-    assert hashlib.sha256(data).hexdigest() == SPEEDFIX_SHA256[rel], f'{rel}: not the file this patches.py pins (SPEEDFIX_SHA256)'
+    assert hashlib.sha256(data).hexdigest() == _SPEEDFIX_SHA256[rel], f'{rel}: not the file this patches.py pins (_SPEEDFIX_SHA256)'
     out, why = [], ''
     for line in data.decode('utf-8').splitlines():
         if not line.strip(): continue
@@ -37,10 +37,10 @@ def _rows(rel):
 def _have():
     """Whether both data files are here, as pinned. An APK without this game carries every profile's patches.py but not this folder (android/app/build.gradle
     tools.zip): the variant is then simply not there, and no other game's rewrite is stopped by it. A file that is here but not as pinned is an error"""
-    paths = {rel: os.path.join(_HERE, *rel.split('/')) for rel in SPEEDFIX_SHA256}
+    paths = {rel: os.path.join(_HERE, *rel.split('/')) for rel in _SPEEDFIX_SHA256}
     if not all(os.path.isfile(p) for p in paths.values()): return False
     for rel, p in paths.items():   # the game data rows are read by the pack step, not here: only their bytes are checked
-        with open(p, 'rb') as f: assert hashlib.sha256(f.read()).hexdigest() == SPEEDFIX_SHA256[rel], f'{rel}: not the file this patches.py pins (SPEEDFIX_SHA256)'
+        with open(p, 'rb') as f: assert hashlib.sha256(f.read()).hexdigest() == _SPEEDFIX_SHA256[rel], f'{rel}: not the file this patches.py pins (_SPEEDFIX_SHA256)'
     return True
 
 
