@@ -47,7 +47,7 @@ def _names(node):
 def init(script, path, data, redo):
     """Pool initializer: the script's namespace in this worker (see the header)"""
     sys.path[:0] = [p for p in path if p not in sys.path]
-    tree = ast.parse(open(script, encoding='utf-8').read(), script)
+    with open(script, encoding='utf-8') as f: tree = ast.parse(f.read(), script)
     ns = {'__name__': '__dm_rewrite_worker__', '__file__': script, '__builtins__': builtins}
     run = lambda nodes: exec(compile(ast.Module(body=nodes, type_ignores=[]), script, 'exec'), ns)
     run([n for n in tree.body if isinstance(n, (ast.Import, ast.ImportFrom))])
