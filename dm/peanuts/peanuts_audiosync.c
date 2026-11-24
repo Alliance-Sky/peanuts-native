@@ -39,7 +39,8 @@ enum { WS_S = 1440, WS_O = 384, WS_W = 480, WS_IN = 8192, WS_OUT = 8192 };
 #define SLEW_PER_S 0.30
 
 static _Atomic uint64_t g_game_ns, g_last_frame_ns;   // present thread → render threads
-static int g_on = -1;            // PN_AUDIO_FOLLOW: 0 off, 1 automatic, 2 always
+static _Atomic int g_on = -1;    // PN_AUDIO_FOLLOW: 0 off, 1 automatic, 2 always (cfg stores it last, after the taps and g_mark)
+static pthread_mutex_t g_cfg_mu = PTHREAD_MUTEX_INITIALIZER;   // cfg runs once; its first callers can be the render thread and the game's thread (pn_as_resync) at once
 static _Atomic int g_coupled;    // automatic: the game showed that it keeps its sound in step with its frames
 static _Atomic uint64_t g_rs_t[1];   // the last resync seen while the game ran slow (pn_as_resync)
 static char g_mark[600];         // <DM_TEMP>/audio_follow: the finding, kept for the next starts
@@ -86,16 +87,20 @@ static void taps_init(void) {
 }
 
 static void cfg(void) {
-    if (g_on >= 0) return;
+    if (atomic_load_explicit(&g_on, memory_order_acquire) >= 0) return;
+    pthread_mutex_lock(&g_cfg_mu);   // a second first caller waits here, not reading the taps while the first one writes them
+    if (atomic_load_explicit(&g_on, memory_order_relaxed) >= 0) { pthread_mutex_unlock(&g_cfg_mu); return; }
     const char *e = getenv("PN_AUDIO_FOLLOW");
-    g_on = e ? atoi(e) : 1;
-    if (g_on < 0 || g_on > 2) g_on = 1;
-    if (g_on) taps_init();
+    int on = e ? atoi(e) : 1;
+    if (on < 0 || on > 2) on = 1;
+    if (on) taps_init();
     const char *t = getenv("DM_TEMP");
-    if (t && *t) { snprintf(g_mark, sizeof g_mark, "%s/audio_follow", t); FILE *f = g_on == 1 ? fopen(g_mark, "r") : NULL; if (f) { fclose(f); atomic_store(&g_coupled, 1); } }
-    AS_LOG("peanuts: the sound follows the game's pace: %s", g_on == 0 ? "off (PN_AUDIO_FOLLOW=0)" : g_on == 2 ? "always (PN_AUDIO_FOLLOW=2)"
+    if (t && *t) { snprintf(g_mark, sizeof g_mark, "%s/audio_follow", t); FILE *f = on == 1 ? fopen(g_mark, "r") : NULL; if (f) { fclose(f); atomic_store(&g_coupled, 1); } }
+    AS_LOG("peanuts: the sound follows the game's pace: %s", on == 0 ? "off (PN_AUDIO_FOLLOW=0)" : on == 2 ? "always (PN_AUDIO_FOLLOW=2)"
            : atomic_load(&g_coupled) ? "yes, this game keeps its sound in step with its frames (found on an earlier start: <DM_TEMP>/audio_follow)"
            : "within 1 % until the game shows that it keeps its sound in step with its frames (PN_AUDIO_FOLLOW=1; 0 off, 2 always)");
+    atomic_store_explicit(&g_on, on, memory_order_release);
+    pthread_mutex_unlock(&g_cfg_mu);
 }
 
 static double clampd(double v, double lo, double hi) { return v < lo ? lo : v > hi ? hi : v; }
