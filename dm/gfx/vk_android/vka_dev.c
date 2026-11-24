@@ -1142,18 +1142,21 @@ static double g_p90_sum; static uint64_t g_p90_n;
 // aiming at the current period (50 ms, or the 33.3 ms cap the auto floor had) sees that frame on target and never raises the clock. Aiming at the shortest period keeps the
 // clock where the game can step back up. DM_VK_GPU_FLOOR_PERIOD=<ms> (live; default 0 = the shortest period) sets it instead (33.3: the cap before 2026-11-05)
 _Atomic int64_t vka_period_min_ns;   // the shortest present period the game asked for (vka_perf.c vka_perf_frame); 0 = none yet
-int64_t vka_floor_period_ns(void) {
-    double ms = VKA_ENVF("DM_VK_GPU_FLOOR_PERIOD", 0.0);
-    if (ms >= 4 && ms <= 200) return (int64_t)(ms * 1e6);
-    int64_t m = atomic_load_explicit(&vka_period_min_ns, memory_order_relaxed), v = 16666667;
-    int64_t target = m >= 4000000 && m < v ? m : v;
+// PEANUTS: a period no shorter than the active frame cap's (hle_fpslock.c dm_fps_cap_get, else the frame limit): the GPU floor's period here and the ADPF target (vka_perf.c), one rule
+int64_t vka_cap_period_clamp(int64_t ns) {
     int dm_fps_cap_get(void) __attribute__((weak)), nxhost_fps_limit_get(void) __attribute__((weak));
     int cap = &dm_fps_cap_get ? dm_fps_cap_get() : (&nxhost_fps_limit_get ? nxhost_fps_limit_get() : 0);
     if (cap > 0) {
         int64_t cap_ns = 1000000000ll / cap;
-        if (cap_ns > target) return cap_ns;
+        if (cap_ns > ns) return cap_ns;
     }
-    return target;
+    return ns;
+}
+int64_t vka_floor_period_ns(void) {
+    double ms = VKA_ENVF("DM_VK_GPU_FLOOR_PERIOD", 0.0);
+    if (ms >= 4 && ms <= 200) return (int64_t)(ms * 1e6);
+    int64_t m = atomic_load_explicit(&vka_period_min_ns, memory_order_relaxed), v = 16666667;
+    return vka_cap_period_clamp(m >= 4000000 && m < v ? m : v);   // PEANUTS: (vka_cap_period_clamp)
 }
 void vka_floor_span(uint64_t frame, uint64_t ns) {           // the completion thread: a submission of frame ended ns after the frame began
     unsigned k = frame % FSPAN;
