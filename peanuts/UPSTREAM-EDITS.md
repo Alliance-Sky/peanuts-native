@@ -2717,3 +2717,18 @@ Peanuts' own files, no marker: `dm/host/hle_audren_svc.c` (each mix's depth once
 | `dm/gfx/tools/ttdat.py` | 3 | a damaged DAT is a `ValueError`: a name whose parent is past the name table (its `IndexError` ended the whole split), a chunk stream that ends inside an op and a chunk header cut short (each left a whole range of the archive's files unscanned instead of one file) | `PEANUTS` (file header) |
 | `dm/gfx/tools/vk_android_upgrade.py` | 1 | `descriptor_names`: SPIR-V that is no whole number of words, or whose instruction runs past the end, is a refusal (exit 3), not an `IndexError` (exit 1). The upgraded library of a good one is unchanged | Peanuts' own file |
 | `dm/tools/tests/test_split_ttdat.py`, `dm/tools/tests/test_vk_android_upgrade.py` | 1-2 each | the damaged inputs above | `PEANUTS` |
+
+### Upstream's player pages kept in docs/: links that reach them (2026-11-24, 0.1.8 release check)
+
+`README.md` is Peanuts Native's front page and upstream's `.github/README.md` is gone (GitHub would show it in place of the front page); upstream's two player
+pages are kept as `docs/banana-native-README.md` and `docs/banana-native-README.github.md`. `dm/tools/tests/test_docs.py` (every relative link resolves) failed
+on 40 links since 0.1.1: the kept copies' links were relative to the repository's top, and upstream's pages linked `.github/README.md`. The docs added for 0.1.8
+also lacked markers (upstream-update.sh's hunk check).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `docs/banana-native-README.md`, `docs/banana-native-README.github.md` | links | relative to `docs/`; the credits link goes to the kept README | Peanuts' own copies |
+| `AGENTS.md` | 1 | the Player pages link goes to `docs/banana-native-README.github.md` (the file stays at 1,500 words) | `<!--PEANUTS-->` |
+| `docs/guides/README.md`, `docs/nxnative.md`, `docs/players/{about,features,history,how-it-works,performance,videos}.md` | 1-2 each | "Back to the main page" and the credits link go to the kept copies | `<!-- PEANUTS: ... -->` at the line's end |
+| `docs/reference/nvn-objects.md`, `docs/reference/threads.md` | 1 each | the `NVNsampler` entry and the Mystery Dungeon line, added for 0.1.8 | `PEANUTS(upstream-candidate)`, `PEANUTS` |
+| `dm/games/010075101EF84000/README.md`, `dm/games/0100F9D023176000/README.md` | new | Stray's and Viewfinder's notes | `<!-- PEANUTS: a Peanuts Native profile ... -->` |
