@@ -800,7 +800,7 @@ def rewrite_variants(py, srcs, out, g, in_process=False, modded=()):   # PEANUTS
             else:
                 with open(log, 'w') as f:
                     rc = subprocess.call([py, str(REPO / 'dm/tools/patch_nso.py'), *args], env=child_env(DM_GAME=g.id, DM_PATCH_VARIANT=v), stdout=f, stderr=subprocess.STDOUT)
-            if rc and m in modded:   # PEANUTS: a build with code mods: the variant's cuts assert the game's own bytes, which a mod changed (Animal Crossing: New Horizons'
+            if rc and rc > 0 and m in modded:   # PEANUTS: a build with code mods (a worker the system killed, rc < 0, is an error as any other): the variant's cuts assert the game's own bytes, which a mod changed (Animal Crossing: New Horizons'
                 # 60 fps speed fix imported as a mod beside its built-in variant). That build has no variant of its own; the pack is made all the same
                 print(f'  variant {v}: not made, a mod changes {m} (patch_nso.py exit code {rc}: {" / ".join(log.read_text(errors="replace").splitlines()[-2:])})', flush=True)
                 shutil.rmtree(vout, ignore_errors=True); break

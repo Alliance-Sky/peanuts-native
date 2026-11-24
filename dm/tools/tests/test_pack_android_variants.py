@@ -194,9 +194,10 @@ class VariantRewrite(unittest.TestCase):
             self.addCleanup(setattr, pack_android, name, getattr(pack_android, name))
         pack_android.rewrite_key = lambda src, g: 'k'
 
-    def run_(self):
+    def run_(self, modded=()):
         with redirect_stdout(io.StringIO()):
-            pack_android.rewrite_variants(sys.executable, {'main': self.src}, self.d / 'pack', G(self.d, [('variant', '60', 'main', '60fps')]), in_process=True)
+            pack_android.rewrite_variants(sys.executable, {'main': self.src}, self.d / 'pack', G(self.d, [('variant', '60', 'main', '60fps')]), in_process=True,
+                                          modded=modded)
 
     def test_in_the_worker(self):
         (self.d / 'pack').mkdir()
@@ -211,6 +212,22 @@ class VariantRewrite(unittest.TestCase):
         self.run_()
         self.assertEqual([(k, e.get('DM_PATCH_VARIANT'), e.get('DM_REWRITE_J')) for k, e in self.calls], [('in process', '60', '1')])
         self.assertTrue((self.d / 'pack/60/main.android.key').is_file())
+
+    def test_a_failed_worker_is_an_error_with_no_second_try(self):
+        for rc, modded in ((1, ()), (-9, ()), (-9, ('main',))):   # -9: the low-memory killer ended the worker, also in a build whose mods change main
+            with self.subTest(rc=rc, modded=modded):
+                self.calls.clear(); shutil.rmtree(self.d / 'pack', ignore_errors=True); (self.d / 'pack').mkdir()
+                pack_android.pn_rewrite_worker = self.fake('worker', rc); pack_android.run_in_process = self.fake('in process', 0)
+                with self.assertRaises(pack_android.Error): self.run_(modded)
+                self.assertEqual([k for k, _ in self.calls], ['worker'])
+                self.assertFalse((self.d / 'pack/60/main.android.key').exists())
+
+    def test_a_mod_that_changes_the_module_drops_the_variant(self):
+        (self.d / 'pack').mkdir()
+        pack_android.pn_rewrite_worker = self.fake('worker', 1); pack_android.run_in_process = self.fake('in process', 0)
+        self.run_(('main',))
+        self.assertEqual([k for k, _ in self.calls], ['worker'])
+        self.assertFalse((self.d / 'pack/60').exists())
 
 
 def load_patches():
