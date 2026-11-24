@@ -260,6 +260,8 @@ The games tested for 0.1.1 were Link's Awakening, Echoes of Wisdom, Fire Emblem:
 
 0.1.7 adds Trails in the Sky 1st Chapter, Yoshi's Crafted World, Tetris Effect: Connected, New Pokémon Snap, Digimon Story Time Stranger, Hogwarts Legacy and Star Ocean The Second Story R. Build New Pokémon Snap on the phone: the PC builder cannot build it yet.
 
+0.1.8 adds Stray, 13 Sentinels: Aegis Rim, Captain Toad: Treasure Tracker, Advance Wars 1+2: Re-Boot Camp, FANTASY LIFE i: The Girl Who Steals Time, Pokémon: Let's Go, Pikachu!, Pokémon: Let's Go, Eevee!, Viewfinder, SPY×ANYA: Operation Memories, Super Mario RPG, WarioWare: Get It Together!, LEGO 2K Drive, LEGO CITY UNDERCOVER, LEGO MARVEL Super Heroes, Minecraft Dungeons II, The Witcher 3: Wild Hunt Complete Edition and Pokémon Mystery Dungeon: Rescue Team DX. Play the two Pokémon: Let's Go games with a Turnip driver: Qualcomm's own driver draws the 3D scene of Let's Go, Pikachu! black, and Let's Go, Eevee! was not tried on it. Build Pokémon Mystery Dungeon: Rescue Team DX from its base game 1.0.0.
+
 The 0.1.5 verification build was checked on an AYN Thor with Turnip v26.2.0 R5. Demon Slayer 2 reached the playable rooftop fight against Daki at about 30 fps. Tears of the Kingdom reached the opening cave and responded to movement. Kirby and the Forgotten Land prepared all 418 pipeline keys on its first launch, then reused the cache on relaunch. The other six additions have earlier, game-specific device checks.
 
 Settings › **About** › **Games** lists the games of the app you have installed, each with the version it builds.
@@ -426,7 +428,11 @@ Games take the handheld's own buttons and sticks, external controllers and on-sc
 
 ### What frame rate do games run at?
 
-Most supported games run at 60 fps on the Thor. Animal Crossing: New Horizons runs at 30, as on the Switch. A few games that are 30 on the Switch run at 60 here because the app changes the game's frame step, for example Octopath Traveler 0 and Pokémon Sword. Some games lower their own rate in heavy scenes. The speed settings are **Frame rate cap**, **Hold 60 fps** and **Full game speed**.
+Most supported games run at 60 fps on the Thor. A few games that are 30 on the Switch run at 60 here because the app changes the game's frame step, for example Octopath Traveler 0 and Pokémon Sword. Some games lower their own rate in heavy scenes. The speed settings are **Frame rate cap**, **Hold 60 fps** and **Full game speed**.
+
+**Frame rate cap** lists only the caps the game can hold. A cap above the highest refresh rate of your screen shows greyed out and says why; a cap you saved before stays saved and runs at the screen's rate. Some picks apply at the game's next start, and the row says so.
+
+Animal Crossing: New Horizons runs at 30 by default, as on the Switch (**Game owned**). For update 3.0.3 its **Frame rate cap** also offers **60 fps**: the game then starts with tmouh's ACNH 60 FPS + SpeedFix built in, which keeps the game at its normal speed at 60 fps. Nothing to install; the pick applies at the next start. A build made before 0.1.8 does not have it yet: the game starts at 30 and says to build it again.
 
 ### What is Peanuts cracked?
 
@@ -458,13 +464,33 @@ Yes. **Resolution scale** is in Settings › Graphics and in each game's setting
 
 It works on the app's side, so it is there for every game, but not every part of a picture follows it. Some effects (a blur, an outline, anti-aliasing) are made for the game's own size and can look a little different, and a game that reads its picture back, or passes it through its own upscaler, keeps that part at 1x. If a game looks wrong with it, set it back to 1x for that game and tell us which game and which scale. Games that have their own **Resolution** and **Upscaling quality** rows do not show this one.
 
+### Can I change how the overlay looks?
+
+Yes. Settings › Graphics › **Overlay**, then tap the row. **Style** is **Table** (the default), **Pill** or **Classic**. The pill is one line that floats at the top centre: the frame rate, a short graph of the newest frames and the temperature, and more with the **Full** preset. **Preset** is **Minimal**, **Normal**, **Full** or **Custom** (each item by hand). **Position** has six places, **Size** goes from 75% to 200%, and **With bottom stats** hides the overlay while the second screen shows the game's stats.
+
+### What do Fit, Stretch and Fill the screen do?
+
+The game's page › **Graphics** › **Display** (the **Performance** tab on a narrow screen). **Fit (keep aspect)**, the default, keeps the game's 16:9 picture with bars on a screen of another shape. **Stretch to screen** fills the screen by stretching the picture. Some games also offer **Fill the screen**: the game draws for your screen's shape, with nothing stretched and no bars, from its next start. Most games that offer it have not been tried that way on a device yet, and the choice then says so: if the game looks wrong or does not start, pick **Fit** to go back.
+
+### Is there a CRT look?
+
+Yes. Settings › Graphics › **CRT filter** is **Off**, **Scanlines**, **CRT** (scanlines, a mask and a vignette) or **Curved CRT** for every game; each game can have its own in its page's **Graphics** area. The in-game panel's **Display** tab changes it while you play.
+
+### Can I play on a TV or monitor?
+
+By default the device decides what a connected TV or monitor shows, as for any other app, and Peanuts Native keeps its own pages off it: a TV is never taken for the second screen. Settings › Screens › **TV and monitors** › **Play on the TV** starts a game full screen on the TV or monitor instead. The screen the game left goes black while it plays there, and a companion stays on the second screen.
+
 ### What is Tester settings?
 
 A switch in Settings › Developer. Off, a game that has **Resolution** choices shows just those. On, it also shows the rows made for testing: advanced resolution, **Upscaler** and **Dynamic resolution**. Leave it off unless you are trying things out or were asked to change one of those rows.
 
 ### Where are a game's own settings, such as its language?
 
-Hold its cover. The page has four tabs: **Performance**, **Game**, **Saves** and **Storage**. A game's settings override the defaults in Settings. **Reset to defaults** puts them back. The game's language is **Game** tab › **Game language**.
+Hold its cover. A game's settings override the defaults in Settings. **Reset to defaults** puts them back.
+
+On a wide screen, such as the AYN Thor's top screen, a tablet or a phone on its side, the page shows the game at the left (its cover, version, play time and **Play**) and its settings as areas at the right: **Graphics**, **Mods & Cheats**, **Saves**, **Game options**, **Controls**, **Companion**, **Files**, **Help** and **Advanced**. A opens an area, L1 and R1 step through them, B goes back. On a narrow screen the page has four tabs instead: **Performance**, **Game**, **Saves** and **Storage**.
+
+This FAQ names the tabs. On a wide screen: **Performance** is **Graphics**, the **Game** tab's rows are in **Game options**, **Mods & Cheats** and **Companion**, and **Storage** is **Files**. The game's language is **Game options** › **Game language** (**Game** tab › **Game language** on a narrow screen).
 
 ### Can I turn off the vibration and the animations in the app?
 
@@ -666,7 +692,11 @@ With a controller connected, each button shows the controller button that does t
 
 In Settings, the second screen explains what the D-pad is on: a section with its rows and their values, or a row with what it does, its value now and the app default. A switch can be flipped there too.
 
-During a game without a companion the second screen is Android's, as before. Settings › Screens › **Games without a companion** puts the game's live stats there instead: the frame rate against the game's target and how many frames are on pace, a frame-time graph, the 1% low, the GPU's load and clock, the CPU's clock, the SoC's temperature, the battery's power in watts and the time left, the RAM, and whether the phone is throttling; tap it again for the game's cover. The gear in the stats card's corner picks what it shows (**Simple**, **Normal**, **Full**, or each item by hand) and the screen guards for an OLED panel: a black background, a pixel shifter that moves the page a pixel every 30 seconds, dimmer fixed labels, a dim after 10 minutes without a touch and a black screen after 30. A touch brings it back. The choices are kept for every game.
+During a game without a companion the second screen shows the game's live stats by default (Settings › Screens › **Games without a companion**, which can also show the game's cover or leave the screen to Android): the frame rate against the game's target and how many frames are on pace, a frame-time graph, the 1% low, the GPU's load and clock, the CPU's clock, the SoC's temperature, the battery's power in watts and the time left, the RAM, and whether the phone is throttling; tap it again for the game's cover. The gear in the stats card's corner picks what it shows (**Simple**, **Normal**, **Full**, or each item by hand) and the screen guards for an OLED panel: a black background, a pixel shifter that moves the page a pixel every 30 seconds, dimmer fixed labels, a dim after 10 minutes without a touch and a black screen after 30. A touch brings it back. The choices are kept for every game.
+
+Tap the console mode (**DOCKED** or **HANDHELD**) or the frame rate on the stats page to change it for the running game, as the in-game panel does. While the stats page shows, the overlay over the game hides, since the same values are below; Settings › Graphics › **Overlay** › **With bottom stats** brings it back.
+
+A four-finger tap on the game hides the companion or the stats page and gives the second screen to Android until the next four-finger tap, which shows it again.
 
 On Home, open Settings with the top-screen gear or press **X**, as shown under the gear. The second screen also has a Settings button. To give the second screen back to Android while you are in the launcher, turn off Settings › Screens › **Bottom screen**. This setting controls the launcher and the optional cover shown while playing without a companion.
 
@@ -766,8 +796,8 @@ Local mods only: `romfs` file replacements, cheats, `exefs` code and IPS patches
 Mods are in the game's page, not in the build sheet. The game must be built first: for a game that is not built the section reads **Build the game first**.
 
 1. Hold the game's cover. Its page opens.
-2. Open the **Game** tab and find the **Mods** section, above **Companion**.
-3. Tap **Install mod…** and pick the mod's **Folder** or **Zip file**. Atmosphère-layout folders and plain `romfs`/`exefs` folders are recognized.
+2. Open **Mods & Cheats** (on a narrow screen: the **Game** tab › **Mods & Cheats**), and pick **Mods** at its top.
+3. Tap **Add** and pick the mod's folder or zip file. Atmosphère-layout folders and plain `romfs`/`exefs` folders are recognized.
 4. The mod appears in the list, turned on. The line under its name says what it carries: **Files**, **Cheats** or **Code**. Files and cheats apply at the game's next start. A mod with code is built by itself, see [What is a build with mods?](#what-is-a-build-with-mods)
 
 A mod made for another game, or for another version of the game, is refused with a message that names the build or title ID it is for. Nothing is installed then.
@@ -789,6 +819,12 @@ A build that failed or was cancelled does not start again by itself. Tap **Build
 A mod that hooks the game through an `.ips` patch and a module of its own can work this way: Luminescent Platinum on Pokémon Brilliant Diamond builds and runs. A mod that patches the game's code while the game runs (exlaunch-style hooks) does not work yet. The section then shows **A module's hooks will not run** before you build. If a set of mods cannot be built at all, it shows **Cannot build with these mods** and the reason.
 
 Once it reads **Ready**, every start of the game uses the mods that are on: the page's **Play**, a tap on the cover, a home screen shortcut. Turn a mod off or delete it and the game starts without it. While code mods are on but their build is not ready yet (it is running, waiting or failed), the game starts without them and says so. Nothing of a code mod is used then, not its files or cheats either: they belong to its code. Mods that are only files or cheats apply either way. If you change which code mods are on, the new set is built by itself, and a set that was built before is used again as it is. After you rebuild the game itself, replace a mod's files or update the app, tap **Rebuild with mods**: it redoes the parts that changed and keeps the rest.
+
+### How do I use cheats?
+
+Open the game's page › **Mods & Cheats**. Cheats that come with the app are listed there. **Add** takes a cheat file (`.txt`), a `.zip` or a folder, in the Atmosphère, Eden, Yuzu or Ryujinx layout. Each cheat has a switch; a switch works at once while the game runs and is kept for its next start. A file made for another game is refused, and one for another version of the game asks first.
+
+While you play, the in-game panel has a **Mods** tab with the same switches, each with its state (**Running**, the buttons it waits for, **Not possible here** or **Next start**). A cheat that sets a number has a field to change it; the cheat file itself is never changed. Settings › Controls › **Mods tab** turns the tab off.
 
 ## Troubleshooting
 
@@ -829,7 +865,9 @@ A screenshot or a short video helps for a wrong picture. Never attach or link ga
 
 ### Do I need to rebuild my games after an update?
 
-Rebuilding every game after an app update is strongly recommended. An update can change how a game's code and shaders are prepared, and a game built by an older version keeps the old result until it is built again. Hold the game's cover, open **Storage**, tap **Build again**, then **Rebuild**. Your saves are not touched. It is quick when the game's code is otherwise current. What the update changed is made again, which can take as long as a first build (all the shaders, when the update changed how they are translated); what it did not change is kept from the last build.
+A game built with 0.1.7 does not need a new build for its shaders: the first time you play it on 0.1.8 they are updated in a few seconds (**Updating shaders**), instead of being made again. If that cannot be done for a game, it plays with its old shaders and offers the shader update as before. Animal Crossing: New Horizons needs **Build again** for its new 60 fps choice.
+
+In general, rebuilding every game after an app update is recommended. An update can change how a game's code and shaders are prepared, and a game built by an older version keeps the old result until it is built again. Hold the game's cover, open **Storage**, tap **Build again**, then **Rebuild**. Your saves are not touched. It is quick when the game's code is otherwise current. What the update changed is made again, which can take as long as a first build (all the shaders, when the update changed how they are translated); what it did not change is kept from the last build.
 
 ### Will I lose my saves?
 
