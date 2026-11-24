@@ -576,6 +576,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
     /** The DM_ switches this build reads (BuildConfig.NX_ENV_SWITCHES, from docs/env_switches.tsv) */
     static final java.util.Set<String> KNOWN_SWITCHES = new java.util.HashSet<>(java.util.Arrays.asList(BuildConfig.NX_ENV_SWITCHES.split(" ")));
     private final List<String> unknownNotes = new ArrayList<>();
+    private final List<String> quietNotes = new ArrayList<>();   // PEANUTS: start lines for the log only, no toast (a default frame rate's missing variant)
     private List<String> advNotes = new ArrayList<>();   // the [adv] log lines: every override in effect and where it came from (AdvancedSettings.notes)
     private String shapeNote;   // Aspect ratio › Screen shape: the window it read and the shape passed, for the log
     private int readinessEnv;   // the lines the readiness check ran with (readinessHold), for the log
@@ -654,7 +655,9 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
                 fpsVariantMissing = true;
                 fpsModeAtStart = FrameRateCaps.GAME_OWNED;
                 String note = "[nxlaunch] frame rate: the build has no complete " + fv + " variant (pack.tsv variant row and " + fv + "/main.patched.bin): started Game owned";
-                if (!unknownNotes.contains(note)) unknownNotes.add(note);   // settingsEnv runs for the readiness check too
+                // PEANUTS: the 60 only the default (FrameRateCaps.defaultLimit), not the player's pick: the log line alone, no toast (the game as it is works)
+                List<String> to = Prefs.chosenFpsCap(this, id) ? unknownNotes : quietNotes;
+                if (!to.contains(note)) to.add(note);   // settingsEnv runs for the readiness check too
             }
         }
         // PEANUTS end
@@ -684,7 +687,8 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
                 if (prof == null || !prof.elapsedFrameStep) env.add("DM_FPS_TARGET=0");
                 if (prof != null && (prof.optInPresentRate() || prof.elapsedFrameStep)) env.add("DM_PRESENT_INTERVAL=display");
             }
-            if (Prefs.chosenFpsCap(this, id)) { int pace = Prefs.paceCap(this, id); env.add("DM_FPS_LIMIT=" + limitRate(pace)); }   // PEANUTS: limitRate, at most the display's highest rate
+            // PEANUTS: and a game that starts at its default limit (FrameRateCaps.defaultLimit), which its profile's own limit (none for opt-in present pacing) is not
+            if (Prefs.chosenFpsCap(this, id) || FrameRateCaps.ownedBefore(prof)) { int pace = Prefs.paceCap(this, id); env.add("DM_FPS_LIMIT=" + limitRate(pace)); }   // PEANUTS: limitRate, at most the display's highest rate
         } else if (cap >= 0) env.add("DM_FPS_TARGET=" + cap);
         if (Prefs.steps(id) && Prefs.hold60(this, id)) env.add("DM_FPS_HOLD60=1");   // Hold 60 fps: one step a frame at the cap of 60 (the in-game panel changes it live)
         String gpuNote = GpuDriver.env(this, id, env);   // the game's GPU driver, else the main screen's (DM_VK_DRIVER)
@@ -1070,6 +1074,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
             for (String n : aocProblems) Native.note(n);
             if (readinessEnv > 0) Native.note("[nxlaunch] readiness check: ran with the game's " + readinessEnv + " environment lines (all but the paths), set before the GPU driver's first device");
             for (String n : unknownNotes) Native.note(n);
+            for (String n : quietNotes) Native.note(n);   // PEANUTS
             if (!unknownNotes.isEmpty()) android.widget.Toast.makeText(this, unknownNotes.get(0).replace("[RED] ", ""), android.widget.Toast.LENGTH_LONG).show();
             if (!refused.isEmpty()) {
                 String msg = "not taken: " + String.join(", ", refused) + ": the launcher sets the game's paths (DM_SAVE, DM_ROMFS, DM_TEMP, DM_ROOT, DM_AOC_DIR, HOME)"

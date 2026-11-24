@@ -68,7 +68,49 @@ class Wiring(unittest.TestCase):
             for r in rows:
                 with self.subTest(game=tid, row=r):
                     self.assertIn('\n' + r + '\n', t)
-            self.assertIsNone(re.search(r'(?m)^fps_limit\t', t), 'no fps_limit: opt-in present pacing, Game owned by default')
+            self.assertIsNone(re.search(r'(?m)^fps_limit\t', t), 'no fps_limit: opt-in present pacing')
+
+
+def tsv_rows(path):
+    out = {}
+    for line in path.read_text(encoding='utf-8').splitlines():
+        if line.startswith('#') or '\t' not in line: continue
+        k, v = line.split('\t', 1)
+        out.setdefault(k, v)
+    return out
+
+
+# The games that started Game owned until a pick before 0.1.8's release (FrameRateCaps.ownedBefore: opt-in present pacing, fps_limit_present with no fps_limit
+# and not paced, or fps_owned_default); since then they start at FrameRateCaps.defaultLimit (60 fps), the owner's call of 2026-11-24
+OWNED_BEFORE = {
+    '01001B300B9BE000', '01002C9022770000', '01004D300C5AE000', '01006000040C2000', '010065301A2E0000', '010069401ADB8000', '01006AE02236C000',
+    '01006F600FFC8000', '01006F8002326000', '01007A2027548000', '010085500130A000', '010097F018538000', '0100DAE01E4C8000', '0100F7E00C70E000',
+}
+
+
+class DefaultLimit(unittest.TestCase):
+    def test_the_games(self):
+        got = set()
+        for f in sorted((REPO / 'dm/games').glob('*/game.tsv')):
+            r = tsv_rows(f)
+            if r.get('fps_limit_present') == '1' and 'fps_limit' not in r and 'fps_decouple' not in r or r.get('fps_owned_default') == '1':
+                got.add(f.parent.name)
+        self.assertEqual(got, OWNED_BEFORE, 'a game joins or leaves the 60 fps default: check its caps and its start at 60, then this list')
+
+    def test_the_default_is_used(self):
+        prefs = (SRC / 'Prefs.java').read_text(encoding='utf-8')
+        pace = body(prefs, 'static int paceCap(Context c, String titleId)')
+        self.assertIn('boolean owned = FrameRateCaps.ownedBefore(p);', pace)
+        self.assertIn('int defaultCap = owned ? FrameRateCaps.defaultLimit(p) :', pace)
+        self.assertNotIn('GAME_OWNED : of(c)', pace, 'Game owned is no default')
+        act = (SRC / 'GameActivity.java').read_text(encoding='utf-8')
+        self.assertIn('if (Prefs.chosenFpsCap(this, id) || FrameRateCaps.ownedBefore(prof)) { int pace = Prefs.paceCap(this, id); env.add("DM_FPS_LIMIT=" + limitRate(pace)); }', act,
+                      'the default limit is passed at the start: an opt-in profile has no limit of its own')
+        self.assertIn('List<String> to = Prefs.chosenFpsCap(this, id) ? unknownNotes : quietNotes;', act, 'a default 60 without its variant: the log line, no toast')
+        self.assertIn('for (String n : quietNotes) Native.note(n);', act)
+        gs = (SRC / 'GameSettings.java').read_text(encoding='utf-8')
+        self.assertIn('labels[0] = "Default (" + Prefs.paceLabel(FrameRateCaps.defaultLimit(p)) + ")"', gs)
+        self.assertNotIn('"Default (Game owned)"', gs)
 
 
 @unittest.skipUnless(shutil.which('javac') and shutil.which('java'), 'no JDK')

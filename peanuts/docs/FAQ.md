@@ -432,7 +432,9 @@ Most supported games run at 60 fps on the Thor. A few games that are 30 on the S
 
 **Frame rate cap** lists only the caps the game can hold. A cap above the highest refresh rate of your screen shows greyed out and says why; a cap you saved before stays saved and runs at the screen's rate. Some picks apply at the game's next start, and the row says so.
 
-Animal Crossing: New Horizons runs at 30 by default, as on the Switch (**Game owned**). For update 3.0.3 its **Frame rate cap** also offers **60 fps**: the game then starts with tmouh's ACNH 60 FPS + SpeedFix built in, which keeps the game at its normal speed at 60 fps. Nothing to install; the pick applies at the next start. A build made before 0.1.8 does not have it yet: the game starts at 30 and says to build it again.
+Games that used to start at their own rate (**Game owned**) until you picked a cap now start at **60 fps**, or 30 where the game has no 60. This covers, among others, Star Ocean The Second Story R, Hogwarts Legacy, Kirby and the Forgotten Land, Diablo III and Yoshi's Crafted World. **Game owned** is still in the list, and a cap you picked before stays.
+
+Animal Crossing: New Horizons runs at 30 on the Switch. For update 3.0.3 it starts at **60 fps**: the game then runs with tmouh's ACNH 60 FPS + SpeedFix built in, which keeps the game at its normal speed at 60 fps. Nothing to install. Pick **Game owned** for the game's own 30. A build made before 0.1.8 does not have it yet: the game starts at 30 and the in-game panel says to build it again.
 
 ### What is Peanuts cracked?
 

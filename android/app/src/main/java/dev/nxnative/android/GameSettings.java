@@ -787,7 +787,7 @@ final class GameSettings {
             // PEANUTS: Describe the game-owned default for an optional presentation cap.
             Profile p = Profile.of(g.titleId);
             if (rc != null) labels[0] = "Recommended (" + Prefs.paceLabel(rc) + ")";
-            else if (p != null && (p.optInPresentRate() || p.ownedByDefault)) labels[0] = "Default (Game owned)";   // PEANUTS: fps_owned_default too
+            else if (FrameRateCaps.ownedBefore(p)) labels[0] = "Default (" + Prefs.paceLabel(FrameRateCaps.defaultLimit(p)) + ")";   // PEANUTS: opt-in present pacing and fps_owned_default: 60 fps, 30 without 60
             else if (pl > 0) labels[0] = "Default (this game's: " + Prefs.paceLabel(Prefs.paceOf(pl)) + ")";
             else labels[0] = "Default (Settings: " + Prefs.paceLabel(Prefs.paceOf(Prefs.fpsCap(a))) + ")";
             int checked = 0, cur = Prefs.paceCap(a, g.titleId), hz = Prefs.displayMaxHz(a);

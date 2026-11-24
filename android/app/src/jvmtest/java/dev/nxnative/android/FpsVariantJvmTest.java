@@ -23,7 +23,7 @@ public final class FpsVariantJvmTest {
         Profile p = line("1", "60=60fps", "60");
         check("60".equals(p.fpsVariant(60)) && p.fpsVariant(30) == null && p.hasFpsVariant(), "the 60 cap starts variant 60: " + p.variants);
         check(p.aspectVariant("4:3") == null && p.aspectVariant("16:9") == null, "not an aspect ratio");
-        check(FrameRateCaps.limited(p) && p.optInPresentRate(), "the frame limit list, Game owned by default");
+        check(FrameRateCaps.limited(p) && p.optInPresentRate(), "the frame limit list, 60 fps by default since 0.1.8 (FrameRateCaps.defaultLimit)");
         for (int hz : new int[] {60, 90, 120, 144})
             check(caps(FrameRateCaps.paceOffered(p, hz)).equals(FrameRateCaps.GAME_OWNED + ",0"), hz + " Hz: Game owned and 60 only: " + caps(FrameRateCaps.paceOffered(p, hz)));
         check(p.fpsRestart(FrameRateCaps.GAME_OWNED, 0) && p.fpsRestart(0, FrameRateCaps.GAME_OWNED) && !p.fpsRestart(0, 0), "to and from Game owned at the next start");

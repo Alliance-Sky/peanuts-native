@@ -116,7 +116,8 @@ display's rate. For a game with the frame limit list some picks apply only at th
 leaving it, and the experimental rates above 60), as the stats page and the in-game panel say:
 `data.effective` is then `next_start` and `data.running` is the cap the game runs at until then. `default`
 removes the game's own choice: the default cap is applied now when it is one of the menu's, and the game
-keeps no choice of its own. `data` of `fps_cap`: `cap`, `cap_label`, `running`, `running_label`,
+keeps no choice of its own. For a game that started Game owned before 0.1.8 (opt-in display pacing,
+`fps_owned_default`) the default is 60 fps, or 30 where the game has no 60. `data` of `fps_cap`: `cap`, `cap_label`, `running`, `running_label`,
 `effective`, and `stored` (`default`) after `default`. For example:
 
 ```

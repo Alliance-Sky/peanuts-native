@@ -276,7 +276,7 @@ class AnimalCrossing(unittest.TestCase):
         t = (ACNH / 'game.tsv').read_text(encoding='utf-8')
         for row in ('fps_limit_present\t1', 'fps_modes\t60', 'variant\t60\tmain\t60fps', 'variant_romfs\t60\tspeedfix60/romfs.tsv'):
             self.assertIn('\n' + row + '\n', t)
-        self.assertNotRegex(t, r'(?m)^fps_limit\t', 'no fps_limit: Game owned by default')
+        self.assertNotRegex(t, r'(?m)^fps_limit\t', 'no fps_limit: opt-in present pacing (60 fps by default since 0.1.8)')
         self.assertNotIn('A226048605D3597F', (ACNH / 'speedfix60/main.tsv').read_text(encoding='utf-8'), "the mod's sdk patch is not used")
         self.assertFalse(list((ACNH / 'speedfix60').glob('*.ips')), 'no IPS shipped')
 

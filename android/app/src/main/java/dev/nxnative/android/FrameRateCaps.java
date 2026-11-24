@@ -40,6 +40,14 @@ final class FrameRateCaps {
     static boolean legacyLimited(Profile p) { return p != null && (p.decoupled || p.fpsLimit > 0 || p.presentOnly && p.fpsLimit == 0 && p.fpsLimitMax > 60 && !p.decoupled); }
     /** A framework of whole steps a frame that Hold 60 fps keeps at one (fps_steps, or a frame step without an elapsed clock) */
     static boolean steps(Profile p) { return p != null && p.steps && !p.elapsedFrameStep && !p.fpsLocker.contains(",time_ratio_f32,") && !p.fpsLockerPlan.contains(",clock,-,1"); }
+    /** The games that started Game owned until the player picked a rate before 0.1.8's release (opt-in present pacing, fps_owned_default): they start at defaultLimit
+     *  now, and Game owned stays a choice (the owner's call for 0.1.8, 2026-11-24) */
+    static boolean ownedBefore(Profile p) { return p != null && (p.optInPresentRate() || p.ownedByDefault); }
+    /** Such a game's frame limit with no pick of the player's (a stored value): 60 fps (0) when its caps have it, else 30, else Game owned. 60 is on every display */
+    static int defaultLimit(Profile p) {
+        int[] caps = paceCaps(p);
+        return contains(caps, 0) ? 0 : contains(caps, 30) ? 30 : GAME_OWNED;
+    }
     /** The highest frame limit the profile allows: fps_limit_max for a limited game that is not paced, else 60 */
     static int paceMax(Profile p) { return p != null && !p.decoupled && (p.fpsLimit > 0 || p.optInPresentRate()) ? p.fpsLimitMax : 60; }
     /** The frame limits the profile allows (stored values: 0 = 60 fps, GAME_OWNED), whatever the display */

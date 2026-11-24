@@ -1615,9 +1615,20 @@ Tests: `ncz_test` (ctest; also under ASan, UBSan and TSan), `nsp_test`, `font_te
 |---|---|---|---|
 | `android/app/build.gradle` | 1 | the profile's column 38 (`fps_owned_default`) | `PEANUTS` |
 | `android/app/src/main/java/dev/nxnative/android/Profile.java` | 2 | `ownedByDefault` and its column | `PEANUTS` |
-| `android/app/src/main/java/dev/nxnative/android/Prefs.java` | 1 | `paceCap`: Game owned before the profile's limit | `PEANUTS` |
-| `android/app/src/main/java/dev/nxnative/android/GameSettings.java` | 1 | the Default row reads "Default (Game owned)" | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/Prefs.java` | 1 | `paceCap`: the default limit (since 0.1.8's release: 60 fps, see below) before the profile's limit | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/GameSettings.java` | 1 | the Default row names the default limit ("Default (60 fps)") | `PEANUTS` |
 | `dm/games/README.md`, `dm/tools/docs_patches.py` | 1 each | the key's row and its documentation entry | `PEANUTS` |
+
+Since 0.1.8's release (the owner's call, 2026-11-24) these games, and those with opt-in present pacing (`fps_limit_present` with no `fps_limit`), start at 60 fps when
+the player picked no cap (30 when the game's caps have no 60; `FrameRateCaps.ownedBefore`, `defaultLimit`); Game owned stays a choice and a saved pick, Game owned
+too, stays. The start passes that limit (`DM_FPS_LIMIT`, `GameActivity.settingsEnv`, which upstream passed for a chosen cap only). Animal Crossing: New Horizons' 60
+starts its 60 fps variant; a build without it starts Game owned with a log line and no toast when the 60 was only the default. The stats page's pick that waits
+for the next start opens its pop-up again with the note, and the game's log says what was picked and whether it was saved (`GameActivity.noteCapPick`).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/src/main/java/dev/nxnative/android/FrameRateCaps.java` | 2 | `ownedBefore`, `defaultLimit`; `savedIn` | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/GameActivity.java` | 4 | `DM_FPS_LIMIT` for the default limit; the variant's quiet note (`quietNotes`); `noteCapPick` | `PEANUTS` |
 
 ### Pokémon Legends: Z-A, update 2.0.2
 
