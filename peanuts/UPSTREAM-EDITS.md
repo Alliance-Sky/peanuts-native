@@ -2706,3 +2706,13 @@ for upstream's own tree, which is its decision).
 
 Peanuts' own files, no marker: `dm/host/hle_audren_svc.c` (each mix's depth once a frame; a 64-bit channel-count product in `wb_len`), `dm/peanuts/peanuts_audiosync.c`
 (`cfg` once, under a lock: the render thread and the game's thread can both be first). Upstream candidate: with the service.
+
+### 0.1.8 hardening: the Android Vulkan replay and the shader tools (2026-11-24)
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/gfx/vk_android/vka_tex.c` | 1 | `vka_tex_b2t_mirror` forgets the draws' bound state after its compute pass (`vka_dyn_invalidate`, as `nf_pass` and the NaN scan do): it is recorded between the game's dispatches, and the next dispatch with the same descriptors as the one before the copy skipped its push (`push_same`) and ran with the mirror's two storage buffers bound. Upstream candidate: yes | `PEANUTS(upstream-candidate)` |
+| `dm/gfx/vk_android/vka_dev.c`, `vka_perf.c` | 1 each | the active frame cap's period as the shortest is one function, `vka_cap_period_clamp`: the GPU floor's period and the ADPF target had a copy of the rule each | `PEANUTS` |
+| `dm/gfx/tools/ttdat.py` | 3 | a damaged DAT is a `ValueError`: a name whose parent is past the name table (its `IndexError` ended the whole split), a chunk stream that ends inside an op and a chunk header cut short (each left a whole range of the archive's files unscanned instead of one file) | `PEANUTS` (file header) |
+| `dm/gfx/tools/vk_android_upgrade.py` | 1 | `descriptor_names`: SPIR-V that is no whole number of words, or whose instruction runs past the end, is a refusal (exit 3), not an `IndexError` (exit 1). The upgraded library of a good one is unchanged | Peanuts' own file |
+| `dm/tools/tests/test_split_ttdat.py`, `dm/tools/tests/test_vk_android_upgrade.py` | 1-2 each | the damaged inputs above | `PEANUTS` |

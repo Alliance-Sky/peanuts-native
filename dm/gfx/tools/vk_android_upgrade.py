@@ -175,13 +175,14 @@ SKIP_AT = set(range(19, 40)) | set(range(41, 53)) | {54, 59}   # types, constant
 def descriptor_names(data):
     """{(set, binding): name} of a module's variables, as Module.resources gives them (the last OpName and decoration of an id; a variable without a set decoration is in
     set 0), from the debug and annotation sections only"""
+    if len(data) % 4 or len(data) < 20: raise NoPath('malformed SPIR-V: not a whole module header and words')
     w = struct.unpack('<%dI' % (len(data) // 4), data)
     names, sets, binds, i = {}, {}, {}, 5
     while i < len(w):
         n, op = w[i] >> 16, w[i] & 0xffff
-        if not n: raise NoPath('malformed SPIR-V')
+        if not n or i + n > len(w): raise NoPath('malformed SPIR-V')   # (an instruction past the end: a refusal, not an IndexError's exit 1)
         if op in SKIP_AT: break
-        if op == spv.OP_NAME: names[w[i + 1]] = spv.string_at(list(w[i:i + n]), 2)[0]
+        if op == spv.OP_NAME and n >= 3: names[w[i + 1]] = spv.string_at(list(w[i:i + n]), 2)[0]
         elif op == spv.OP_DECORATE and n >= 4:
             if w[i + 2] == spv.DEC_BINDING: binds[w[i + 1]] = w[i + 3]
             elif w[i + 2] == spv.DEC_SET: sets[w[i + 1]] = w[i + 3]

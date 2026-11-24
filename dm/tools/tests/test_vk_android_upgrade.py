@@ -262,6 +262,14 @@ class Table(unittest.TestCase):
         with self.assertRaises(U.NoPath): U.refusals(L, hops)
         L.m = bytes(128); U.refusals(L, hops)
 
+    def test_malformed_spirv_refused(self):
+        """A module whose words run out inside an instruction, or that is no whole number of words, is a refusal (exit 3), not an IndexError (exit 1)"""
+        head = struct.pack('<5I', 0x07230203, 0x10300, 0, 100, 0)
+        name = struct.pack('<3I', 4 << 16 | 5, 7, 0x41) + b'\0' * 4   # OpName %7 "A"
+        self.assertEqual(U.descriptor_names(head + name), {})
+        for bad in (head + name[:8], head + name + b'\1', head[:12], head + struct.pack('<I', 0x0005)):
+            with self.subTest(bad=bad.hex()), self.assertRaises(U.NoPath): U.descriptor_names(bad)
+
     def test_not_a_chain_file(self):
         self.assertNotIn('tools/vk_android_upgrade.py', (TOOLS / 'vk_android_build.py').read_text().split('VK_FILES = ')[1].split('\n')[0])
 
