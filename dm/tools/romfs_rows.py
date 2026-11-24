@@ -54,7 +54,8 @@ def parse(text, name='rows'):
         if not line.strip() or line.startswith('#'): continue
         c = line.split('\t')
         if c[0] == 'file':
-            if len(c) != 6 or not c[1] or c[1].startswith('/') or '..' in c[1].split('/') or not c[2].isdigit() or not c[4].isdigit() or len(c[3]) != 64 or len(c[5]) != 64:
+            if len(c) != 6 or not c[1] or c[1].startswith('/') or '..' in c[1].split('/') or not (c[2].isascii() and c[2].isdigit()) or not (c[4].isascii() and c[4].isdigit()) \
+                    or len(c[3]) != 64 or len(c[5]) != 64:   # (isascii: '²' is a digit to isdigit, not to int)
                 raise Error(f'{where}: a file line takes <RomFS path> <original size> <original SHA-256> <new size> <new SHA-256>')
             out.append(FileRows(c[1], int(c[2]), c[3].lower(), int(c[4]), c[5].lower()))
             continue
@@ -62,6 +63,7 @@ def parse(text, name='rows'):
         if len(c) != 3: raise Error(f'{where}: a row takes <offset> <original bytes> <new bytes>')
         try: off = int(c[0], 16)
         except ValueError: raise Error(f'{where}: not an offset: {c[0]}') from None
+        if off < 0: raise Error(f'{where}: not an offset: {c[0]}')   # int() takes '-0x10': a slice from the file's end
         ob, nb = _unhex(c[1], where), _unhex(c[2], where)
         f = out[-1]
         if not ob and not nb: raise Error(f'{where}: a row that changes nothing')
@@ -72,7 +74,10 @@ def parse(text, name='rows'):
 
 
 def load(path):
-    with open(path, encoding='utf-8') as f: return parse(f.read(), os.path.basename(path))
+    try:
+        with open(path, encoding='utf-8') as f: text = f.read()
+    except UnicodeDecodeError as e: raise Error(f'{os.path.basename(path)}: not UTF-8 text ({e.reason} at byte {e.start})') from None   # an Error: the pack step then lists no variant (pack_android.py variant_overlays)
+    return parse(text, os.path.basename(path))
 
 
 def apply(fr, data):

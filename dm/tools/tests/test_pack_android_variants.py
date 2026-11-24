@@ -70,8 +70,13 @@ class Rows(unittest.TestCase):
         h = '0' * 64
         for text, why in ((f'0x0\t00\t01\n', 'before the first file line'), (f'file\t/abs\t1\t{h}\t1\t{h}\n', 'file line'), (f'file\ta/../b\t1\t{h}\t1\t{h}\n', 'file line'),
                           (f'file\ta\t4\t{h}\t4\t{h}\n0x3\t0000\t0101\n', 'past the original'), (f'file\ta\t9\t{h}\t9\t{h}\n0x4\t00\t01\n0x2\t00\t01\n', 'ascending'),
-                          (f'file\ta\t9\t{h}\t9\t{h}\n0x4\tzz\t01\n', 'not hex'), (f'file\ta\t9\t{h}\t9\t{h}\n0x4\t-\t-\n', 'changes nothing')):
+                          (f'file\ta\t9\t{h}\t9\t{h}\n0x4\tzz\t01\n', 'not hex'), (f'file\ta\t9\t{h}\t9\t{h}\n0x4\t-\t-\n', 'changes nothing'),
+                          (f'file\ta\t9\t{h}\t9\t{h}\n-0x4\t00\t01\n', 'not an offset'), (f'file\ta\t\u00b2\t{h}\t9\t{h}\n', 'file line'),
+                          (f'file\ta\t9\t{h}\t9\t{h}\n0x4\t00\n', 'a row takes'), (f'file\ta\t9\t{h}\n', 'file line')):
             with self.subTest(why=why), self.assertRaisesRegex(romfs_rows.Error, why): romfs_rows.parse(text)
+        with tempfile.TemporaryDirectory() as d:   # not UTF-8: an Error too, which variant_overlays turns into no variant
+            (Path(d) / 'rows.tsv').write_bytes(b'file\t\xff\n')
+            with self.assertRaisesRegex(romfs_rows.Error, 'not UTF-8'): romfs_rows.load(Path(d) / 'rows.tsv')
 
     def test_make_is_all_or_nothing(self):
         with tempfile.TemporaryDirectory() as d:
