@@ -2974,3 +2974,74 @@ Qualcomm's driver 512.676.53 (Adreno 740) loses the depth / stencil dynamic stat
 | `docs/advanced_settings.tsv` | 1 | the switch's row, written by `dm/tools/advanced_switches.py --write` | none: a developer row has no free-text column for one |
 
 Upstream candidate: yes, a general fix with no Peanuts dependency.
+
+
+## Qualcomm driver before 512.800: auto-disable DM_VK_DYN_FILTER (2026-11-26)
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/gfx/vk_android/vka_draw.c`, `dm/gfx/vk_android/vka_auto.h`, `dm/host/tests/t_android_auto.c` | 1, 1, 3 | Default `DM_VK_DYN_FILTER=0` when `qcom_old` (Qualcomm driver version before 512.800); fixes scrambled blocks and speckles across draws on Qualcomm 512.762.41 (Adreno 750) in OCTOPATH TRAVELER | `PEANUTS(upstream-candidate)` |
+| `docs/advanced_settings.tsv` | 1 | Update `DM_VK_DYN_FILTER` default text to name Qualcomm before 512.800 | generated / allow-listed in `peanuts/upstream-unmarked.txt` |
+
+### Sea of Stars (`01008C0016544000`): base `v0` (`1.0.45861`), update `v983040` (`3.0.60151`), and Android memory/driver profile
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/01008C0016544000/game.tsv` | 3 | `build` rows for `v0` (`1.0.45861`) and `v983040` (`3.0.60151`), `package v983040`, `shader_versions v0 v983040`; Android memory layout (`mem_reserve 0x498000000`, `mem_alias 0x400000000`, `mem_stack 0x80000000`, `app_pool 0xCD500000`); `recommend` Turnip on Qualcomm `< 512.800` | `# PEANUTS:` / `# PEANUTS begin..end` |
+| `dm/games/01008C0016544000/README.md` | 4 | notes for `v0` and `v983040` union shaders, Android memory/stack findings, Turnip 20+ minute verification, and Qualcomm `512.762.41` test results | `<!-- PEANUTS: -->` |
+| `dm/games/README.md` | 1 | Sea of Stars table row updated to `1.0.45861 / 2.0.59001 / 3.0.60151` | `<!-- PEANUTS: ... -->` |
+| `dm/games/01008C0016544000/shader_optional.tsv` (new) | whole file | 1,543 `1.0.45861 (v0) only` keys dropped in `v786432`/`v983040` | `# PEANUTS:` header |
+| `dm/games/01008C0016544000/readiness.tsv` (new) | whole file | `status playable`, `ram_gib 10`, and `library_caps.py` shader capability rows | `# PEANUTS:` header |
+| `android/app/gradle.properties` | 1 | add `01008C0016544000` to `nxGames` so default APKs build with Sea of Stars | `# PEANUTS:` comment |
+| `dm/games/01008C0016544000/{shader_map,shader_facts,shader_pairs,pso_pairs}.tsv` | generated | `v0` + `v983040` union tables from `shader_split.py` | allow-listed in `peanuts/upstream-unmarked.txt` |
+
+### A texture filled before its first use takes over an image with older content (2026-11-24)
+
+SPY×ANYA: Operation Memories (`010089B01AB44000`) lost letters from text it showed for the first time, from the end of its dash tutorial on, on the AYN Thor.
+Unity makes its dynamic font atlas again over the same memory, with the same size and format, and fills it with one whole `WriteTexels` before its first use.
+That first use took over the old atlas's image without reading the CPU-written note (`g_cpuw`). The re-read queue's half of the first fix (images, not serials,
+in `g_redo`; `redo_forget_locked`) came in with 89e2a03a; this is the takeover half. Entry: `docs/reference/nvn-objects.md`, "A texture filled before its first
+use takes over an image with older content (Vulkan replay)".
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/gfx/vk_android/vka_tex.c` | 2 | a forward declaration of `rw_fallback_whole_locked`; `vka_tex_get` has a taken-over image (or a level child's parent) read again from its storage, its queued region writes dropped, when the texture's serial was noted CPU-written (`cpuw_take`) | `// PEANUTS(upstream-candidate)` |
+| `docs/reference/nvn-objects.md`, `docs/agents/symptoms.md` | 1 each | the entry (between `PEANUTS(upstream-candidate) begin`/`end` comments) and its generated symptom line | as said |
+| `dm/games/010089B01AB44000/README.md` | 4 | the note: the letters marked resolved, its first paragraph, the system driver's silhouettes seen again, a Found on line | inside the note's `PEANUTS` file |
+
+Run: the fix's first form (`redo_add_locked` in place of `rw_fallback_whole_locked`, on 0.1.7) on the AYN Thor with Turnip, a new save over the same route
+before and after (2026-11-21): before, `Talk to Becky` read `a to ec` and the controls panel lost its new letters; after, the panel, every objective and the
+dialogue to `Return home` are whole, re-uploads 25 → 70, no red line. This form (2026-11-24, AYN Thor, a new game each): Turnip Gen8 V38 and the system driver
+(Adreno build 69e13475cb), through the dash tutorial to `Talk to Becky`: the panel and the objective are whole on both, and Henderson's dialogue on Turnip;
+both 30 fps, no red line but the "not yet on Android" ones; re-uploads 71 (Turnip) and 57 (system). The system driver still draws the characters as
+silhouettes (open in the note, not this change). Not run: other games. No shader-chain file is changed.
+Upstream candidate: yes, for every game.
+
+### Hogwarts Legacy on phones: an opt-in thermal cap that says so, fewer saves of a large pipeline cache, Handheld on a 12 GB phone (2026-11-24, rebased on 0.1.8)
+
+Hogsmeade on a Galaxy S24 Ultra (Adreno 750, Turnip Gen8 V39, 11 GB) did not hold 30 fps and froze for seconds. In 0.1.7 the launcher did not start the game Game owned (it ran uncapped, 24-37 fps, until the phone reached a severe thermal status with the GPU held at 231 of 1,000 MHz); 0.1.8's frame limit list (`fps_limit_present` counts, bc6aac5e) fixes that, and `fps_owned_default` stays as a safety net. The thermal cap read no thermal state on Android and did not reach a frame limit held by FPSLocker rows. Each pipeline cache save of 2 or 3 new pipelines copied and wrote the whole 72 MB cache and stopped the game for 2.8 s. Docked, the low-memory killer's bursts froze it for 1.2-3 s.
+
+Review of the first version (igawa6, 2026-11-24): the thermal cap reached every game on Android with nothing on screen to explain a 30; the save wait was a hard-coded 600 s for every game, parts-only saves included. Now the thermal cap is opt-in per game (`thermal_cap 1` → `DM_THERMAL_CAP=1`; without it Android reads no thermal status, as before), the cap status has a fifth field (held for heat) that the in-game panel and the stats page show, the hold is logged, the state is sampled at any limit (no extra 30 s after a raise), the status is read at most once a second; the save wait applies only to a cache over 32 MB with 1 to 31 new pipelines, `DM_VK_PCACHE_SAVE_BIG_S` (150 s); the Handheld default leaves out devices with a built-in gamepad.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/0100F7E00C70E000/game.tsv` | 1 | `fps_owned_default 1` (a safety net since 0.1.8), `thermal_cap 1` | `# PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/FrameRateCaps.java` | 1 | `limited` counts `ownedByDefault` | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/Profile.java` | 2 | `thermalCap`, column 43 | `PEANUTS` |
+| `android/app/build.gradle` | 1 | `thermal_cap` as `NX_PROFILES` column 43 | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/GameActivity.java` | 3 | `DM_THERMAL_CAP=1` for a profile's `thermal_cap`; `heldForHeat` (the cap status' fifth); the stats page's `heldForHeat` and `capNote` | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/Prefs.java` | 1 | `HEAT_TEXT` | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/SidePanel.java` | 2 | `refresh`: the held-for-heat line, for the frame limit list and the cap list | `PEANUTS` |
+| `dm/gfx/vk_android/vka_perf.c` | 1 | the thermal manager looked up once from any thread (`th_status`); `dm_thermal_now` on iOS's scale (severe = serious), only with `DM_THERMAL_CAP` set and not 0, read at most once a second | `PEANUTS` |
+| `dm/gfx/nvn/hle_nvn.c` | 3 | `thermal_capped`: opt-in on Android, its log line names the frame limit too; `dm_thermal_capped` for the host | `PEANUTS` |
+| `dm/host/hle_fpslock.c` | 1 | `limit_raw`: a limit above 30 holds 30 while the thermal cap holds, the cap asked at any limit, the hold logged; weak `dm_thermal_capped` for the host tests (`DM_TEST_THERMAL`: the test's own) | `PEANUTS` |
+| `dm/host/android/input_android.c` | 2 | `nxhost_fps_cap_status`: the fifth field, held for heat | `PEANUTS` |
+| `dm/host/tests/t_fpslock.c` | 4 | `thermal_check`: `limit_raw` under the thermal cap | `PEANUTS` |
+| `dm/gfx/vk_android/vka_pso.c` | 4 | `vka_pso_save`: a cache over 32 MB (`g_pc_bytes`, its last read or save) with 1 to 31 new pipelines waits `DM_VK_PCACHE_SAVE_BIG_S` (or `DM_VK_PCACHE_SAVE_S` if longer); parts-only saves, slow pipelines and the saves at suspend and at the end are not held | `PEANUTS` |
+| `docs/env_switches.tsv`, `docs/advanced_settings.tsv` | 2, 2 | `DM_THERMAL_CAP` on Android; `DM_VK_PCACHE_SAVE_S`'s large-cache exception, `DM_VK_PCACHE_SAVE_BIG_S` (new) | `[PEANUTS]` in the text |
+| `dm/games/README.md`, `dm/tools/docs_patches.py` | 1, 1 | the `thermal_cap` key | `<!-- PEANUTS -->`, `# PEANUTS` |
+| `dm/games/0100F7E00C70E000/README.md` | 1 | Frame rate: Game owned since 0.1.8, the thermal cap, the Handheld default | `<!-- PEANUTS -->` |
+| `android/app/src/main/java/dev/nxnative/android/ScreenMode.java` | 3 | `PREFER_HANDHELD_LOW_RAM`, `ownMode`, `builtInPad` (Hogwarts Legacy on a phone of 12 GB or less) | Peanuts' own file |
+| `android/app/src/main/java/dev/peanuts/ui/GameControls.java`, `StatsView.java` | 1, 1 | `Host.heldForHeat`; the cap pill's "30 FPS (HOT)" | Peanuts' own files |
+
+Tests: `dm/host/tests/t_fpslock.c` (new `thermal_check`: a limit of 45, 60 or 120 holds 30 while hot, 20 and 30 stay, no limit stays 0, the cap is asked at 30 and at none, a limit raised after cooling is not held, a frame step holds 30) and `t_resolution`, built with the NDK for arm64 Android and run under qemu (the version of `limit_raw` that skipped the check at 30 or less fails `thermal_check`); the Python suite and `env_switches.py --check` with the same results as on 0.1.8 itself. On the Galaxy S24 Ultra (first version), Hogsmeade, the same scripted minute of walking: before, interval 1, 16-37 fps, two 2.8 s freezes at pipeline cache saves of 4.5 s; Game owned, docked, interval 2 at 30 fps with four 1.2-3 s freezes at low-memory-killer bursts; Game owned, handheld, two minutes at 30.0 fps, interval 2 100 %, no frame over 135 ms, thermal status 1-2. Upstream candidate: yes (the thermal state, the limit and the cache saves are upstream's code).
