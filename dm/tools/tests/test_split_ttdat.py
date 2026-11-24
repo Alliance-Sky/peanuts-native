@@ -125,6 +125,12 @@ class Unref(unittest.TestCase):
     def test_wrong_length(self):
         with self.assertRaises(ValueError): ttdat.unref(ref(b'hello world, hello world'), 99)
 
+    def test_truncated(self):   # a damaged chunk is a ValueError (ttdat_shaders skips that one file), not an IndexError or struct.error that drops the whole range
+        z = ref(SAMPLE)
+        with self.assertRaises(ValueError): ttdat.unref(z[:len(z) // 2], len(SAMPLE))
+        with self.assertRaises(ValueError): ttdat.unpack(rfpk(SAMPLE) + b'RFPK\1\0', len(SAMPLE))
+        with self.assertRaises(ValueError): ttdat.unref(bytes([0x80, 0x00]), 4)   # a 3-byte op with 2 bytes
+
     def test_chunks(self):
         self.assertEqual(ttdat.unpack(rfpk(SAMPLE), len(SAMPLE)), SAMPLE)
         self.assertEqual(ttdat.unpack(rfpk(SAMPLE, store=True), len(SAMPLE)), SAMPLE)
@@ -148,6 +154,18 @@ class Archive(unittest.TestCase):
                 self.assertEqual([e[0] for e in es], [f[0] for f in self.files_in])
                 self.assertEqual(ttdat.read(str(p), es[1]), b'some text')
                 self.assertEqual(ttdat.read(str(p), es[2]), b'stored bytes')
+
+    def test_parent_out_of_range(self):   # a name whose parent index is past the name table: ValueError, which ttdat_jobs reports (an IndexError ended the whole split)
+        with tempfile.TemporaryDirectory() as t, contextlib.redirect_stdout(io.StringIO()) as log:
+            d = bytearray(self.files())
+            off, n = ttdat.index_at(d)
+            nnames, nsize = struct.unpack_from('>II', d, off + 24)
+            struct.pack_into('>H', d, off + 0x20 + nsize + 12 * (nnames - 1) + 8, 0xfff0)   # the last name's parent
+            p = Path(t) / 'GAME.DAT'; p.write_bytes(bytes(d))
+            with self.assertRaises(ValueError): ttdat.files(str(p))
+            jobs, paths = ss.ttdat_jobs([(str(p), 'GAME.DAT')])
+        self.assertEqual((jobs, paths), ([], set()))
+        self.assertIn('the DAT index cannot be read', log.getvalue())
 
     def test_not_an_archive(self):
         with tempfile.TemporaryDirectory() as t:

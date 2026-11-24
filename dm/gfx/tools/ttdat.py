@@ -62,6 +62,7 @@ def files(path):
         parts, p = [name(no)], par
         for _ in range(len(ents)):
             if not p: break
+            if p >= len(ents): raise ValueError(f'name {i}: parent {p} of {len(ents)} names')
             parts.append(name(ents[p][2])); p = ents[p][3]
         else: raise ValueError(f'name {i}: its parents loop')
         if fid >= nfiles or fid in seen: raise ValueError(f'name {i}: file index {fid}')
@@ -75,6 +76,11 @@ def unref(s, size):
     """One RFPK chunk's stream → its bytes. Ops, by the first byte b0: 0xxxxxxx b1 (literals (b0 >> 2) & 3, copy ((b0 >> 4) & 7) + 3 from ((b0 & 3) << 8 | b1) + 1 back);
     10xxxxxx b1 b2 (literals b1 >> 6, copy (b0 & 0x3f) + 4 from ((b1 & 0x3f) << 8 | b2) + 1); 110xxxxx b1 b2 b3 (literals (b0 >> 3) & 3, copy (((b0 >> 1) & 3) << 8 | b3) + 5 from
     ((b0 & 1) << 16 | b1 << 8 | b2) + 1); 111xxxxx (((b0 & 0x1f) << 2) + 4 literals; above 0x70, b0 & 3 literals and the end). The literals come before the copy"""
+    try: return unref_(s, size)
+    except IndexError: raise ValueError(f'the stream ends inside an op ({len(s)} bytes)') from None   # a truncated or damaged chunk: as any bad layout, not this reader's exception
+
+
+def unref_(s, size):
     d = bytearray(); i = 0; n_s = len(s)
     while i < n_s:
         b0 = s[i]
@@ -117,6 +123,7 @@ def unpack(b, size):
     out = bytearray(); i = 0
     while i < len(b):
         tag = b[i:i + 4]
+        if i + 12 > len(b): raise ValueError(f'chunk at {i}: {len(b) - i} bytes, no whole header')
         z, u = struct.unpack_from('<II', b, i + 4)
         if tag == RFPK: out += b[i + 12:i + 12 + z] if z == u else unref(b[i + 12:i + 12 + z], u)   # a chunk that would not shrink is stored (Decode: memcpy)
         elif tag == ZIPX and z == u: out += rc4(struct.pack('<I', u), b[i + 12:i + 12 + z])
