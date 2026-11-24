@@ -2695,3 +2695,14 @@ New files, no marker needed beyond their first line: `dm/tools/romfs_rows.py`, `
 Tests: `test_pack_android_variants.py` (rows applied and refused, the IPS conversion, `variant_overlays`, ACNH's data, notice, credits and wiring, the JVM test),
 `test_android_frame_rate_games.py` (ACNH: Game owned and 60). Upstream candidate: the general mechanism, yes; the data, no (CC BY-NC 4.0 is not GPL-compatible
 for upstream's own tree, which is its decision).
+
+### Release hardening 0.1.8, host (2026-11-24)
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/host/hle_sf.c`, `dm/host/hle.h` | 0 (inside the service hunks of the LEGO CITY UNDERCOVER round) | `sf_session_slot`: the slot of a host session handle, so `hle_audren_svc.c` no longer repeats `SF_H0` (`0xd0000`) | `PEANUTS begin`/`end` |
+| `dm/host/hle_fpslock.c` | 1 | `dm_fps_cap_get` (the frame cap `vka_dev.c` `vka_floor_period_ns` paces the GPU clock floor by, added for 0.1.8) gets the marker it lacked, on its own line, so `docs/agents/game-patches.md`'s line numbers stay | `PEANUTS` |
+| `dm/host/tests/Makefile` | 0 (inside the `peanuts-host` block) | `peanuts-audren-svc`: `t_peanuts_audren_svc.c` (new) | `PEANUTS begin`/`end` |
+
+Peanuts' own files, no marker: `dm/host/hle_audren_svc.c` (each mix's depth once a frame; a 64-bit channel-count product in `wb_len`), `dm/peanuts/peanuts_audiosync.c`
+(`cfg` once, under a lock: the render thread and the game's thread can both be first). Upstream candidate: with the service.

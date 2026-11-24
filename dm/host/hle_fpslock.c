@@ -678,7 +678,7 @@ void dm_fps_step_fold(void) {
     }
 }
 int nxhost_fps_limit_get(void) { int s = dm_fps_limit_step(); return s ? s : limit_raw(); }   // the rate the limit holds (0: none; a frame-step game's whole-vsync rate); probe.c aims the dynamic resolution at it, frame generation fits its frames to it
-// Active effective frame cap for GPU clock floor pacing (0: uncapped / game's own).
+// PEANUTS: active effective frame cap for GPU clock floor pacing (0: uncapped / game's own); vka_dev.c vka_floor_period_ns.
 int dm_fps_cap_get(void) {
     int lim = nxhost_fps_limit_get();
     if (dm_fps_elapsed_step()) return lim > 0 ? lim : dm_fps_target();
