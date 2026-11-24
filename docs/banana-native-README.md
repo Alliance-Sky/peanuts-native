@@ -1,3 +1,4 @@
+<!-- PEANUTS: upstream's README.md, kept here; Peanuts Native's front page is ../README.md -->
 <p align="center"><img src="android/images/logo.svg" alt="Banana Native logo" width="128"></p>
 
 # Banana Native

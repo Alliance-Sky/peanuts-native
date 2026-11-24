@@ -21,6 +21,7 @@ The replay on Metal (`dm/gfx/nvn/nvn_mtl.m`) and the Vulkan and OpenGL layers. E
 - **Fix:** check the first texture before logging its dimensions (`hle_nvn.c`) and log serial 0 for a null clear texture (`nvn_mtl.m`).
 - **Found on:** clang static analysis ([issue #424](https://github.com/seedds/nxnative/issues/424)); synthetic null-texture tests, with no gameplay failure reported.
 
+<!-- PEANUTS -->
 ### Clearing a Vulkan texture registration
 
 - **Symptom:** Mario Kart 8 Deluxe crashes at the title screen after `texture ID 1031 registered with no texture`, with a read at address `0x4` in `treg`.
