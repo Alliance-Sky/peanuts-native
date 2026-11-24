@@ -175,6 +175,44 @@ class Overlays(unittest.TestCase):
         self.assertEqual(self.run_({'main': 'aa' * 16})[0], [('60', '-')])
 
 
+
+class VariantRewrite(unittest.TestCase):
+    """rewrite_variants on the phone (in_process): the variant's module in the rewrite worker on the fast cores (pn_rewrite_worker), as the module's first
+    rewrite, with DM_PATCH_VARIANT; in this process (run_in_process, one core) only when there is no worker"""
+    def setUp(self):
+        self.d = Path(tempfile.mkdtemp()); self.addCleanup(shutil.rmtree, self.d)
+        self.src = self.d / 'main'; self.src.write_bytes(b'module')
+        self.calls = []
+        def fake(kind, rc):
+            def run(script, args, env, log, progress=None):
+                self.calls.append((kind, env)); stage = Path(args[1]); stage.mkdir(parents=True, exist_ok=True); (stage / 'main.patched.bin').write_bytes(b'v')
+                Path(log).write_text('')
+                return rc
+            return run
+        self.fake = fake
+        for name in ('pn_rewrite_worker', 'run_in_process', 'rewrite_key'):
+            self.addCleanup(setattr, pack_android, name, getattr(pack_android, name))
+        pack_android.rewrite_key = lambda src, g: 'k'
+
+    def run_(self):
+        with redirect_stdout(io.StringIO()):
+            pack_android.rewrite_variants(sys.executable, {'main': self.src}, self.d / 'pack', G(self.d, [('variant', '60', 'main', '60fps')]), in_process=True)
+
+    def test_in_the_worker(self):
+        (self.d / 'pack').mkdir()
+        pack_android.pn_rewrite_worker = self.fake('worker', 0); pack_android.run_in_process = self.fake('in process', 0)
+        self.run_()
+        self.assertEqual([(k, e.get('DM_PATCH_VARIANT')) for k, e in self.calls], [('worker', '60')])
+        self.assertEqual((self.d / 'pack/60/main.android.key').read_text().strip(), 'k variant=60')
+
+    def test_in_this_process_without_a_worker(self):
+        (self.d / 'pack').mkdir()
+        pack_android.pn_rewrite_worker = lambda *a, **k: None; pack_android.run_in_process = self.fake('in process', 0)
+        self.run_()
+        self.assertEqual([(k, e.get('DM_PATCH_VARIANT'), e.get('DM_REWRITE_J')) for k, e in self.calls], [('in process', '60', '1')])
+        self.assertTrue((self.d / 'pack/60/main.android.key').is_file())
+
+
 def load_patches():
     spec = importlib.util.spec_from_file_location('acnh_patches', ACNH / 'patches.py'); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
     return m

@@ -208,7 +208,7 @@ spin wait search 61 s). `patch_nso.py` computes those two phases in pieces with 
   (`BuildMemory`: one per fast core, fewer on a phone with less memory or after a kill). Its output goes to the module's log and its progress lines to the step's
   bar as before, the pipe read in a thread of its own; a stop ends the worker and its forks (their own process group) within half a second (it waited for the
   worker's next line before, up to half a minute in the spin phase, past the 20 s after which the packer ends its process). Without the worker command, or with one worker, the rewrite runs in the app's
-  process as before.
+  process as before. A game.tsv `variant` row's second rewrite of a module (`rewrite_variants`: Animal Crossing's 60 fps speed fix) runs in the worker the same way.
 - `patch_nso.py in_parallel`, where `_multiprocessing` is missing, forks its workers itself (`in_forks`, an upstream candidate): child i computes pieces i, i + n,
   …, its results go back pickled through a pipe and are put back in order, so the output is the same; a child that fails fails the rewrite, and an error in the
   parent kills the children first. The heap is frozen while the children run (`gc.freeze`): a collection in a child would copy the pages of every object it

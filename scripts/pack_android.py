@@ -794,7 +794,9 @@ def rewrite_variants(py, srcs, out, g, in_process=False, modded=()):   # PEANUTS
             print(f'  {m} ({v}): rewriting', flush=True)
             t0, src, log = time.monotonic(), rewriter_src(srcs[m], out, m), vout / f'rewrite_{m}.log'
             args = [str(src), str(staging(vout, m)), m, '--target', 'android']
-            if in_process: rc = run_in_process(REPO / 'dm/tools/patch_nso.py', args, {'DM_GAME': g.id, 'DM_REWRITE_J': '1', 'DM_PATCH_VARIANT': v}, log)
+            if in_process:
+                rc = pn_rewrite_worker(REPO / 'dm/tools/patch_nso.py', args, {'DM_GAME': g.id, 'DM_PATCH_VARIANT': v}, log)   # PEANUTS: on the fast cores, as the module's first rewrite (issue #120)
+                if rc is None: rc = run_in_process(REPO / 'dm/tools/patch_nso.py', args, {'DM_GAME': g.id, 'DM_REWRITE_J': '1', 'DM_PATCH_VARIANT': v}, log)
             else:
                 with open(log, 'w') as f:
                     rc = subprocess.call([py, str(REPO / 'dm/tools/patch_nso.py'), *args], env=child_env(DM_GAME=g.id, DM_PATCH_VARIANT=v), stdout=f, stderr=subprocess.STDOUT)
