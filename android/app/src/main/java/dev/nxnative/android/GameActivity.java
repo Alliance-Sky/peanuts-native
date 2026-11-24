@@ -1449,6 +1449,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
             }
             @Override public void cap(int v) {
                 Prefs.fpsCap(act, titleId(), v);
+                noteCapPick(v);
                 if (!Prefs.limited(titleId())) { Native.fpsCapSet(v); return; }
                 if (v != FrameRateCaps.GAME_OWNED && !gameOwnedAtStart() && !fpsRestartRequired(v)) {
                     Native.fpsLimitSet(limitRate(v));   // PEANUTS: at most the display's highest rate
@@ -1482,6 +1483,25 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
                 return restart + (runs != null ? runs + " " : why != null ? why + " " : "") + high + "Switching to or from Game owned applies on the next start.";
             }
         };
+    }
+
+    /**
+     * PEANUTS: a cap picked while the game runs (the stats page, adb's game do=fps_cap), in the game's log: the pick, whether it applies now or at the next start,
+     * and whether the launcher's settings file holds it once written. A 60 picked so on the 0.1.8 release app (Star Ocean The Second Story R, Hogwarts Legacy,
+     * 2026-11-24) was not in the next start's settings line, and the run's log had nothing to say whether it had been saved. The file is read off the main thread
+     */
+    private void noteCapPick(int v) {
+        String id = titleId();
+        boolean limited = Prefs.limited(id), next = limited && (fpsRestartRequired(v) || (v == FrameRateCaps.GAME_OWNED) != gameOwnedAtStart());
+        String what = "frame rate cap: " + (limited ? Prefs.paceLabel(v) : v == 0 ? "Game owned" : v + " fps") + " picked while the game runs, "
+                + (next ? "it applies at the next start" : "applied now");
+        java.io.File f = new java.io.File(getDataDir(), "shared_prefs/launcher.xml");   // Prefs.of's file
+        String key = Prefs.gameKey("fps_cap", id);
+        new Thread(() -> {
+            String xml;
+            try { xml = new String(java.nio.file.Files.readAllBytes(f.toPath()), java.nio.charset.StandardCharsets.UTF_8); } catch (java.io.IOException e) { xml = null; }
+            Native.note(what + (FrameRateCaps.savedIn(xml, key, v) ? "; saved for this game" : "; [RED] not in the saved settings (" + f.getName() + ") after the write"));
+        }, "cap-pick-note").start();
     }
     // PEANUTS end
 

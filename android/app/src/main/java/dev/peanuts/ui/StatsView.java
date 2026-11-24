@@ -843,7 +843,14 @@ public final class StatsView extends FrameLayout {
             for (int i = 0; i < caps.length; i++) {
                 if (i % 3 == 0) { row = PUi.row(c); PUi.add(box, row, i == 0 ? 8 : 6); }
                 int v0 = caps[i];
-                row.addView(choice(c, h.capLabel(v0), v0 == cur, h.capOffered(v0), v -> { h.cap(v0); target.setText(capText(h)); closeControl(); }), weighted(c, i % 3));
+                row.addView(choice(c, h.capLabel(v0), v0 == cur, h.capOffered(v0), v -> {
+                    h.cap(v0);
+                    target.setText(capText(h));
+                    closeControl();
+                    // a pick the game takes only at its next start (to or from Game owned, a limited game's 120): the pop-up opens again with its note,
+                    // "Restart the game to apply 60 fps.", so the game running on at its old rate does not read as the pick not taken
+                    if (h.capRunning() != h.cap()) openControl(from, false);
+                }), weighted(c, i % 3));
             }
             for (int i = caps.length % 3; i != 0 && i < 3; i++) {   // the last row's empty places keep the widths; 1 px high: a bare View takes all the height it is offered
                 LinearLayout.LayoutParams lp = weighted(c, i);

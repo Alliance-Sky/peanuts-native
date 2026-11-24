@@ -127,6 +127,11 @@ final class FrameRateCaps {
         if (stored == 0 || stored >= 60 || stored < 0) return 60;
         return stored;
     }
+    /** PEANUTS: whether a SharedPreferences file's text (null: not read) holds key as the int v (its line: {@code <int name="key" value="v" />}); GameActivity.noteCapPick */
+    static boolean savedIn(String xml, String key, int v) {
+        String name = key.replace("&", "&amp;").replace("\"", "&quot;");
+        return xml != null && java.util.regex.Pattern.compile("<int\\s+name=\"" + java.util.regex.Pattern.quote(name) + "\"\\s+value=\"" + v + "\"\\s*/>").matcher(xml).find();
+    }
     /** What Prefs.migrateFpsCap writes: the list marker, and the cap (null: removed) when one is saved */
     static final class Saved {
         final String marker; final Integer cap;
