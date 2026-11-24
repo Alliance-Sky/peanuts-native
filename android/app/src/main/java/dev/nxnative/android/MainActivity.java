@@ -1545,12 +1545,25 @@ public final class MainActivity extends Activity {
     }
 
     private void start(Game g) {
-        // PEANUTS begin: recommend Turnip before a system-driver launch, with a one-launch bypass.
+        // PEANUTS begin: recommend Turnip before a system-driver launch, or warn before a known bad driver build's, each with a one-launch bypass.
         if (GpuDriver.launchesSystem(this, g.titleId) && Readiness.customDriversFit(Prefs.facts(this, Recommend.SYSTEM))) {   // only where a custom driver can load: a Mali, Xclipse or PowerVR GPU has its system driver alone
             new PadFocus.Builder(this).setTitle("Turnip recommended")
                     .setMessage("You're about to play with the system GPU driver. We recommend Turnip for better game compatibility and stability."
                             + (GpuDriver.selected(this, g.titleId) != null ? "\n\nAn extra driver setting is forcing the system driver. Change that setting to use your selected driver." : ""))
                     .setPositiveButton("Choose driver", (d, w) -> {
+                        gameSettings(g);
+                        dev.peanuts.ui.DriverActivity.openForGame(this, g.titleId, g.name);
+                    })
+                    .setNeutralButton("Play anyway", (d, w) -> startWithDriver(g))
+                    .setNegativeButton("Cancel", null).show();
+            return;
+        }
+        // A known bad build (KnownDrivers) on this GPU: asked at each start, the player decides
+        KnownDrivers.Bad bad = GpuDriver.launchesSystem(this, g.titleId) ? null : GpuDriver.problem(this, GpuDriver.selected(this, g.titleId));
+        if (bad != null) {
+            new PadFocus.Builder(this).setTitle(KnownDrivers.NOTICE_TITLE)
+                    .setMessage(KnownDrivers.notice(bad))
+                    .setPositiveButton("Change driver", (d, w) -> {
                         gameSettings(g);
                         dev.peanuts.ui.DriverActivity.openForGame(this, g.titleId, g.name);
                     })

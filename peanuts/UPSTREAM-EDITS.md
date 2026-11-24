@@ -1349,6 +1349,20 @@ Upstream's classes keep doing the work, read through reflection (`DriverPort`): 
 `PadFocus.watch` (Settings' focus frame). The page reads GitHub only once a source is opened, as `DriverFetch` does. `GpuDriver.dialog` and
 `DriverFetch.dialog` stay unchanged; nothing opens them any more. No upstream-candidate general fix: the hunks call Peanuts-owned code.
 
+### Known bad GPU driver builds (2026-11-25)
+
+Turnip v27.0.0-R3 (Mesa git-c5ef4bdfab) drew the game's picture and the app's own screens broken on the AYN Thor's Adreno 740. `KnownDrivers.BAD` names such builds
+by the driver's own identity (its Vulkan `driverInfo`, else its `meta.json`); the pickers mark them, a start asks once (Play anyway / Change driver), the log gets one `[RED]` line.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/src/main/java/dev/nxnative/android/KnownDrivers.java`, `android/app/src/jvmtest/java/dev/nxnative/android/KnownDriversJvmTest.java`, `dm/tools/tests/test_android_known_drivers.py` | new files | the table, its match and texts, and their tests | `PEANUTS` in the first comment |
+| `android/app/src/main/java/dev/nxnative/android/GpuDriver.java` | 3 | `Info.description`; `problem` / `problemText`; `dialog`'s label (the main screen's old dialog, still reached from `DriverFetch.dialog`) | `PEANUTS begin/end`, `// PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/Prefs.java` | 2 | `rememberFacts` also keeps `driver.info` as `vk_info@<driver>`; `driverFacts` | `PEANUTS begin/end` |
+| `android/app/src/main/java/dev/nxnative/android/MainActivity.java` | 1 | `start(Game)`: the notice, in the system-driver warning's block | existing `PEANUTS begin/end` |
+| `android/app/src/main/java/dev/nxnative/android/GameActivity.java` | 3 | `readinessDecide`: the `[RED]` line, written at the start after the readiness line | `PEANUTS begin/end`, `// PEANUTS` |
+| `android/README.md` | 1 | Custom GPU drivers: Known bad builds | `<!-- PEANUTS -->` |
+
 ### Round 23, Swap screens (2026-11-18, GitHub issue #131)
 
 Some dual-screen setups attach the top screen over USB-C, so Android lists the built-in bottom screen as the default display and the clip-on top screen as an

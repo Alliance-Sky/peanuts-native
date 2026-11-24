@@ -234,7 +234,13 @@ final class Prefs {
      *  GameActivity's start-up check and the Readiness check screen write it; the matches read it */
     static void rememberFacts(Context c, String driverChoice, String vulkan) {
         String k = Recommend.keep(vulkan);
-        if (!k.isEmpty() && !k.equals(of(c).getString("vk_facts@" + driverChoice, ""))) of(c).edit().putString("vk_facts@" + driverChoice, k).commit();
+        // PEANUTS begin: the driver's driverInfo beside them (vk_info@<choice>), for the known bad builds (KnownDrivers) in the driver pickers; the matches never read it
+        if (k.isEmpty()) return;
+        String info = Readiness.facts(vulkan).getOrDefault("driver.info", "");
+        SharedPreferences p = of(c);
+        if (!k.equals(p.getString("vk_facts@" + driverChoice, "")) || !info.equals(p.getString("vk_info@" + driverChoice, "")))
+            p.edit().putString("vk_facts@" + driverChoice, k).putString("vk_info@" + driverChoice, info).commit();
+        // PEANUTS end
     }
     /** The phone's own driver's facts from GLES (Recommend.glFacts; GpuGl at the launcher's start), kept only while no readiness check has answered on that driver, so
      *  the recommendations show from a fresh install on; the check's own answer replaces them */
@@ -243,6 +249,14 @@ final class Prefs {
         if (!k.isEmpty() && of(c).getString("vk_facts@" + Recommend.SYSTEM, "").isEmpty()) of(c).edit().putString("vk_facts@" + Recommend.SYSTEM, k).commit();
     }
     static java.util.Map<String, String> facts(Context c, String driverChoice) { return Readiness.facts(of(c).getString("vk_facts@" + driverChoice, "")); }
+    // PEANUTS begin: facts() with the driver's driverInfo (driver.info) when a check kept it, what KnownDrivers.find reads
+    static java.util.Map<String, String> driverFacts(Context c, String driverChoice) {
+        java.util.Map<String, String> f = facts(c, driverChoice);
+        String info = of(c).getString("vk_info@" + driverChoice, "");
+        if (!info.isEmpty()) f.put("driver.info", info);
+        return f;
+    }
+    // PEANUTS end
 
     /** The game's process pins the recommended driver when its readiness check starts (GameActivity.readinessHold): the driver opens once a process, so facts the check
      *  writes cannot move the start to another driver than the one checked */

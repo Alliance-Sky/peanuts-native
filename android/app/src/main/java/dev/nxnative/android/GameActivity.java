@@ -739,6 +739,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         return gpuNote;
     }
     private String readinessLine;
+    private String badDriverLine;   // PEANUTS: KnownDrivers.logLine of the driver the check ran, null for none
     private static final long READINESS_WAIT_MS = 8000;
 
     /** true: the start waits for the check (it calls start() again when the player may go on) */
@@ -797,6 +798,12 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         rFacts = f;
         rChecks = l;
         readinessLine = Readiness.summary(id, f, l);
+        // PEANUTS begin: a known bad driver build (KnownDrivers) on this GPU, by the driver's own driverInfo (else the launcher's pick's meta.json): one [RED] line
+        GpuDriver.Info picked = GpuDriver.selected(this, id);
+        boolean ownPick = picked != null && picked.dir.getName().equals(probedChoice);
+        KnownDrivers.Bad bad = ownPick ? KnownDrivers.find(f, null, picked.name, picked.description, picked.version) : KnownDrivers.find(f, null);
+        badDriverLine = bad == null ? null : KnownDrivers.logLine(bad, ownPick ? picked.label() : null);
+        // PEANUTS end
         String report = Readiness.report(ReadinessActivity.header(this, (p != null ? p.name + " " : "") + id + " (start-up check)"), f, l);
         try { Files.write(new File(getExternalFilesDir(null), "readiness-" + id + ".txt").toPath(), report.getBytes(StandardCharsets.UTF_8)); } catch (IOException ignored) { /* the screen's report leaves it out */ }
         readinessDone = true;
@@ -1061,6 +1068,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
             prewarmTick();   // PEANUTS: startup shader progress
             if ("java".equals(testCrash)) { Native.note("[RED] DM_TEST_CRASH=java: an exception on the main thread in 10 s"); ExitWatch.testCrash(ui); }   // =native: nxlaunch.c
             if (readinessLine != null) Native.note(readinessLine + (triedAnyway ? "; the player chose Try anyway" : ""));   // the readiness check (readinessHold)
+            if (badDriverLine != null) Native.note(badDriverLine);   // PEANUTS: a known bad driver build (KnownDrivers)
             Native.note("[nxlaunch] game: " + game + (nupFd >= 0 ? " (.nup used where it is, descriptor " + nupFd + ")" : Nup.isNup(game) ? " (.nup)" : " (folder)") + ", DM_ROMFS " + romfs
                     + ", pack " + packDir);
             Native.note("[nxlaunch] save: " + save + " (" + saveHow + ")" + (saveNote != null ? "; " + saveNote : ""));

@@ -554,6 +554,14 @@ A Turnip driver. Honest details:
 
 The app does not mark any driver as recommended in its list. Whichever you use, name it when you report a bug.
 
+### Why does the app say a driver draws broken on this phone?
+
+Some driver builds are known to draw wrongly on some GPUs. The app marks such a driver in its GPU driver lists, and when a game starts with it you can tap **Play anyway** or **Change driver**. Nothing is blocked.
+
+- **Turnip v27.0.0-R3** (StevenMXZ) on Adreno 7xx, such as the AYN Thor's Adreno 740: the game's picture is striped and the app's own screens (the stats page, the in-game panel) blink or break. Turnip 27.0.0-R2 or another driver works.
+
+The app knows the build from what the driver reports about itself, not from the name of its folder.
+
 ### How do I install a driver from the app's Download list?
 
 You need an internet connection. The app downloads nothing until you tap a file.
