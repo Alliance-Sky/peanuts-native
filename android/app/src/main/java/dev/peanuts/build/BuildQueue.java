@@ -193,6 +193,29 @@ public final class BuildQueue {
      * it is being built). An earlier ready or stopped item of the game goes: this one stands for it. When nothing waits or runs, a new batch begins
      */
     public synchronized Item add(BuildRequest r, boolean buildAnyway, long now) {
+        Item n = put(r, buildAnyway, now);
+        if (n != null) save();
+        return n;
+    }
+
+    /**
+     * Several games at once (Build all): each taken in order as {@link #add} takes it, and the file written once at the end instead of once a game (Build all
+     * of 50 games wrote the whole file 50 times on the main thread). The answer holds add's answer for each request, in their order (null: that game runs now)
+     */
+    public synchronized List<Item> addAll(List<BuildRequest> requests, List<Boolean> buildAnyway, long now) {
+        List<Item> out = new ArrayList<>(requests.size());
+        boolean any = false;
+        for (int k = 0; k < requests.size(); k++) {
+            Item n = put(requests.get(k), buildAnyway.get(k), now);
+            out.add(n);
+            any |= n != null;
+        }
+        if (any) save();
+        return out;
+    }
+
+    /** add without the save: null for a game that runs now (nothing changed then) */
+    private Item put(BuildRequest r, boolean buildAnyway, long now) {
         String id = r.titleId == null ? "" : r.titleId;
         for (Item i : items) if (i.running() && i.titleId().equalsIgnoreCase(id)) return null;
         held = false;   // a game asked for (the paused one's Resume, or another) ends a pause
@@ -203,7 +226,6 @@ public final class BuildQueue {
                 Item n = new Item(i.id, i.batch, r, buildAnyway);
                 n.added = i.added;
                 items.set(k, n);
-                save();
                 return n;
             }
         }
@@ -211,7 +233,6 @@ public final class BuildQueue {
         Item n = new Item(nextId++, batch, r, buildAnyway);
         n.added = now;
         items.add(n);
-        save();
         return n;
     }
 
@@ -264,6 +285,19 @@ public final class BuildQueue {
         items.remove(i);
         save();
         return true;
+    }
+
+    /** Several waiting or stopped items leave at once, with one save (a Build all that Android did not let start); returns how many left */
+    public synchronized int removeAll(List<Integer> ids) {
+        int n = 0;
+        for (int id : ids) {
+            Item i = get(id);
+            if (i == null || i.running()) continue;
+            items.remove(i);
+            n++;
+        }
+        if (n > 0) save();
+        return n;
     }
 
     /** Every waiting item leaves (Cancel all); returns how many */
@@ -380,6 +414,7 @@ public final class BuildQueue {
     /** The file written beside itself, then moved into place: a process killed while it writes leaves the last whole file */
     private void save() {
         if (file == null) return;
+        saves++;
         StringBuilder s = new StringBuilder();
         s.append(MAGIC).append('\t').append(FORMAT).append('\t').append(nextId).append('\t').append(batch).append('\t').append(held ? "held:" + heldAt : "").append('\n');
         for (Item i : items) s.append(line(i)).append('\n');
@@ -394,6 +429,9 @@ public final class BuildQueue {
             saveFailed = String.valueOf(e);
         }
     }
+
+    /** How many times this queue wrote its file (BuildQueueJvmTest: Build all writes it once) */
+    int saves;
 
     /** Why the last save failed (for the service's log), null when it did not */
     public volatile String saveFailed;

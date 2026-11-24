@@ -929,14 +929,11 @@ public final class Library {
         m.append(total == 1 ? "" : " They build one after the other.").append(" Before each one the queue waits while the phone is hot, the battery is low or a game runs.").append(left);
         new AlertDialog.Builder(a).setTitle(total == 1 ? "Build 1 game?" : "Build " + total + " games?").setMessage(m)
                 .setPositiveButton("Build all", (d, w) -> {
-                    int queued = 0;
                     List<LibraryScanner.Title> all = new ArrayList<>(need);
                     all.addAll(stale);
-                    for (LibraryScanner.Title t : all) {
-                        GameSheet.State st = GameSheet.resumeState(a, t, CompanionPort.forTitle(catalog, t.titleId));
-                        startBuild(st, false);
-                        if (building(t.titleId) || BuildPipeline.queued(t.titleId) != null) queued++;   // a refusal says why in its own dialog
-                    }
+                    List<GameSheet.State> states = new ArrayList<>();
+                    for (LibraryScanner.Title t : all) states.add(GameSheet.resumeState(a, t, CompanionPort.forTitle(catalog, t.titleId)));
+                    int queued = startBuilds(states);   // all at once: one write of the queue, one redraw of Home (a refusal says why in its own dialog)
                     Haptics.play(anchor(), queued > 0 ? Haptics.Word.HEAVY : Haptics.Word.REJECT);
                     if (queued > 0) {
                         Toast.makeText(a, queued == 1 ? "1 game is in the build queue." : queued + " games are in the build queue.", Toast.LENGTH_LONG).show();
@@ -1980,8 +1977,51 @@ public final class Library {
     /** The sheet's Build: the state to the pipeline, which builds it now or puts it into the queue; the card shows the rest. Returns why it could not start, or null */
     String startBuild(GameSheet.State s) { return startBuild(s, true); }
 
-    /** Same; say: a toast says the place of a game that goes into the queue (Build all says it once for all of them), and the notification permission is asked */
+    /** Same: a toast says the place of a game that goes into the queue, and the notification permission is asked */
     String startBuild(GameSheet.State s, boolean say) {
+        String why = refusal(s);
+        if (why != null) return why;
+        final int[] mine = {0};   // this request's id once the pipeline took it: its own end and progress go to the card of that build only
+        int id = BuildPipeline.start(a, request(s), s.buildAnyway, startListener(mine));   // a refusal comes back through this (id 0); a started build's listener is attached in took
+        mine[0] = id;
+        if (id == 0) return null;   // the pipeline says why, in its own dialog
+        took(s, id, say);
+        render();
+        if (say) askNotify();
+        return null;
+    }
+
+    /**
+     * Build all's games into the pipeline as one change ({@link BuildPipeline#startAll}): the queue's file written once and Home drawn once. One {@link
+     * #startBuild} a game drew Home again for each of them, and the queue's watcher once more each (about 100 rebuilds of the whole grid for 50 games, on the
+     * main thread). Returns how many build now or wait; a refusal by the pipeline says why in its own dialog, as startBuild's
+     */
+    private int startBuilds(List<GameSheet.State> states) {
+        List<GameSheet.State> go = new ArrayList<>();
+        List<BuildRequest> reqs = new ArrayList<>();
+        List<Boolean> anyway = new ArrayList<>();
+        List<BuildListener> ls = new ArrayList<>();
+        List<int[]> mines = new ArrayList<>();
+        for (GameSheet.State s : states) {
+            if (refusal(s) != null) continue;
+            int[] mine = {0};
+            go.add(s); reqs.add(request(s)); anyway.add(s.buildAnyway); ls.add(startListener(mine)); mines.add(mine);
+        }
+        if (go.isEmpty()) return 0;
+        int[] ids = BuildPipeline.startAll(a, reqs, anyway, ls);
+        boolean any = false;
+        for (int k = 0; k < ids.length; k++) {
+            mines.get(k)[0] = ids[k];
+            if (ids[k] != 0) { took(go.get(k), ids[k], false); any = true; }
+        }
+        int queued = 0;
+        for (GameSheet.State s : states) if (building(s.titleId) || BuildPipeline.queued(s.titleId) != null) queued++;
+        if (any && queued == 0) render();   // (the caller draws Home when a game builds or waits)
+        return queued;
+    }
+
+    /** Why this game's build cannot start now, null when it can */
+    private String refusal(GameSheet.State s) {
         if (building(s.titleId)) return s.name + " is being built now. Wait for it to finish.";
         if (dev.peanuts.pack.PackImport.busy(s.titleId)) return "Import pack is working on " + s.name + ". Wait for it to finish, then build.";   // GitHub issue #44: the import writes the pack folder this build would use
         // Keys and firmware fonts are a one-time setup requirement (owner, 2026-11-13), checked here as a cheap file-presence gate for every entry point
@@ -1989,6 +2029,11 @@ public final class Library {
         // reason, so this is only a last line of defense, never a per-build re-validation against the importer.
         if (!PeanutsPrefs.hasKeys(a)) return "Add your keys first in Settings › Console, then build.";
         if (!PeanutsPrefs.hasFonts(a)) return "Add your firmware first in Settings › Console, then build.";
+        return null;
+    }
+
+    /** The sheet's state as the pipeline's request */
+    private BuildRequest request(GameSheet.State s) {
         BuildRequest r = new BuildRequest();
         r.titleId = s.titleId; r.name = s.name; r.base = s.base; r.update = s.update;
         r.dlcs = new ArrayList<>(s.dlcs);
@@ -1997,8 +2042,12 @@ public final class Library {
         r.buildDestination = PeanutsPrefs.chosenBuildDir(a, s.titleId);
         r.companionPackage = s.installCompanion ? s.companionPackage : null;
         r.replaceNup = s.replaceNup; r.deleteOldFirst = s.deleteOldFirst;   // Import again (GameSheet.importAgain)
-        final int[] mine = {0};   // this request's id once the pipeline took it: its own end and progress go to the card of that build only
-        int id = BuildPipeline.start(a, r, s.buildAnyway, new BuildListener() {   // a refusal comes back through this (id 0); a started build's listener is attached below
+        return r;
+    }
+
+    /** The listener a start hands the pipeline: a refusal (mine[0] still 0) in a dialog, else what it hears goes to the card of that build */
+    private BuildListener startListener(int[] mine) {
+        return new BuildListener() {
             @Override public void progress(String step, int percent, String detail) { if (mine[0] != 0) listener(mine[0]).progress(step, percent, detail); }
             @Override public void done(boolean ok, String message, String code) {
                 if (mine[0] != 0) { listener(mine[0]).done(ok, message, code); return; }
@@ -2006,9 +2055,11 @@ public final class Library {
                 Haptics.play(anchor(), Haptics.Word.REJECT);
                 new AlertDialog.Builder(a).setTitle("Build").setMessage(message).setPositiveButton("OK", null).show();
             }
-        });
-        mine[0] = id;
-        if (id == 0) return null;   // the pipeline says why, in its own dialog
+        };
+    }
+
+    /** The pipeline took the game (id): the build card when it starts now, else its place in the queue (a toast when say) */
+    private void took(GameSheet.State s, int id, boolean say) {
         if (BuildPipeline.running() == id) {
             build = new Build(id, s.titleId, s.name);
             build.reimport = s.replaceNup != null;
@@ -2019,9 +2070,6 @@ public final class Library {
             String p = qi == null || BuildPipeline.queueNow() == null ? "" : BuildPipeline.queueNow().placeText(qi);
             if (say) Toast.makeText(a, s.name + (p.isEmpty() ? " waits in the build queue." : " is in the build queue, " + p + "."), Toast.LENGTH_LONG).show();
         }
-        render();
-        if (say) askNotify();
-        return null;
     }
 
     /** The build's notifications (its progress, and its end while the app is not in front) need the permission; asked as upstream's Prepare asks (Ondevice) */
