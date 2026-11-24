@@ -3110,3 +3110,16 @@ Receivers: from API 33 `RECEIVER_NOT_EXPORTED` as before. Android 12 has no such
 Tests: `dm/tools/tests/test_android_api31.py`; the javac tests that compile `Streams` callers (`test_android_driverzip.py`, `test_android_packzip.py`, `test_android_saf.py`, `peanuts/tests/test_first_import.py`, `test_mii_import.py`, `test_mii_editor.py`).
 
 Upstream candidate: the `Streams` guard (the platform call kept from API 33) and the Peanuts-side guards, if upstream lowers minSdk.
+
+### Trails in the Sky 1st Chapter: segment GPU timestamps (2026-11-26)
+
+The game's dynamic resolution reads the GPU time between its frame's timestamp reports, which span submissions; with one time per submission (the default)
+it held the scene at 800x450 of its 1600x900 targets. The profile key `gpu_timestamps segment` (upstream's, as Breath of the Wild uses it) fixes it.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `docs/reference/frame-rate.md` | 2 | "GPU timestamps per submission segment": the opposite symptom (a dynamic resolution held at its minimum) and the game under Found on | `<!-- PEANUTS(upstream-candidate): ... -->` |
+| `docs/agents/game-patches.md`, `docs/agents/symptoms.md` | generated | `dm/tools/docs_patches.py`, `dm/tools/docs_symptoms.py` | (generated) |
+
+Peanuts' own files, no marker: `dm/games/01002C9022770000/game.tsv` (the key, with a `# PEANUTS:` comment) and its note. Upstream candidate: the reference
+entry's new symptom; the key itself is this Peanuts-only profile's.
