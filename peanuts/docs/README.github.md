@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img alt="status" src="https://img.shields.io/badge/release-0.1.7-brightgreen">
+  <img alt="status" src="https://img.shields.io/badge/release-0.1.8-brightgreen">
   <img alt="license" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue">
   <img alt="platform" src="https://img.shields.io/badge/platform-Android%2013%2B-green">
 </p>
@@ -28,7 +28,7 @@ too.
 
 <!-- PEANUTS begin: the Supported games table, written by peanuts/scripts/games_catalog.py from peanuts/games.tsv, peanuts/release-titles.txt and the profiles. Edit peanuts/games.tsv, not this table -->
 
-Peanuts Native 0.1.7 includes 59 games, and 17 more are coming in 0.1.8 (marked in the table). The Companion column shows whether a game appears in the Eden Duo Companions catalog, and the Contributor column the community members who brought a game to Peanuts Native. Updates are shown as version numbers or numeric update IDs.
+Peanuts Native 0.1.8 includes 76 games. The Companion column shows whether a game appears in the Eden Duo Companions catalog, and the Contributor column the community members who brought a game to Peanuts Native. Updates are shown as version numbers or numeric update IDs.
 
 | Game | Title ID | Game update | Companion | Contributor |
 |---|---|---|---|---|
@@ -91,27 +91,27 @@ Peanuts Native 0.1.7 includes 59 games, and 17 more are coming in 0.1.8 (marked 
 | Digimon Story Time Stranger | `010062E01FE0C000` | 1.2.2 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
 | Hogwarts Legacy | `0100F7E00C70E000` | 1.0.5 | No | ⭐<br><a href="https://github.com/tapionallanaire"><img src="https://img.shields.io/badge/tapionallanaire-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="tapionallanaire"></a> |
 | Star Ocean The Second Story R | `010065301A2E0000` | 1.1.0 | No |  |
-| Stray (coming in 0.1.8) | `010075101EF84000` | 1.0.0 | No | ⭐<br><a href="https://github.com/dnyan007"><img src="https://img.shields.io/badge/dnyan007-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="dnyan007"></a> |
-| 13 Sentinels: Aegis Rim (coming in 0.1.8) | `01003FC01670C000` | 1.10 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| Captain Toad: Treasure Tracker (coming in 0.1.8) | `01009BF0072D4000` | 1.4.2 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| Advance Wars 1+2: Re-Boot Camp (coming in 0.1.8) | `0100300012F2A000` | 1.0.0 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| FANTASY LIFE i: The Girl Who Steals Time (coming in 0.1.8) | `0100755017EE0000` | 1.5.0 | No | ⭐<br><a href="https://github.com/tapionallanaire"><img src="https://img.shields.io/badge/tapionallanaire-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="tapionallanaire"></a> |
-| Pokémon: Let's Go, Pikachu! (coming in 0.1.8) | `010003F003A34000` | 1.0.2 | No | ⭐<br><a href="https://github.com/fireworksordie"><img src="https://img.shields.io/badge/fireworksordie-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="fireworksordie"></a> |
-| Pokémon: Let's Go, Eevee! (coming in 0.1.8) | `0100187003A36000` | 1.0.2 | No | ⭐<br><a href="https://github.com/fireworksordie"><img src="https://img.shields.io/badge/fireworksordie-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="fireworksordie"></a> |
-| Viewfinder (coming in 0.1.8) | `0100F9D023176000` | 1.0.0 | No | ⭐<br><a href="https://github.com/dnyan007"><img src="https://img.shields.io/badge/dnyan007-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="dnyan007"></a> |
-| SPY×ANYA: Operation Memories (coming in 0.1.8) | `010089B01AB44000` | 1.0.1 | No | ⭐<br><a href="https://github.com/nomnomab"><img src="https://img.shields.io/badge/nomnomab-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="nomnomab"></a> |
-| Super Mario RPG (coming in 0.1.8) | `0100BC0018138000` | 1.0.1 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| WarioWare: Get It Together! (coming in 0.1.8) | `0100563010E0C000` | 1.0.0 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| LEGO 2K Drive (coming in 0.1.8) | `0100739018020000` | 1.17 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| LEGO CITY UNDERCOVER (coming in 0.1.8) | `010085500130A000` | 1.0.3 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| LEGO MARVEL Super Heroes (coming in 0.1.8) | `01006F600FFC8000` | 1.0.1 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| Minecraft Dungeons II (coming in 0.1.8) | `0100A7C01B792000` | 1.1.3.0 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
-| The Witcher 3: Wild Hunt — Complete Edition (coming in 0.1.8) | `01003D100E9C6000` | 4.04b | No |  |
-| Pokémon Mystery Dungeon: Rescue Team DX (coming in 0.1.8) | `01003D200BAA2000` | 1.0.0 | No | ⭐<br><a href="https://github.com/shamonj03"><img src="https://img.shields.io/badge/shamonj03-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="shamonj03"></a> |
+| Stray | `010075101EF84000` | 1.0.0 | No | ⭐<br><a href="https://github.com/dnyan007"><img src="https://img.shields.io/badge/dnyan007-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="dnyan007"></a> |
+| 13 Sentinels: Aegis Rim | `01003FC01670C000` | 1.10 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| Captain Toad: Treasure Tracker | `01009BF0072D4000` | 1.4.2 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| Advance Wars 1+2: Re-Boot Camp | `0100300012F2A000` | 1.0.0 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| FANTASY LIFE i: The Girl Who Steals Time | `0100755017EE0000` | 1.5.0 | No | ⭐<br><a href="https://github.com/tapionallanaire"><img src="https://img.shields.io/badge/tapionallanaire-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="tapionallanaire"></a> |
+| Pokémon: Let's Go, Pikachu! | `010003F003A34000` | 1.0.2 | No | ⭐<br><a href="https://github.com/fireworksordie"><img src="https://img.shields.io/badge/fireworksordie-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="fireworksordie"></a> |
+| Pokémon: Let's Go, Eevee! | `0100187003A36000` | 1.0.2 | No | ⭐<br><a href="https://github.com/fireworksordie"><img src="https://img.shields.io/badge/fireworksordie-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="fireworksordie"></a> |
+| Viewfinder | `0100F9D023176000` | 1.0.0 | No | ⭐<br><a href="https://github.com/dnyan007"><img src="https://img.shields.io/badge/dnyan007-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="dnyan007"></a> |
+| SPY×ANYA: Operation Memories | `010089B01AB44000` | 1.0.1 | No | ⭐<br><a href="https://github.com/nomnomab"><img src="https://img.shields.io/badge/nomnomab-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="nomnomab"></a> |
+| Super Mario RPG | `0100BC0018138000` | 1.0.1 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| WarioWare: Get It Together! | `0100563010E0C000` | 1.0.0 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| LEGO 2K Drive | `0100739018020000` | 1.17 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| LEGO CITY UNDERCOVER | `010085500130A000` | 1.0.3 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| LEGO MARVEL Super Heroes | `01006F600FFC8000` | 1.0.1 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| Minecraft Dungeons II | `0100A7C01B792000` | 1.1.3.0 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
+| The Witcher 3: Wild Hunt — Complete Edition | `01003D100E9C6000` | 4.04b | No |  |
+| Pokémon Mystery Dungeon: Rescue Team DX | `01003D200BAA2000` | 1.0.0 | No | ⭐<br><a href="https://github.com/shamonj03"><img src="https://img.shields.io/badge/shamonj03-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="shamonj03"></a> |
 
 <!-- PEANUTS end: the Supported games table -->
 
-Every game new in 0.1.7 reached gameplay on an AYN Thor with Turnip. Trails in the Sky 1st Chapter, Yoshi's Crafted World, Star Ocean The Second Story R and Hogwarts Legacy were checked for this release, among them Rail-Yard Run in Yoshi's Crafted World at 60 fps and the London intro in Hogwarts Legacy. Tetris Effect: Connected, Digimon Story Time Stranger and New Pokémon Snap were checked by their contributors on their own AYN Thor.
+The 0.1.8 release build installed over 0.1.7 on an AYN Thor (Adreno 740, Turnip 27.0.0-R2) with its data kept. The shaders of games built with 0.1.7 were upgraded in place in seconds; games with tessellation, such as Tears of the Kingdom, prepare their shaders again. The Witcher 3, Breath of the Wild, Animal Crossing: New Horizons at 60 fps with the built-in speed fix, Fire Emblem Engage, Star Ocean The Second Story R and Hogwarts Legacy were played for this release, and the companion and the stats page drew cleanly on Turnip 27.0.0-R2. Turnip v27.0.0-R3 draws broken images, and the app now warns about it.
 
 ## What you need
 
