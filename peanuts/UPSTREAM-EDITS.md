@@ -2848,3 +2848,19 @@ PR #551 (intermission88, GitHub issue #455) makes the host's Unreal allocator as
 | `dm/games/0100DE501433A000/README.md` | 1 | Tetris Effect: Connected's #455 entry | `PEANUTS` |
 
 Upstream candidate: yes, a general fix with no game-specific branch; on Scudo and on Apple's allocator nothing changes. `docs/agents/symptoms.md` is generated (allow-listed) and current.
+
+### Socket waits are native waits (2026-11-24, issue #610)
+
+FINAL FANTASY RESONANCE's companion never had its load plan installed on 0.1.8: all 40 tries of the stop of all threads timed out. The game's Unreal
+HttpManagerThread polls its wakeup eventfd every 100 ms from boot, and `hle_net.c` waited for it in host code outside a native wait, so the stop never
+found that thread in game code ([docs/reference/threads.md](../docs/reference/threads.md#socket-poll-waits-are-native-waits)).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/host/hle_net.c` | 3 | `sk_sleep_ns` (new): `dm_guest_sleep_ns` inside `dm_thread_native_wait`, for `sk_idle` and the co-op mixed poll's 2 ms sleep; `efd_wait`'s `pthread_cond_timedwait` inside `dm_thread_native_wait` | `PEANUTS(upstream-candidate)`, `begin`/`end` on the new function |
+| `dm/host/tests/t_net_eventfd.c` | 2 | a `dm_thread_native_wait` that counts, and two checks: an eventfd Poll that waits and a Poll with nothing to wait on both enter a native wait and leave it | `PEANUTS(upstream-candidate) begin`/`end` |
+| `dm/host/tests/t_net_coop.c` | 1 | a `dm_thread_native_wait` stub (the file links `hle_net.c` without `hle_thread.c`) | `PEANUTS(upstream-candidate)` |
+| `docs/reference/threads.md` | 1 | "Socket Poll waits are native waits" | `PEANUTS begin`/`end` |
+| `dm/games/0100606026F12000/README.md` | 1 | its line under "Found on this game" | `PEANUTS` |
+
+Upstream candidate: Banana Native's `hle_net.c` has the same waits.
