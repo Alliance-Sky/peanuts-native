@@ -223,6 +223,12 @@ Contributors: <!-- PEANUTS begin: the contributor list of this fork -->
 - [ssv0225](https://github.com/ssv0225): the New Pokémon Snap profile with its DRPF archive reader for the shader split and the NVN memory pool builder's getters, and the shader tools running on Linux (pull requests #307, #308, #309 and #310).
 - [999sian](https://github.com/999sian): Yoshi's Crafted World on Android, with samplers chosen by the view's format, streamed mip levels, bounded draw ranges and buffer-texture classes (pull request #140).
 - [ts-miller](https://github.com/ts-miller): the encoder opcodes for occlusion queries (pull request #263), the frame rate cap in the GPU clock floor (pull request #220), and textures written one texel at a time without long stalls (pull request #403).
+- [shamonj03](https://github.com/shamonj03): the Pokémon Mystery Dungeon: Rescue Team DX profile with its start hang fix (pull request #502), textures the game filled before their first use (pull request #419), dual-source shader outputs (pull request #420), and two fixes to the shader split (pull requests #417 and #418).
+- [fireworksordie](https://github.com/fireworksordie): the Pokémon: Let's Go, Pikachu! and Let's Go, Eevee! profiles (pull request #245).
+- [nomnomab](https://github.com/nomnomab): the SPY×ANYA: Operation Memories profile (pull request #332).
+- [danielcamilo1](https://github.com/danielcamilo1): the CRT filter (pull request #397).
+- [g0giberry](https://github.com/g0giberry): NVN samplers that no longer flash the picture in Super Mario Odyssey (pull request #521).
+- [gerdguerrero](https://github.com/gerdguerrero): Fire Emblem Engage 2.0.0's memory alignment (pull request #540).
 - [ArchOwlen](https://github.com/ArchOwlen): the first issue and discussion forms (pull request #5).
 <!-- PEANUTS end -->
 
