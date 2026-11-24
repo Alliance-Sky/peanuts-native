@@ -129,7 +129,7 @@ public final class GameListJvmTest {
                 } else if (folder == updOnly) {
                     check(vs.equals(List.of(65537L)) && Pack.isDump(d), tag + ": update only " + vs);
                     // said plainly (no build IDs in the main text: they are in detail, for Details), and Try anyway can take it
-                    check(f.error != null && f.version < 0 && f.otherBuild && f.error.contains("not been tested with. It is tested with 1.8.0.") && f.detail.contains("update 65537")
+                    check(f.error != null && f.version < 0 && f.otherBuild && f.error.contains("not been tested with. It is tested with 1.8.0.") && f.detail.contains("update 65537")   // PEANUTS: build text in the player's words (0.1.8)
                             && !f.error.contains(id(12).substring(0, 16)) && f.detail.contains("update 65537 (main " + id(12).substring(0, 16))
                             && f.detail.contains("1.8.0 (the base game, version 0, main " + id(11).substring(0, 16)), tag + ": another version, said plainly: " + f.error + " | " + f.detail);
                     DumpLayout.Found any = DumpLayout.find(d, true);
@@ -137,7 +137,7 @@ public final class GameListJvmTest {
                             tag + ": Try anyway takes the newest version, untested: " + any.error);
                     check(DumpLayout.path(d, 65537, "romfs").endsWith(Nup.isNup(d) ? ".nup:update/65537/romfs" : "updates/65537/romfs"), tag + ": its own romfs");
                 } else if (folder == both) {
-                    check(vs.equals(List.of(0L, 65537L)) && f.error != null && f.detail.contains("the base (main " + id(10).substring(0, 16)) && f.detail.contains("update 65537"), tag + ": " + f.error);
+                    check(vs.equals(List.of(0L, 65537L)) && f.error != null && f.detail.contains("the base (main " + id(10).substring(0, 16)) && f.detail.contains("update 65537"), tag + ": " + f.error);   // PEANUTS: build text in the player's words (0.1.8)
                 } else if (folder == codeInUpd) {
                     check(f.error == null && f.version == 65537 && f.buildIds.get("main").startsWith(id(11)), tag + ": the build in an update package: " + f.error);
                     check(DumpLayout.path(d, 65537, "romfs").endsWith(Nup.isNup(d) ? ".nup:base/romfs" : "base/romfs") && DumpLayout.hasRomfs(d, 65537),
@@ -159,7 +159,7 @@ public final class GameListJvmTest {
         // not a dump: an empty folder, a one-version folder
         File empty = new File(root, "empty");
         empty.mkdirs();
-        check(DumpLayout.find(empty).error.contains("cannot find a game in") && !Pack.isDump(empty), "empty folder");
+        check(DumpLayout.find(empty).error.contains("cannot find a game in") && !Pack.isDump(empty), "empty folder");   // PEANUTS: build text in the player's words (0.1.8)
         File one = new File(root, "one-version");
         version(one, FIX2, 11, true);
         check(DumpLayout.find(one).error.contains("holds one version's files") && !Pack.isDump(one), "one-version folder: " + DumpLayout.find(one).error);
@@ -218,7 +218,7 @@ public final class GameListJvmTest {
                 BuildCheck.Result r = BuildCheck.build(v0, d);
                 check(!r.ok() && (r.kind == BuildCheck.Kind.OTHER_BUILD || r.kind == BuildCheck.Kind.MISSING), tag + ": refused: " + r.kind + " " + r.detail);
                 DumpLayout.Found f = DumpLayout.find(d);
-                check(f.error != null && f.error.contains("has not been tested with") && f.version < 0, tag + ": Prepare refuses: " + f.error);
+                check(f.error != null && f.error.contains("has not been tested with") && f.version < 0, tag + ": Prepare refuses: " + f.error);   // PEANUTS: build text in the player's words (0.1.8)
             }
         }
         // the same main under another number but another sdk: another build, refused
@@ -271,7 +271,7 @@ public final class GameListJvmTest {
                     check(f.error == null && f.version == 65536, tag + ": patched data passes: " + f.error);
                     check(r.ok(), tag + ": card: " + r.kind + " " + r.detail);
                 } else {
-                    check(f.error != null && f.error.startsWith("The game data in these game files is not ") && !f.error.contains("RomFS")
+                    check(f.error != null && f.error.startsWith("The game data in these game files is not ") && !f.error.contains("RomFS")   // PEANUTS: build text in the player's words (0.1.8)
                             && f.detail.startsWith("System/RegionLangMask.txt: ") && f.detail.contains("version 65536's full update RomFS")
                             && f.detail.contains("expected main's build ID " + id(2).substring(0, 16)), tag + ": Prepare: " + f.error + " | " + f.detail);
                     check(c[0].equals("missing") ? f.detail.contains(": missing,") : f.detail.contains("line 4 is \"" + mask(1, "").substring(mask(1, "").lastIndexOf('\n') + 1) + "\""),

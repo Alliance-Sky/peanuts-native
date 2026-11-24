@@ -11,7 +11,7 @@ module_t *g_mod; int g_nmod;                            // host symbols that cra
 void svc_thread_dump(void) {}
 int dm_guest_as_contains(uintptr_t address) { (void)address; return 0; } // Tests use host-thread stacks.
 void dm_vi_layer_crop(int c[4]) { c[0] = c[1] = c[2] = c[3] = 0; }   // no vi layer crop in unit tests (hle_vi.c)
-int dm_fps_hold60(void) { return 0; }
+int dm_fps_hold60(void) { return 0; }   // PEANUTS: bounded WriteTexels dirty prep, #403 (0.1.8)
 uint64_t dm_guest_unmapped(uintptr_t a, size_t n) { (void)a; (void)n; return 0; }
 void dm_thread_native_wait(int entering) { (void)entering; }
 void dm_vi_frame_queued(uint64_t frame) { (void)frame; }
@@ -138,7 +138,7 @@ int main(void) {
     EXPECT("signed integer border RGB is numeric", 1, ((samp_t *)&sampler)->p.border[0] == 1.f && ((samp_t *)&sampler)->p.border[2] == 1.f);
     P(nvnSamplerFinalize)(&sampler);
     // agl hashes bytes [0x08..0x60) of NVNsampler to deduplicate sampler pool entries: samp_par must sit at +8 and Initialize must zero trailing bytes without overflowing 0x30 on newer SDKs.
-    {
+    {   // PEANUTS: NVNsampler layout for agl, #521 (0.1.8)
         EXPECT("samp_t.p starts at +8", 8, (int)offsetof(samp_t, p));
         struct { uint64_t before; NVNsampler a, b; uint64_t after; } g = {
             .before = UINT64_C(0x1122334455667788), .after = UINT64_C(0x8877665544332211)
@@ -830,7 +830,7 @@ int main(void) {
 
     // 6c2b. WriteTexels bounded dirty prep: writing 1x1 texels into a write-protected texture prepares only the touched page(s) with 0 page faults,
     //       marks the texture dirty, and preserves all neighboring texels; multi-block, 2D array, 3D fallback, and mirror paths behave identically while PG_PROT.
-    {
+    {   // PEANUTS: bounded WriteTexels dirty prep, #403 (0.1.8)
         size_t map_sz = 4u << 20;
         uint8_t *pmem = mmap(NULL, map_sz, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
         EXPECT("6c2b pool mmap succeeded", 1, pmem != MAP_FAILED);

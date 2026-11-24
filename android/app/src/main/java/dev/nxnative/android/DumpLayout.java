@@ -319,7 +319,7 @@ final class DumpLayout {
     private static String find(Found f, File dump, boolean anyBuild) {
         String fn = dump.getName();
         boolean nup = Nup.isNup(dump);
-        if (Nup.wrongCase(dump)) {
+        if (Nup.wrongCase(dump)) {   // PEANUTS: build text in the player's words (0.1.8)
             f.detail = dump.getPath();
             return "Rename " + fn + " so that its name ends in .nup or .nsp in lower case. The app and the game read only those names.";
         }
@@ -353,7 +353,7 @@ final class DumpLayout {
         try {
             f.titleId = Pack.titleIdOf(dump);
         } catch (IOException e) {
-            f.detail = e.getMessage();
+            f.detail = e.getMessage();   // PEANUTS: build text in the player's words (0.1.8)
             return "The app cannot tell which game these game files hold. Dump the game again.";
         }
         Profile prof = Profile.of(f.titleId);
@@ -393,7 +393,7 @@ final class DumpLayout {
         }
         if (f.version < 0) {
             f.otherBuild = true;
-            long newest = have.get(have.size() - 1);
+            long newest = have.get(have.size() - 1);   // PEANUTS: build text in the player's words (0.1.8)
             String shown = shownVersion(dump, newest);
             f.detail = "The game files hold " + describe(dump) + ".\n" + prof.supported();
             return "These game files hold " + (shown != null ? prof.name + " " + shown + ", a version" : "a version of " + prof.name) + " this app has not been tested with. It is tested with "
@@ -401,7 +401,7 @@ final class DumpLayout {
         }
         long v = f.version;
         String where = nup ? fn + ":" + selector(dump, v, false) : name(v);
-        if (!exists(dump, v, "exefs/main.npdm")) {
+        if (!exists(dump, v, "exefs/main.npdm")) {   // PEANUTS: build text in the player's words (0.1.8)
             f.detail = where + " has no exefs/main.npdm.";
             return "Part of the game's code is missing from these game files. Dump the game again.";
         }
@@ -426,7 +426,7 @@ final class DumpLayout {
         }
         // the RomFS is this version's data (game.tsv romfs_check: a file line that differs between versions, where romfs_marker cannot tell)
         // (Try anyway: not checked, the rows are of the builds the profile lists)
-        if (f.untested) return null;
+        if (f.untested) return null;   // PEANUTS: build text in the player's words (0.1.8)
         RomfsCheck.Bad bad = RomfsCheck.check(prof, path(dump, v, "romfs"), f.buildIds.get("main"), v);
         if (bad == null) return null;
         f.detail = bad.detail;

@@ -293,7 +293,7 @@ def collect_nros(exe, romfs, work, in_process=False):
         shutil.rmtree(work / 'android-nro.partial', ignore_errors=True)   # left by a version that renamed the folder into place
         if coll.exists(): shutil.rmtree(coll)
         coll.mkdir()
-        stage('finding the rest of the game\'s code')
+        stage('finding the rest of the game\'s code')  # PEANUTS: build text in the player's words (0.1.8)
         args, log = [str(romfs), str(coll), '--exefs', str(exe)], work / 'nro_collect.log'
         if in_process: rc = run_in_process(REPO / 'dm/tools/nro_collect.py', args, {'DM_NRO_COLLECT_J': '1'}, log)
         else:
@@ -728,7 +728,7 @@ def rewrite(py, srcs, out, jobs, g, in_process=False, xmod=None):
         for n, (m, (src, key)) in enumerate(todo.items(), 1):
             kf = out / f'{m}.android.key'; kf.unlink(missing_ok=True)
             shutil.rmtree(staging(out, m), ignore_errors=True)
-            stage(f'part {n} of {len(todo)}')
+            stage(f'part {n} of {len(todo)}')  # PEANUTS: build text in the player's words (0.1.8)
             print(f'  {m}: rewriting {src} (in process)', flush=True)
             t0 = time.monotonic()
             width = 1000 * size[m] // total
@@ -1026,7 +1026,7 @@ def pack_shaders(a, g, work, out, vdir, parts=None, aoc=()):
     v = vk_chain(); name = VK_PREFIX + v
     cache = (a.shader_cache or work / 'android-shaders' / 'lib').resolve(); lib = cache / name
     dst = out / 'shaders' / name
-    stage('checking the saved shaders')
+    stage('checking the saved shaders')  # PEANUTS: build text in the player's words (0.1.8)
     if not library_current(lib, g):
         if a.in_process: raise Error(f'no current shader library {lib}: --in-process does not build one yet (vk_android_build.py starts the translator and spirv-val as programs); --no-shaders packs without')
         pkg = (a.shader_pkg or work / 'android-shaders' / 'pkg').resolve()
@@ -1067,7 +1067,7 @@ def pack_shaders(a, g, work, out, vdir, parts=None, aoc=()):
         s_, d_ = lib / f, dst / f
         if d_.is_file() and d_.stat().st_size == s_.stat().st_size and d_.stat().st_mtime_ns == s_.stat().st_mtime_ns: continue
         tmp = d_.with_name(f + '.partial')
-        if f == VK_LIB: copy_counted(s_, tmp, 'copying the shaders into the build')
+        if f == VK_LIB: copy_counted(s_, tmp, 'copying the shaders into the build')  # PEANUTS: build text in the player's words (0.1.8)
         else: shutil.copy2(s_, tmp)
         os.replace(tmp, d_)   # replace: Windows' rename does not take an existing name
     others = sorted(o.name for o in (out / 'shaders').iterdir() if o.name != name and o.name.startswith(VK_PREFIX) and o.is_dir())
@@ -1083,7 +1083,7 @@ def scene_overlays(g, romfs, out):
     d = out / 'scene_res'
     if not g.values('scene_scale_palette'):
         shutil.rmtree(d, ignore_errors=True); return []
-    stage('saving the resolution settings for each scene')
+    stage('saving the resolution settings for each scene')  # PEANUTS: build text in the player's words (0.1.8)
     sys.path.insert(0, str(REPO / 'dm/tools'))
     import scene_res
     try:
@@ -1297,7 +1297,7 @@ def main():
         print(f'{app:016X} {g.get("name", "?")} version {ver}: {vdir}', flush=True)
         for m, known in unregistered(g, ids).items(): print(f'[RED] {m} build {ids[m]} is none of the profile\'s builds ({", ".join(known)}): build-gated cuts do not apply')
         if a.keep_code:
-            stage('checking the converted code')
+            stage('checking the converted code')  # PEANUTS: build text in the player's words (0.1.8)
             # each module needs its rewritten code and, written last by the rewrite, its key: a module without the key is a rewrite that did not finish (or one from before keys)
             gaps = [f'{m} ({" and ".join(f for f in (f"{m}.patched.bin", f"{m}.android.key") if not (out / f).is_file())} missing)'
                     for m in mods if not (out / f'{m}.patched.bin').is_file() or not (out / f'{m}.android.key').is_file()]

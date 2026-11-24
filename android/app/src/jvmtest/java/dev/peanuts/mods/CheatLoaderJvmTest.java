@@ -1,4 +1,4 @@
-package dev.peanuts.mods;
+package dev.peanuts.mods;   // PEANUTS: cheats for every game (0.1.8)
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

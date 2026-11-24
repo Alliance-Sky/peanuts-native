@@ -820,7 +820,7 @@ final class GameSettings {
         int cur = Prefs.fpsCap(a, g.titleId);
         if (own && cur < 0) checked = 1;
         for (int k = 0; k < n; k++) {
-            labels[k + 2] = (choices[k] == 0 ? "Game owned" : MainActivity.capLabel(choices[k]));
+            labels[k + 2] = (choices[k] == 0 ? "Game owned" : MainActivity.capLabel(choices[k]));   // PEANUTS: frame rate caps (0.1.8)
             enabled[k + 2] = FrameRateCaps.contains(offered, choices[k]);
             if (!enabled[k + 2]) labels[k + 2] += ", unavailable for this game";
             if (own && choices[k] == cur) checked = k + 2;

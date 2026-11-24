@@ -139,7 +139,7 @@ static void md_syms(void) {
     G.set_rect = msym("_ZN5movie9MediaData7SetRectEPKciiii");
     G.find_i32 = msym("_ZNK5movie9MediaData9FindInt32EPKcPi");
     G.find_buf = msym("_ZNK5movie9MediaData10FindBufferEPKcPPNS_6BufferE");
-    G.size = msym2("_ZNK5movie6Buffer4SizeEv", "_ZN5movie6Buffer4SizeEv");
+    G.size = msym2("_ZNK5movie6Buffer4SizeEv", "_ZN5movie6Buffer4SizeEv");   // PEANUTS: SDK 1.3.1 movie::Buffer getters (0.1.8)
     G.signal = msym("_ZN2nn2os11SignalEventEPNS0_9EventTypeE");
 }
 static mdec_t *md_of(void **self) { return self ? (mdec_t *)self[1] : NULL; }

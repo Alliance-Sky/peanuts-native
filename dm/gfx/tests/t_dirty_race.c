@@ -115,7 +115,7 @@ static void generation_publish(size_t pg, int batch) {
     nvn_dirty_remove_range(page); munmap(page, len);
 }
 
-static void nprot_accounting(size_t pg) {
+static void nprot_accounting(size_t pg) {   // PEANUTS: bounded WriteTexels dirty prep, #403 (0.1.8)
     uint8_t *buf = mmap(NULL, 4 * pg, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, -1, 0);
     if (buf == MAP_FAILED) { perror("mmap"); g_fail++; return; }
     nvn_dirty_add_range(buf, 4 * pg);
@@ -215,7 +215,7 @@ int main(void) {
     stamp_order(pg);
     generation_publish(pg, 0);
     generation_publish(pg, 1);
-    nprot_accounting(pg);
+    nprot_accounting(pg);   // PEANUTS: bounded WriteTexels dirty prep, #403 (0.1.8)
     concurrent_stress(pg);
     printf("t_dirty_race: %s\n", g_fail ? "FAILED" : "all passed"); return g_fail != 0;
 }

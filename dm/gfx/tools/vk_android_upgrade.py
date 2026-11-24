@@ -17,7 +17,7 @@
 #   another DMSH_CHAIN (the translator's front half), subgroup size or storage buffer alignment than this tree's, and one whose abi is not the first hop's
 # Environment: J (threads, default 8), DMSH_VK_ZSTD_LEVEL (as vk_android_build.py), DM_VK_UPGRADE_VALIDATE=1 runs spirv-val (SPIRV_VAL, a program or libSPIRV-Tools-shared,
 #   default spirv-val on PATH) on every rewritten module; a module that fails is a refusal (exit 3): a full build would not hold that shader
-import ast, concurrent.futures as cf, ctypes, mmap, os, re, shutil, struct, subprocess, sys, tempfile, threading, time
+import ast, concurrent.futures as cf, ctypes, mmap, os, re, shutil, struct, subprocess, sys, tempfile, threading, time  # PEANUTS: the in-place shader upgrade (0.1.8)
 HERE = os.path.dirname(os.path.abspath(__file__)); GFX = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import dmsh_chain, vk_android_spv as spv, vk_android_delta as delta

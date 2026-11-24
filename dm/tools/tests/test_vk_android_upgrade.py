@@ -1,6 +1,6 @@
 """vk_android_upgrade.py: a shader library of an older DMSH_VK_CHAIN rewritten into this tree's version without the translator. Small synthetic libraries written by
 vk_android_build.py's own write_library (through the upgrader's borrow): the hop path for each known version and unknown ones (exit 3), the unchecked marker, a dual module made
-again as dual_source of the stored base module, a type-2 sampler record rewritten, the header restamped, and no partial file after an error. No game files needed."""
+again as dual_source of the stored base module, a type-2 sampler record rewritten, the header restamped, and no partial file after an error. No game files needed."""  # PEANUTS: the in-place shader upgrade (0.1.8)
 import os
 import shutil
 import struct

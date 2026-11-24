@@ -4295,7 +4295,7 @@ def main():
         tag = os.path.basename(os.path.dirname(os.path.abspath(romfs))) if i else ''
         stage('listing the game\'s files')
         files += sorted(((os.path.join(dp, f), (tag + '/' if tag else '') + posix_rel(os.path.join(dp, f), romfs)) for dp, _, fs in os.walk(romfs) for f in fs), key=lambda t: t[1])   # by the '/' path: the same order on every system
-        stage('reading the game\'s code')
+        stage('reading the game\'s code')  # PEANUTS: build text in the player's words (0.1.8)
         img = nso_image(mainnso)
         stage('looking for shaders in the game\'s code')
         if not i:

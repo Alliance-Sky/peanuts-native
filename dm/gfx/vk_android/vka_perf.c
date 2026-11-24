@@ -141,7 +141,7 @@ void vka_perf_frame(double period_s) {
             break;
         }
     }
-    int64_t tgt = pct ? span_target(period_s, pct) : vka_cap_period_clamp(period_s > 0.004 && period_s < 0.2 ? (int64_t)(period_s * 1e9) : 16666667);
+    int64_t tgt = pct ? span_target(period_s, pct) : vka_cap_period_clamp(period_s > 0.004 && period_s < 0.2 ? (int64_t)(period_s * 1e9) : 16666667);   // PEANUTS: the frame cap's period for the GPU floor and ADPF (0.1.8)
     pthread_mutex_lock(&g_mu);
     session_update();
     if (g_s && tgt != g_target) { g_target = tgt; H.target(g_s, tgt); VLOG("ADPF target %.2f ms", tgt / 1e6); }
@@ -271,7 +271,7 @@ void dm_perf_time_constraint(uint64_t period_ns, uint64_t comp_ns) {
     vka_perf_thread(-8);
     if (!avail()) return;
     pthread_mutex_lock(&g_mu);
-    int64_t c_ns = vka_cap_period_clamp((int64_t)period_ns);
+    int64_t c_ns = vka_cap_period_clamp((int64_t)period_ns);   // PEANUTS: the frame cap's period for the GPU floor and ADPF (0.1.8)
     if (!(H.report2 && span_pct()) && period_ns >= 4000000 && period_ns <= 200000000 && c_ns != g_target) { g_target = c_ns; if (g_s) H.target(g_s, g_target); }   // (with DM_VK_ADPF_SPAN vka_perf_frame sets it)
     pthread_mutex_unlock(&g_mu);
 }

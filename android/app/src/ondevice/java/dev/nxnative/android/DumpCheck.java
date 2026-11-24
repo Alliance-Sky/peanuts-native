@@ -83,7 +83,7 @@ final class DumpCheck {
         try {
             r.free = new StatFs(probe.getPath()).getAvailableBytes();
         } catch (IllegalArgumentException e) {
-            r.detail = "Cannot read the free space of " + probe + ".";
+            r.detail = "Cannot read the free space of " + probe + ".";   // PEANUTS: build text in the player's words (0.1.8)
             return "The app cannot check the free space next to the game files. Check that All files access is on for the app.";
         }
         if (needFree && r.free < NEED_BYTES) {

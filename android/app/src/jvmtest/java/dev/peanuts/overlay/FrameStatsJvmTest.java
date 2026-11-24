@@ -1,4 +1,4 @@
-package dev.peanuts.overlay;
+package dev.peanuts.overlay;   // PEANUTS: the stats temperature labelled TEMP (0.1.8)
 
 public final class FrameStatsJvmTest {
     private static void check(boolean ok, String what) { if (!ok) throw new AssertionError(what); }

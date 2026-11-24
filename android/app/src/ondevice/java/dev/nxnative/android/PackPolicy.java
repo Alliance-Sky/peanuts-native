@@ -43,7 +43,7 @@ final class PackPolicy {
         }
     }
 
-    /** The same for the card and the notification, in the player's words: "phone temperature: hot, battery 80 %, charging" */
+    /** The same for the card and the notification, in the player's words: "phone temperature: hot, battery 80 %, charging" */   // PEANUTS: build text in the player's words (0.1.8)
     static String plainReadings(int batteryPct, boolean charging, int thermal) {
         String heat = thermal >= CRITICAL ? "very hot" : thermal >= SEVERE ? "hot" : thermal >= LIGHT ? "warm" : "normal";
         return "phone temperature: " + heat + ", battery " + batteryPct + " %" + (charging ? ", charging" : "");

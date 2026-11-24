@@ -28,7 +28,7 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
     static final String XLATE_MISMATCH = "translator does not match the lock file: ";
 
     /** The card's text for an APK whose translator does not match its tools (XLATE_MISMATCH) */
-    static final String XLATE_MISMATCH_TEXT = "This app version's shader maker does not match the rest of the app, so Retry will not help. Install the latest release "
+    static final String XLATE_MISMATCH_TEXT = "This app version's shader maker does not match the rest of the app, so Retry will not help. Install the latest release "   // PEANUTS: build text in the player's words (0.1.8)
             + "of the app, or share the build log with a bug report.";
 
     /** What a failure the app cannot name asks of the player: the card keeps the tool's own words for Details and the build log */
@@ -67,7 +67,7 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
      */
     static Failure toolStopped(String step, int code, String lastRed, String log) {
         String red = lastRed == null ? "" : lastRed.replaceFirst("^\\[RED\\]\\s*", "").trim();
-        String detail = step + " ended with code " + code + "." + (red.isEmpty() ? "" : "\nLast error: " + red) + (log == null ? "" : "\nLog: " + log);
+        String detail = step + " ended with code " + code + "." + (red.isEmpty() ? "" : "\nLast error: " + red) + (log == null ? "" : "\nLog: " + log);   // PEANUTS: build text in the player's words (0.1.8)
         String what = step + " stopped.";
         if (red.startsWith(XLATE_MISMATCH))
             return new Failure(what + " " + XLATE_MISMATCH_TEXT, detail, FIX_UPDATE);
@@ -76,7 +76,7 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
         if (red.contains("No space left") || red.contains("ENOSPC"))
             return new Failure(what + " The storage is full. Free some space, then tap Retry.", detail, FIX_RETRY);
         if (red.contains("did not build: no library written"))
-            return new Failure(what + " Some shaders could not be made. Try anyway builds the game without them, so some effects may not show.", detail, FIX_ANYWAY);
+            return new Failure(what + " Some shaders could not be made. Try anyway builds the game without them, so some effects may not show.", detail, FIX_ANYWAY);   // PEANUTS: build text in the player's words (0.1.8)
         if (red.contains("are not in the package"))
             return new Failure(what + " The game files do not have the shaders this app expects for this game version. If you dumped the game again, tap Retry.", detail, FIX_RETRY);
         if (red.contains("Killed") || code == -9)
@@ -92,7 +92,7 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
      * could not be written) still gives its card a reason. Lines as PackService's Tail hands them over: trimmed, one at a time
      */
     static final class StopReason {
-        static final Pattern EXCEPTION = Pattern.compile("^(?:[A-Za-z_][A-Za-z0-9_]*\\.)*[A-Za-z_][A-Za-z0-9_]*(?:Error|Exception|Exit|Interrupt)(?::\\s.*)?$");
+        static final Pattern EXCEPTION = Pattern.compile("^(?:[A-Za-z_][A-Za-z0-9_]*\\.)*[A-Za-z_][A-Za-z0-9_]*(?:Error|Exception|Exit|Interrupt)(?::\\s.*)?$");   // PEANUTS: build text in the player's words (0.1.8)
         private boolean inTrace;
         volatile String reason;   // read by the step once its Tail thread is done
 
@@ -198,7 +198,7 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
     static String progressLine(long percent, boolean during, long done, long total, String eta, long kept) {
         StringBuilder s = new StringBuilder(String.format(Locale.getDefault(), "%d %%", percent));
         if (total > 0) {
-            if (during) s.append(String.format(Locale.getDefault(), ", %,d shaders left", Math.max(0, total - done)));
+            if (during) s.append(String.format(Locale.getDefault(), ", %,d shaders left", Math.max(0, total - done)));   // PEANUTS: build text in the player's words (0.1.8)
             else if (done > 0) s.append(String.format(Locale.getDefault(), ", %,d of %,d shaders", done, total));
             else s.append(String.format(Locale.getDefault(), ", %,d shaders to make", total));
         } else if (kept > 0) {
@@ -214,7 +214,7 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
      * "Rewriting the game's code: rewriting main (1 of 3)". The tools write the text in lower case after the colon
      */
     static String withNote(String step, String note, String count) {
-        return step + (note == null || note.isEmpty() ? "" : ": " + note) + (count == null || count.isEmpty() ? "" : ", " + count);
+        return step + (note == null || note.isEmpty() ? "" : ": " + note) + (count == null || count.isEmpty() ? "" : ", " + count);   // PEANUTS: build text in the player's words (0.1.8)
     }
 
     /**
@@ -224,7 +224,7 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
     static String quietText(long seconds) {
         if (seconds < 60) return "";
         long m = seconds / 60;
-        return m < 60 ? ", still working (no news for " + m + " min)"
+        return m < 60 ? ", still working (no news for " + m + " min)"   // PEANUTS: build text in the player's words (0.1.8)
                 : String.format(Locale.getDefault(), ", still working (no news for %d h %02d min)", m / 60, m % 60);
     }
 
@@ -233,24 +233,24 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
      * others): "Keeping the shaders already translated: 12,000 of 42,800"
      */
     static String keepText(long done, long total) {
-        return "Keeping the shaders made before" + (total > 0 ? String.format(Locale.getDefault(), ": %,d of %,d", Math.min(done, total), total) : "");
+        return "Keeping the shaders made before" + (total > 0 ? String.format(Locale.getDefault(), ": %,d of %,d", Math.min(done, total), total) : "");   // PEANUTS: build text in the player's words (0.1.8)
     }
 
     /**
      * A step and its count from the tool's progress lines (Job.stepText; not the shaders step's, which counts shaders). The split counts the dump's files it
      * reads, not shaders (shader_split.py's "progress: <files done>/<files>"), so its count says so: "Finding the shaders: 1,203 of 1,890 files". part: the
-     * tool's "<n>%" inside a large file, added as ", 40 % of a large file"
+     * tool's "<n>%" inside a large file, added as ", 40 % of a large file" (PEANUTS: build text in the player's words (0.1.8))
      */
     /** A step's count alone, for after its stage text (withNote): "203 of 1,442 files", "40 % of a large file"; "" while it has none */
     static String countText(boolean files, long done, long total, String part) {
-        String c = total > 0 ? String.format(Locale.getDefault(), files ? "%,d of %,d " + (total == 1 ? "file" : "files") : "%,d of %,d", done, total) : "";
+        String c = total > 0 ? String.format(Locale.getDefault(), files ? "%,d of %,d " + (total == 1 ? "file" : "files") : "%,d of %,d", done, total) : "";   // PEANUTS: build text in the player's words (0.1.8)
         String p = part != null && part.matches("\\d+%") ? part.replace("%", " %") + " of a large file" : "";
         return c.isEmpty() ? p : p.isEmpty() ? c : c + ", " + p;
     }
 
     static String stepCountText(String step, boolean files, long done, long total, String part) {
         String count = files ? (total > 0 ? String.format(Locale.getDefault(), ": %,d of %,d %s", done, total, total == 1 ? "file" : "files") : "")
-                : total > 1 ? String.format(Locale.getDefault(), ": %,d of %,d", done, total) : total == 1 || done == 0 ? "" : String.format(Locale.getDefault(), ": %,d", done);
+                : total > 1 ? String.format(Locale.getDefault(), ": %,d of %,d", done, total) : total == 1 || done == 0 ? "" : String.format(Locale.getDefault(), ": %,d", done);   // PEANUTS: build text in the player's words (0.1.8)
         return step + count + (part != null && part.matches("\\d+%") ? (count.isEmpty() ? ": " : ", ") + part.replace("%", " %") + " of a large file" : "");
     }
 
@@ -259,7 +259,7 @@ public final class PrepareText {   // PEANUTS: Home and Prepare use the same fai
      * was left unfinished, or a Prepare that stopped part way (a job beside the dump that is not done)
      */
     static String needsPreparing(boolean packThere, boolean unfinished, boolean jobStopped) {
-        if (jobStopped) return "The build was not finished. Tap Continue preparing to go on from where it stopped.";
+        if (jobStopped) return "The build was not finished. Tap Continue preparing to go on from where it stopped.";   // PEANUTS: build text in the player's words (0.1.8)
         if (unfinished) return "The game's build was left unfinished. Tap Prepare to finish it. It takes a few minutes, and the shaders are kept.";
         if (packThere) return "The game's build cannot be read. Tap Prepare to build it again.";
         return "Not built yet. Tap Prepare to build it from your game files.";

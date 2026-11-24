@@ -112,7 +112,7 @@ public final class PackService extends Service {
         super.onCreate();
         nm = getSystemService(NotificationManager.class);
         pm = getSystemService(PowerManager.class);
-        NotificationChannel ch = new NotificationChannel(CHANNEL, "Building a game", NotificationManager.IMPORTANCE_LOW);
+        NotificationChannel ch = new NotificationChannel(CHANNEL, "Building a game", NotificationManager.IMPORTANCE_LOW);   // PEANUTS: build text in the player's words (0.1.8)
         ch.setDescription("Progress while the app builds a game from your game files");
         nm.createNotificationChannel(ch);
         wake = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "nxnative:pack");
@@ -528,7 +528,7 @@ public final class PackService extends Service {
                 if (fail != null) {
                     j.stepState(s, "pending");
                     stepLog(j, "failed: " + fail);
-                    j.fail(failure != null ? failure : new PrepareText.Failure(Job.STEP_TEXT[i] + " stopped. " + PrepareText.RETRY_SHARE, PrepareText.capital(fail) + ".", PrepareText.FIX_RETRY));   // the step's own words for Details
+                    j.fail(failure != null ? failure : new PrepareText.Failure(Job.STEP_TEXT[i] + " stopped. " + PrepareText.RETRY_SHARE, PrepareText.capital(fail) + ".", PrepareText.FIX_RETRY));   // the step's own words for Details (PEANUTS: build text in the player's words (0.1.8))
                     if (PrepareText.FIX_UPDATE.equals(j.fix())) j.failApk(Job.installed(this));   // this install cannot do it; another one may
                     save(j, true);
                     break;
@@ -775,7 +775,7 @@ public final class PackService extends Service {
                 if (!r.equals(shown)) {   // the card and the notification: why, the readings, and whether Go on anyway applies
                     shown = r;
                     j.state("paused", r, null);
-                    j.reasonDetail(PackPolicy.plainReadings(batteryPct, charging, thermal), PackPolicy.canOverride(r, thermal));
+                    j.reasonDetail(PackPolicy.plainReadings(batteryPct, charging, thermal), PackPolicy.canOverride(r, thermal));   // PEANUTS: build text in the player's words (0.1.8)
                     save(j, true);
                 }
                 lock.wait(30_000);
@@ -809,7 +809,7 @@ public final class PackService extends Service {
                 failure = new PrepareText.Failure(r.error, r.detail, r.otherBuild ? PrepareText.FIX_ANYWAY : PrepareText.FIX_RETRY);
                 return r.error;
             }
-            if (!r.titleId.equals(j.titleId()) || r.version != j.version()) return "the game files changed after this build started: they are now " + r.titleId + ", " + Profile.versionName(r.version);
+            if (!r.titleId.equals(j.titleId()) || r.version != j.version()) return "the game files changed after this build started: they are now " + r.titleId + ", " + Profile.versionName(r.version);   // PEANUTS: build text in the player's words (0.1.8)
             j.stepProgress(s, 1, 1, "identify");
             return null;
         }
@@ -931,7 +931,7 @@ public final class PackService extends Service {
                 if (!gone.isEmpty()) {
                     for (String g : gone) if (ranNow.contains(g)) {   // made in this very run and gone already: something else deletes it, a rerun would loop
                         String why = "the " + g + " step's outputs are gone right after it finished (pack folder " + pack + ")";
-                        failure = new PrepareText.Failure(Job.STEP_TEXT[i] + " stopped. Some of the build's files for " + j.name() + " went missing. Tap Retry.", why, PrepareText.FIX_RETRY);
+                        failure = new PrepareText.Failure(Job.STEP_TEXT[i] + " stopped. Some of the build's files for " + j.name() + " went missing. Tap Retry.", why, PrepareText.FIX_RETRY);   // PEANUTS: build text in the player's words (0.1.8)
                         return why;
                     }
                     return "interrupted";   // work() sets this step pending and goes on with the first step not done
@@ -1139,7 +1139,7 @@ public final class PackService extends Service {
         } catch (IOException | RuntimeException | UnsatisfiedLinkError e) {
             // the app's own list is missing (work() refuses a game this APK does not include, so this is an app built without the profile's tables) or the split's
             String why = "cannot compare the dump's shaders with the app's list: " + e.getMessage();
-            failure = new PrepareText.Failure("The app could not compare the shaders in your game files with its list for " + j.name() + ". " + PrepareText.RETRY_SHARE,
+            failure = new PrepareText.Failure("The app could not compare the shaders in your game files with its list for " + j.name() + ". " + PrepareText.RETRY_SHARE,   // PEANUTS: build text in the player's words (0.1.8)
                     why, PrepareText.FIX_RETRY);
             return why;
         }
@@ -1483,7 +1483,7 @@ public final class PackService extends Service {
         Notification.Action pauseAction = new Notification.Action.Builder(null, "Pause",
                 PendingIntent.getService(this, 1, pause, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT)).build();
         if (waiting) {
-            String why = PrepareText.capital(Job.reasonText(j.reason())) + "." + (j.reasonDetail().isEmpty() ? "" : "\n" + PrepareText.capital(j.reasonDetail()) + ".");
+            String why = PrepareText.capital(Job.reasonText(j.reason())) + "." + (j.reasonDetail().isEmpty() ? "" : "\n" + PrepareText.capital(j.reasonDetail()) + ".");   // PEANUTS: build text in the player's words (0.1.8)
             b.setContentText(PrepareText.capital(Job.reasonText(j.reason())) + ".").setStyle(new Notification.BigTextStyle().bigText(j.stepText() + ", " + pct + " %\n" + why))
                     .setSubText("Step " + (i + 1) + " of " + Job.STEPS.length + ", " + pct + " %").setOngoing(true).addAction(pauseAction);
             if (j.canGoOn()) {
@@ -1497,7 +1497,7 @@ public final class PackService extends Service {
             long d = j.stepDone(i), t = j.stepTotal(i);
             if (t > 1) b.setProgress((int) Math.min(t, Integer.MAX_VALUE), (int) Math.min(d, t), false);
             else b.setProgress(100, pct, false);
-            b.setContentText(j.stepText() + j.quietText()).setSubText("Step " + (i + 1) + " of " + Job.STEPS.length + ", " + pct + " %").setOngoing(true).addAction(pauseAction);
+            b.setContentText(j.stepText() + j.quietText()).setSubText("Step " + (i + 1) + " of " + Job.STEPS.length + ", " + pct + " %").setOngoing(true).addAction(pauseAction);   // PEANUTS: build text in the player's words (0.1.8)
         } else {
             String why = state.equals("failed") ? j.failureSummary() : "Paused: " + Job.reasonText(j.reason()) + ".";
             b.setContentText(j.stepText() + ", " + pct + " %").setStyle(new Notification.BigTextStyle().bigText(j.stepText() + ", " + pct + " %\n" + why)).setOngoing(false);

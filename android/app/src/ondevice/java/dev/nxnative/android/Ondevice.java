@@ -61,7 +61,7 @@ final class Ondevice {
     static String shadersText(File packDir, String titleId) {
         int n = deltaShaders(packDir, titleId);
         Profile p = Profile.of(titleId);
-        if (n == 0) return "The shaders are up to date: nothing to make.";
+        if (n == 0) return "The shaders are up to date: nothing to make.";   // PEANUTS: build text in the player's words (0.1.8)
         if (n > 0 && p != null) return String.format(Locale.getDefault(), "Making %,d new shaders for this phone, %s, in the background. The other %,d are kept from before.",
                 n, ShaderLibs.minutesText(n), p.shaderTotal - n);
         return "Making the game's shaders for this phone, " + (p != null ? ShaderLibs.minutesText(p.shaderTotal) : "about 20 to 35 minutes") + ", in the background.";
@@ -379,7 +379,7 @@ final class Ondevice {
                 });
             }
             String st = job.state();
-            String sim = "fake".equals(BuildConfig.NX_PACK_ENGINE) ? ", simulated build" : "";
+            String sim = "fake".equals(BuildConfig.NX_PACK_ENGINE) ? ", simulated build" : "";   // PEANUTS: build text in the player's words (0.1.8)
             head.setText(job.name());
             String n = job.name().trim();
             tile.setText(n.isEmpty() ? "?" : n.substring(0, n.offsetByCodePoints(0, 1)).toUpperCase(Locale.ROOT));
@@ -422,7 +422,7 @@ final class Ondevice {
                             j.tryAnyway(true);
                             j.save();
                         } catch (IOException e) {
-                            a.error("The app could not save this build's progress: " + e.getMessage());
+                            a.error("The app could not save this build's progress: " + e.getMessage());   // PEANUTS: build text in the player's words (0.1.8)
                             return;
                         }
                         show();
@@ -505,7 +505,7 @@ final class Ondevice {
         /** anyBuild: Try anyway for a dump of a build this app does not list (asked first: untested); a job beside the dump that was tried anyway keeps it */
         void picked(File dump, boolean start, File packOverride, boolean again, boolean card, boolean anyBuild) {
             if (a.needAccess(dump)) return;
-            android.widget.Toast.makeText(a, "Checking the game files…", android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(a, "Checking the game files…", android.widget.Toast.LENGTH_SHORT).show();   // PEANUTS: build text in the player's words (0.1.8)
             new Thread(() -> {
                 Found f = new Found();
                 boolean any = anyBuild;
@@ -542,7 +542,7 @@ final class Ondevice {
             if (!r.ok()) {
                 if (card) return;
                 if (r.otherBuild) untested(r, start, packOverride, again);   // a build this app does not list: say so, and offer Try anyway
-                else Ui.explain(a, "Cannot build this game", r.error, r.detail).setPositiveButton("OK", null).show();
+                else Ui.explain(a, "Cannot build this game", r.error, r.detail).setPositiveButton("OK", null).show();   // PEANUTS: build text in the player's words (0.1.8)
                 show();
                 return;
             }
@@ -557,12 +557,12 @@ final class Ondevice {
                         job = j;
                         show();
                         if (start) startService(j);
-                        else confirm("Resume the build?", j.statusText(false) + "\n\nTap Resume to go on from where it stopped.", "Resume", () -> startService(j));
+                        else confirm("Resume the build?", j.statusText(false) + "\n\nTap Resume to go on from where it stopped.", "Resume", () -> startService(j));   // PEANUTS: build text in the player's words (0.1.8)
                         return;
                     }
                     if (!s.equals("done") && !s.isEmpty()) {   // unfinished, for another pack folder: never written over (its job.json is this dump's)
                         if (card) return;   // an automatic update leaves it to the user
-                        Ui.explain(a, "The build is not finished", "These game files are already being built into another folder. Tap Resume on its card, or delete "
+                        Ui.explain(a, "The build is not finished", "These game files are already being built into another folder. Tap Resume on its card, or delete "   // PEANUTS: build text in the player's words (0.1.8)
                                 + "its working files first: tap ⋯, then Delete working files.", j.statusText(false) + "\n\n" + j.errorDetail())
                                 .setPositiveButton("OK", null).show();
                         Job.remember(a, f.existing);
@@ -576,7 +576,7 @@ final class Ondevice {
             }
             // One job at a time: the service runs only the job it has, so a new one is not written or remembered while it runs
             if (alive() && job != null && !"done".equals(job.state())) {
-                a.error(job.name() + " is being built now. Tap Pause on its card first, then try again.");
+                a.error(job.name() + " is being built now. Tap Pause on its card first, then try again.");   // PEANUTS: build text in the player's words (0.1.8)
                 return;
             }
             if (card && (f.pack == null || f.build != null)) return;   // an automatic update only updates the shaders of the card's own pack, when its code fits
@@ -589,7 +589,7 @@ final class Ondevice {
                 Runnable redo = () -> adopt(r, pd, code, shaders);
                 if (start) { redo.run(); return; }
                 int delta = shaders ? deltaShaders(pd, r.titleId) : -1;
-                String what = code && shaders ? (delta >= 0 ? "Converting the game's code takes a few minutes. " + shadersText(pd, r.titleId)
+                String what = code && shaders ? (delta >= 0 ? "Converting the game's code takes a few minutes. " + shadersText(pd, r.titleId)   // PEANUTS: build text in the player's words (0.1.8)
                                 : "Converting the game's code takes a few minutes. Then the app makes its shaders for this phone, " + ShaderLibs.jobMinutesText(Profile.of(r.titleId).shaderTotal) + ", in the background.")
                         : code ? "Converting the game's code takes a few minutes, in the background. The shaders are up to date."
                         : shadersText(pd, r.titleId);
@@ -602,7 +602,7 @@ final class Ondevice {
             }
             Profile prof = Profile.of(r.titleId);   // DumpCheck refused a dump without one
             // what it makes, how long, and the space it needs, plainly; where the files go is in Details
-            String shown = Profile.shownVersion(r.titleId, r.version);
+            String shown = Profile.shownVersion(r.titleId, r.version);   // PEANUTS: build text in the player's words (0.1.8)
             String text = String.format(Locale.getDefault(), "%s, %d DLC.\n\nThe app builds the game from your game files. Converting the game's code takes a few minutes, then it makes %,d shaders for this phone, %s in the background, best on the charger. You can tap Pause at any time.\n\nNeeds about 1.5 GB of free space, %.1f GB free now.",
                     (!shown.isEmpty() ? PrepareText.capital(shown) : r.version == 0 ? "Base game" : "With an update") + (r.untested ? ", an untested game version" : ""), r.dlc, prof.shaderTotal,
                     ShaderLibs.jobMinutesText(prof.shaderTotal), r.free / 1073741824.0);
@@ -618,7 +618,7 @@ final class Ondevice {
                     show();
                     startService(j);
                 } catch (Exception e) {
-                    a.error("The build could not start: " + e.getMessage());
+                    a.error("The build could not start: " + e.getMessage());   // PEANUTS: build text in the player's words (0.1.8)
                 }
             };
             if (start) go.run();
@@ -656,7 +656,7 @@ final class Ondevice {
                 Game.put(a, g);   // one card per game (GameList)
                 a.refresh();
                 show();
-                new PadFocus.Builder(a).setTitle("Ready to play").setMessage("Its build fits these game files: nothing needs building.\n\nBuild: " + packDir).setPositiveButton("OK", null).show();
+                new PadFocus.Builder(a).setTitle("Ready to play").setMessage("Its build fits these game files: nothing needs building.\n\nBuild: " + packDir).setPositiveButton("OK", null).show();   // PEANUTS: build text in the player's words (0.1.8)
             } catch (Exception e) {
                 a.error("The app could not use this build: " + e.getMessage() + "\n\nBuild: " + packDir);
             }
@@ -668,7 +668,7 @@ final class Ondevice {
          */
         void untested(DumpCheck.Result r, boolean start, File packOverride, boolean again) {
             Profile p = Profile.of(r.titleId);
-            Ui.explain(a, "Untested game version" + (p != null ? " of " + p.name : ""), r.error + "\n\n" + PrepareText.ANYWAY_WARNING, r.detail)
+            Ui.explain(a, "Untested game version" + (p != null ? " of " + p.name : ""), r.error + "\n\n" + PrepareText.ANYWAY_WARNING, r.detail)   // PEANUTS: build text in the player's words (0.1.8)
                     .setPositiveButton("Try anyway", (d, w) -> picked(r.dump, start, packOverride, again, false, true))
                     .setNeutralButton("Use a pack…", (d, w) -> a.pickPackFor(r.dump, r.titleId))
                     .setNegativeButton("Cancel", null).show();
@@ -716,7 +716,7 @@ final class Ondevice {
             Pack p;
             try { p = Pack.read(job.pack()); } catch (IOException e) { a.error(e.getMessage()); return; }
             if (p.simulated) {
-                a.error("This build was made by the simulated engine, so it is only a placeholder and the game does not start. Play is on because the build and its shaders are complete.");
+                a.error("This build was made by the simulated engine, so it is only a placeholder and the game does not start. Play is on because the build and its shaders are complete.");   // PEANUTS: build text in the player's words (0.1.8)
                 return;
             }
             Game g = new Game(job.titleId(), p.name.isEmpty() ? job.name() : p.name, job.dump().getPath(), job.pack().getPath());
@@ -813,7 +813,7 @@ final class Ondevice {
                         job = null;
                         show();
                         a.refresh();
-                        android.widget.Toast.makeText(a, "Deleted. Your game files and saves are untouched.", android.widget.Toast.LENGTH_LONG).show();
+                        android.widget.Toast.makeText(a, "Deleted. Your game files and saves are untouched.", android.widget.Toast.LENGTH_LONG).show();   // PEANUTS: build text in the player's words (0.1.8)
                     });
                 }, "nxpack-delete").start();
             });

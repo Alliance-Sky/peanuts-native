@@ -206,7 +206,7 @@ final class BuildCheck {
         // its RomFS is the data of that version (RomfsCheck: game.tsv romfs_check), else the game takes another version's data and may crash
         String romfs;
         try { romfs = p.romfsPath(game); } catch (IOException e) { romfs = null; }
-        RomfsCheck.Bad bad = RomfsCheck.check(prof, romfs, want.get("main"), parse(gv));
+        RomfsCheck.Bad bad = RomfsCheck.check(prof, romfs, want.get("main"), parse(gv));   // PEANUTS: build text in the player's words (0.1.8)
         if (bad != null) return new Result(Kind.ROMFS, bad.text, bad.detail);
         return OK;
     }

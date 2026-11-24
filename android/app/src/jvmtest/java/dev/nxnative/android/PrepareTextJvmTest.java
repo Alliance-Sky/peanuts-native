@@ -27,7 +27,7 @@ public final class PrepareTextJvmTest {
 
         PrepareText.Failure f = PrepareText.toolStopped("Translating shaders", 1, "[RED] 12 of 8157 shaders did not build: no library written (DMSH_VK_REQUIRE_ALL)", log);
         plain(f.text, "shaders that did not build");
-        check(f.fix.equals(PrepareText.FIX_ANYWAY) && f.detail.contains(log) && f.detail.contains("12 of 8157") && f.detail.contains("ended with code 1"), "Try anyway, the tool's line in Details: " + f.detail);
+        check(f.fix.equals(PrepareText.FIX_ANYWAY) && f.detail.contains(log) && f.detail.contains("12 of 8157") && f.detail.contains("ended with code 1"), "Try anyway, the tool's line in Details: " + f.detail);   // PEANUTS: build text in the player's words (0.1.8)
 
         f = PrepareText.toolStopped("Finding the shaders", 1, "[RED] MemoryError in 0x38f972af.fdata", log);
         plain(f.text, "memory");
@@ -42,7 +42,7 @@ public final class PrepareTextJvmTest {
                 + "the library is written without them (DMSH_VK_REQUIRE_ALL=0). abc: not in the package");
         check(miss != null && miss[0] == 120 && miss[1] == 8161, "missing shaders counted");
         String keep = PrepareText.keepText(12000, 42800);
-        check(keep.equals(String.format("Keeping the shaders made before: %,d of %,d", 12000, 42800)), "a delta's kept shaders counted: " + keep);
+        check(keep.equals(String.format("Keeping the shaders made before: %,d of %,d", 12000, 42800)), "a delta's kept shaders counted: " + keep);   // PEANUTS: build text in the player's words (0.1.8)
         check(PrepareText.keepText(0, 0).equals("Keeping the shaders made before"), "no count before the first line: " + PrepareText.keepText(0, 0));
         check(PrepareText.withNote("Finding the shaders", "reading the game's program", "").equals("Finding the shaders: reading the game's program"), "a stage line on the card");
         check(PrepareText.withNote("Finishing the pack", "", "").equals("Finishing the pack"), "no stage: the step alone");
@@ -72,7 +72,7 @@ public final class PrepareTextJvmTest {
             f = PrepareText.toolStopped("Translating shaders", 1, red, log);
             plain(f.text, "a translator that does not match its tools");
             check(f.fix.equals(PrepareText.FIX_UPDATE), "app build mismatch: its own fix, not Retry: " + f.fix + " for " + red);
-            check(f.text.equals("Translating shaders stopped. This app version's shader maker does not match the rest of the app, so Retry will not help. "
+            check(f.text.equals("Translating shaders stopped. This app version's shader maker does not match the rest of the app, so Retry will not help. "   // PEANUTS: build text in the player's words (0.1.8)
                     + "Install the latest release of the app, or share the build log with a bug report."), "the mismatch text: " + f.text);
             check(!f.text.contains("Tap Retry") && !f.text.contains("Try anyway"), "no Retry offered: " + f.text);
             check(f.detail.contains(red.substring(6)) && f.detail.endsWith("Log: " + log), "the tool's line and the log in Details: " + f.detail);
@@ -96,7 +96,7 @@ public final class PrepareTextJvmTest {
         check("[RED] KeyError: 'Shader/b.bfsha' (shader_split.py:3150)".equals(sr.reason), "the runner's red line: " + sr.reason);
         f = PrepareText.toolStopped("Finding the shaders", 1, sr.reason, log);
         plain(f.text, "an uncaught exception");
-        check(f.fix.equals(PrepareText.FIX_RETRY) && f.detail.startsWith("Finding the shaders ended with code 1.\nLast error: KeyError: 'Shader/b.bfsha' (shader_split.py:3150)\nLog: "), "its reason in Details: " + f.detail);
+        check(f.fix.equals(PrepareText.FIX_RETRY) && f.detail.startsWith("Finding the shaders ended with code 1.\nLast error: KeyError: 'Shader/b.bfsha' (shader_split.py:3150)\nLog: "), "its reason in Details: " + f.detail);   // PEANUTS: build text in the player's words (0.1.8)
         sr = new PrepareText.StopReason();
         for (String l : new String[] {"Traceback (most recent call last):", "File \"t.py\", line 1, in <module>", "MemoryError"}) sr.line(l);
         f = PrepareText.toolStopped("Finding the shaders", 1, sr.reason, log);
@@ -164,7 +164,7 @@ public final class PrepareTextJvmTest {
         String old = "cannot compare the dump's shaders with the app's list: /data/user/0/dev.nxnative.android/files/pack/d8f39dfec5d562c3/repo/dm/games/0400A3A01EE4C000/shader_map.tsv";
         String text = PrepareText.failedText("Translating shaders", old, false);
         plain(text, "an older job's card");
-        check(text.equals("The build stopped while translating shaders. Tap Retry. Details says why."), "older job: " + text);
+        check(text.equals("The build stopped while translating shaders. Tap Retry. Details says why."), "older job: " + text);   // PEANUTS: build text in the player's words (0.1.8)
         check(PrepareText.failedDetail(old, "", false).equals(old), "older job: its error in Details");
         check(PrepareText.failedText("Translating shaders", "Some text.", true).equals("Some text.") && PrepareText.failedDetail("Some text.", "d", true).equals("d"), "a job of this version");
 
@@ -199,13 +199,13 @@ public final class PrepareTextJvmTest {
         check(PrepareText.stepCountText("Finding the shaders", true, 1203, 1890, "").equals("Finding the shaders: 1,203 of 1,890 files"), PrepareText.stepCountText("Finding the shaders", true, 1203, 1890, ""));
         check(PrepareText.stepCountText("Finding the shaders", true, 0, 1, "").equals("Finding the shaders: 0 of 1 file"), "one file");
         check(PrepareText.stepCountText("Finding the shaders", true, 0, 0, "").equals("Finding the shaders"), "no count yet: no 0 of 0");
-        check(PrepareText.stepCountText("Finding the shaders", true, 2, 5, "40%").equals("Finding the shaders: 2 of 5 files, 40 % of a large file"), PrepareText.stepCountText("Finding the shaders", true, 2, 5, "40%"));
+        check(PrepareText.stepCountText("Finding the shaders", true, 2, 5, "40%").equals("Finding the shaders: 2 of 5 files, 40 % of a large file"), PrepareText.stepCountText("Finding the shaders", true, 2, 5, "40%"));   // PEANUTS: build text in the player's words (0.1.8)
         check(PrepareText.stepCountText("Converting the game's code", false, 3, 12, "").equals("Converting the game's code: 3 of 12"), "other steps: a count with no slash");
         plain(PrepareText.stepCountText("Converting the game's code", false, 3, 12, ""), "a step's count");
         check(PrepareText.stepCountText("Checking the dump", false, 1, 1, "identify").equals("Checking the dump"), "a step of one");
 
         // Needs preparing says why
-        check(PrepareText.needsPreparing(false, false, true).contains("Tap Continue preparing"), "a stopped Prepare continues, by its button's name");
+        check(PrepareText.needsPreparing(false, false, true).contains("Tap Continue preparing"), "a stopped Prepare continues, by its button's name");   // PEANUTS: build text in the player's words (0.1.8)
         check(PrepareText.needsPreparing(true, true, false).contains("unfinished"), "unfinished code");
         check(PrepareText.needsPreparing(true, false, false).contains("cannot be read"), "unreadable pack");
         check(PrepareText.needsPreparing(false, false, false).startsWith("Not built yet"), "no pack");

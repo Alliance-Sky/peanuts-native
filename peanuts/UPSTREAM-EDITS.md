@@ -2733,3 +2733,41 @@ also lacked markers (upstream-update.sh's hunk check).
 | `docs/reference/nvn-objects.md`, `docs/reference/threads.md` | 1 each | the `NVNsampler` entry and the Mystery Dungeon line, added for 0.1.8 | `PEANUTS(upstream-candidate)`, `PEANUTS` |
 | `docs/reference/rendering.md`, `docs/reference/services.md` | 1 each | the texture registration entry; the three Android input entries (sensor rate, six-axis history, join screen) | `<!-- PEANUTS -->`, `PEANUTS begin`/`end` |
 | `dm/games/010075101EF84000/README.md`, `dm/games/0100F9D023176000/README.md` | new | Stray's and Viewfinder's notes | `<!-- PEANUTS: a Peanuts Native profile ... -->` |
+
+### 0.1.8 release check: markers on the hunks 0.1.8 added without one (2026-11-24)
+
+`upstream-update.sh --check`'s hunk rule, run against upstream v0.3.26 (`0fa3de18`, the last upstream merge; the public history has no merge base with
+upstream/android), found hunks added for 0.1.8 with no `PEANUTS` line and no `PEANUTS begin`/`end` span. Each gets a marker at the end of a line that is
+already there (a `// PEANUTS: ...` or `# PEANUTS: ...` comment, or `(PEANUTS: ...)` inside a comment the line has), so no line moves and
+`docs/agents/game-patches.md`'s line numbers stay. Comments only: no code, string or docstring changes (the C and Java files compare equal with comments
+stripped, the Python files have the same AST).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/src/main/java/dev/nxnative/android/` `BuildCheck.java` 1, `DumpLayout.java` 5, `MainActivity.java` 1, `PickedNup.java` 1, `PrepareText.java` 12, `Profile.java` 3, `RomfsCheck.java` 3; `android/app/src/ondevice/java/dev/nxnative/android/` `DumpCheck.java` 1, `Job.java` 9, `Ondevice.java` 15, `PackPolicy.java` 1, `PackService.java` 8; `scripts/pack_android.py` 6 (`stage` lines); `dm/gfx/tools/shader_split.py` 1 (`stage`) | as listed | the build text in the player's words (3abd89ad, dab2da1e) | `PEANUTS` |
+| `android/app/src/jvmtest/java/dev/nxnative/android/` `GameListJvmTest.java` 5, `LauncherJvmTest.java` 1, `NupJvmTest.java` 1, `PrepareTextJvmTest.java` 7; `dm/tools/tests/test_android_dumpmeta.py` 2 | as listed | the tests of that text | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/GameSettings.java`, `Prefs.java` | 1 each | frame rate caps (bc6aac5e) | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/Native.java` | 1 | `unpinThreads`: thread placement undone when the game is the top app again (b734c0fb) | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/Updater.java`, `dm/tools/tests/test_android_outputs.py` | 1 each | Peanuts' own words on its screens (a4f7aedc) | `PEANUTS` |
+| `android/app/src/jvmtest/java/dev/peanuts/mods/CheatLoaderJvmTest.java` | new file | cheats for every game | `PEANUTS` on its first line |
+| `android/app/src/jvmtest/java/dev/peanuts/overlay/FrameStatsJvmTest.java` | 1 | the stats temperature labelled TEMP (c0ae14e7) | `PEANUTS` on its first line |
+| `dm/gfx/nvn/hle_nvn.c` 1, `dm/gfx/nvn/nvn_obj.h` 1, `dm/gfx/tests/t_nvn.c` 1 | as listed | the NVNsampler layout agl hashes (g0giberry, #521) | `PEANUTS` |
+| `dm/gfx/nvn/hle_nvn.c` 3, `dm/gfx/tests/t_dirty_mpfail.c` 4, `dm/gfx/tests/t_dirty_race.c` 2, `dm/gfx/tests/t_nvn.c` 2, `dm/tools/tests/test_vka_write_region.py` (new) | as listed | bounded WriteTexels dirty prep and coalesced region writes (ts-miller, #403) | `PEANUTS` |
+| `dm/gfx/nvn/hle_nvn.c` | 1 | `nvnCommandBufferSetScissor` / `SetDepthRange` over two lines each, in the texture storage round (540d0cd6) | `PEANUTS` |
+| `dm/gfx/vk_android/vka_perf.c` | 2 | the frame cap's period for the GPU floor and the ADPF target (ts-miller, #220; one function, `vka_cap_period_clamp`, since 2a65603b) | `PEANUTS` |
+| `dm/tools/tests/test_vk_floor_period.py` | new file | the frame cap in the GPU clock floor (ts-miller, #220) | `PEANUTS` on its first line |
+| `dm/host/hle_movie.c` | 1 | SDK 1.3.1's `movie::Buffer` getters without const (eb7883ad) | `PEANUTS` |
+| `dm/gfx/tools/vk_android_upgrade.py`, `dm/tools/tests/test_vk_android_upgrade.py` | new files | the in-place shader upgrade of a 0.1.7 game's library (3163d5cc) | `PEANUTS` |
+| `dm/tools/tests/test_split_redengine.py` | new file | REDengine 3's shader caches (The Witcher 3) | `PEANUTS` |
+| `dm/tools/tests/test_sead_rate.py` | 1 | each profile's patches.py run with its `__file__` (ec1eb2d9) | `PEANUTS` |
+
+Allow-listed in `peanuts/upstream-unmarked.txt` instead: `dm/games/010075101EF84000/patches.py` (Stray: its bytes are in every Stray module's rewrite key,
+`scripts/pack_android.py` `rewrite_keys`, so a comment would make every Stray build convert its code again) and `dm/games/01003D100E9C6000/vk_prewarm.bin`
+(The Witcher 3's prewarm seed, binary, as the other seeds).
+
+Left as they were: the hunks the check also flags that were unmarked before 0.1.8 (0.1.7 or earlier, no 0.1.8 line in them): `android/app/build.gradle`
+(`option_patch` rows), `Profile.java` (option patches), `Prefs.java` `ownRate`, `SidePanel.java`, `ProfileOptionsJvmTest.java`, `SocZonesJvmTest.java`,
+`android/app/src/main/assets/licenses/frame-step-clock-MIT.txt`, eight `dm/games` READMEs, `dm/games/010015100B514000` (`FPS-LICENSE.txt`, `game.tsv`),
+`dm/games/0100A6301214E000/game.tsv`, `dm/games/game.py`, `hle_nvn.c` `nvnWindowGetPresentInterval`, `vka_tex.c` (one line), `dm/host/dm.h`,
+`hle_fpslock.c` `limit_raw`, `loader.c` (two lines), `dm/host/tests/t_android_smap.c`, `dm/tools/docs_patches.py`, and the tests `test_android_soc.py`,
+`test_fpslocker_plan.py`, `test_game_profile.py`, `test_option_patch.py`, `test_vka_tex_registration.py`.

@@ -457,7 +457,7 @@ final class Prefs {
 
     /**
      * The frame rate cap (the in-game panel): -1 = not set (the game profile's fps_target), 0 = the game's own, else 15, 20, 30 or 60. DM_FPS_TARGET for the host at
-     * start, and Native.fpsCapSet while the game runs. A DM_FPS_TARGET line in env.txt overrides it for a run. The main screen offers these for every game; 40 and 45
+     * start, and Native.fpsCapSet while the game runs. A DM_FPS_TARGET line in env.txt overrides it for a run. The main screen offers these for every game; 40 and 45 (PEANUTS: frame rate caps (0.1.8))
      * only a game's own list offers, where its engine rows hold any rate (FrameRateCaps.targetCaps): elsewhere a stored 40 or 45 reads as the next lower cap (capOf).
      */
     static final int[] FPS_CAPS = {0, 60, 30, 20, 15};
