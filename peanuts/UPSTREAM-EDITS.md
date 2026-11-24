@@ -2701,7 +2701,7 @@ for upstream's own tree, which is its decision).
 | File | Hunks | Change | Marker |
 |---|---|---|---|
 | `dm/host/hle_sf.c`, `dm/host/hle.h` | 0 (inside the service hunks of the LEGO CITY UNDERCOVER round) | `sf_session_slot`: the slot of a host session handle, so `hle_audren_svc.c` no longer repeats `SF_H0` (`0xd0000`) | `PEANUTS begin`/`end` |
-| `dm/host/hle_fpslock.c` | 1 | `dm_fps_cap_get` (the frame cap `vka_dev.c` `vka_floor_period_ns` paces the GPU clock floor by, added for 0.1.8) gets the marker it lacked, on its own line, so `docs/agents/game-patches.md`'s line numbers stay | `PEANUTS` |
+| `dm/host/hle_fpslock.c` | 1 | `dm_fps_cap_get` (the frame cap `vka_dev.c` `vka_floor_period_ns` paces the GPU clock floor by, added for 0.1.8) gets the marker it lacked, on the comment line already there (hle_fpslock.c:681), so `docs/agents/game-patches.md`'s line numbers stay | `PEANUTS` |
 | `dm/host/tests/Makefile` | 0 (inside the `peanuts-host` block) | `peanuts-audren-svc`: `t_peanuts_audren_svc.c` (new) | `PEANUTS begin`/`end` |
 
 Peanuts' own files, no marker: `dm/host/hle_audren_svc.c` (each mix's depth once a frame; a 64-bit channel-count product in `wb_len`), `dm/peanuts/peanuts_audiosync.c`
@@ -2712,6 +2712,7 @@ Peanuts' own files, no marker: `dm/host/hle_audren_svc.c` (each mix's depth once
 | File | Hunks | Change | Marker |
 |---|---|---|---|
 | `dm/gfx/vk_android/vka_tex.c` | 1 | `vka_tex_b2t_mirror` forgets the draws' bound state after its compute pass (`vka_dyn_invalidate`, as `nf_pass` and the NaN scan do): it is recorded between the game's dispatches, and the next dispatch with the same descriptors as the one before the copy skipped its push (`push_same`) and ran with the mirror's two storage buffers bound. Upstream candidate: yes | `PEANUTS(upstream-candidate)` |
+| `dm/gfx/vk_android/vka_dlss.c` `dpass`, `dm/gfx/vk_android/vka_fsr3.c` `pass` | 1 each | the same for the DLSS stand-ins' compute passes (`DM_VK_DLSS` 2 and 3, the default, and FSR 3.1 at 4; `vka_dlss_scale` too), recorded mid-submission by `vka_exec.c` `dlss_eval`: `vka_dyn_invalidate` after each dispatch. The other compute passes that push descriptors already did (`nf_pass`, the NaN scan), or run only at the submission's end (`tiled_wb_record` from `vka_tex_writeback`; the next part or submission forgets the state), or record into the present's own command buffer. Upstream candidate: yes | `PEANUTS(upstream-candidate)` |
 | `dm/gfx/vk_android/vka_dev.c`, `vka_perf.c` | 1 each | the active frame cap's period as the shortest is one function, `vka_cap_period_clamp`: the GPU floor's period and the ADPF target had a copy of the rule each | `PEANUTS` |
 | `dm/gfx/tools/ttdat.py` | 3 | a damaged DAT is a `ValueError`: a name whose parent is past the name table (its `IndexError` ended the whole split), a chunk stream that ends inside an op and a chunk header cut short (each left a whole range of the archive's files unscanned instead of one file) | `PEANUTS` (file header) |
 | `dm/gfx/tools/vk_android_upgrade.py` | 1 | `descriptor_names`: SPIR-V that is no whole number of words, or whose instruction runs past the end, is a refusal (exit 3), not an `IndexError` (exit 1). The upgraded library of a good one is unchanged | Peanuts' own file |
