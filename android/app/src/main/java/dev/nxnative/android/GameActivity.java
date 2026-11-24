@@ -302,6 +302,9 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
     private boolean topResumed = true, pinnedAway;
     private void pinTick() {
         boolean asked = Prefs.pinThreads(this, titleId());
+        // PEANUTS: stopped (Home, another app full screen) the game is suspended and Android has the process in background: no placement each second for it
+        // (a /proc scan of every thread on this thread); onStart starts the loop again, which undoes a placement made before the stop once the game is the top app
+        if (!asked && stopped) return;
         String group = asked ? null : cpuGroup();
         boolean demoted = group != null && !group.equals("top-app");
         if (!asked && demoted != pinnedAway) {
@@ -316,7 +319,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
     /** At the start and when a recreated screen attaches to the running game (attach: the old screen's loops were stopped); one loop, never two */
     private void pinStart() {
         ui.removeCallbacks(pinRun);
-        if (Prefs.pinThreads(this, titleId()) || !topResumed) ui.postDelayed(pinRun, 2000);
+        if (Prefs.pinThreads(this, titleId()) || !topResumed || pinnedAway) ui.postDelayed(pinRun, 2000);   // PEANUTS: || pinnedAway, the placement is undone in top-app
     }
     /** This process's cgroup for the CPU ("top-app", "foreground", "background", ...) from /proc/self/cgroup; null when it cannot be read */
     static String cpuGroup() {
@@ -336,12 +339,13 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
     private long fourFirst, fourAt;
     private boolean fourHeld, fourSpoiled;
     private final float[] fourX = new float[4], fourY = new float[4];
+    private final int[] fourId = new int[4];   // by pointer ID: a finger lifted before the others shifts the later events' pointer indices
     @Override public boolean dispatchTouchEvent(MotionEvent e) {
         int act = e.getActionMasked();
         if (act == MotionEvent.ACTION_DOWN) { fourFirst = e.getEventTime(); fourHeld = false; fourSpoiled = false; }
         if (!fourHeld && act == MotionEvent.ACTION_POINTER_DOWN && e.getPointerCount() == 4 && e.getEventTime() - fourFirst <= FOUR_DOWN_MS) {
             fourHeld = true; fourAt = e.getEventTime();
-            for (int i = 0; i < 4; i++) { fourX[i] = e.getX(i); fourY[i] = e.getY(i); }
+            for (int i = 0; i < 4; i++) { fourId[i] = e.getPointerId(i); fourX[i] = e.getX(i); fourY[i] = e.getY(i); }
             MotionEvent cancel = MotionEvent.obtain(e);
             cancel.setAction(MotionEvent.ACTION_CANCEL);
             super.dispatchTouchEvent(cancel);   // the game lets go of the three fingers it had
@@ -352,7 +356,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         float slop = FOUR_SLOP_DP * getResources().getDisplayMetrics().density;
         if (act == MotionEvent.ACTION_POINTER_DOWN) fourSpoiled = true;   // a fifth finger
         if (act == MotionEvent.ACTION_MOVE)
-            for (int i = 0; i < Math.min(4, e.getPointerCount()); i++) if (Math.hypot(e.getX(i) - fourX[i], e.getY(i) - fourY[i]) > slop) fourSpoiled = true;
+            for (int i = 0; i < 4; i++) { int k = e.findPointerIndex(fourId[i]); if (k >= 0 && Math.hypot(e.getX(k) - fourX[i], e.getY(k) - fourY[i]) > slop) fourSpoiled = true; }
         if (act == MotionEvent.ACTION_CANCEL) { fourHeld = false; return true; }
         if (act == MotionEvent.ACTION_UP) {
             fourHeld = false;
@@ -1592,6 +1596,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         }
         stopped = false;
         hostInBackground = false;
+        pinStart();   // PEANUTS: the thread placement loop ended at the stop (pinTick)
         dev.peanuts.Companion.back(this);   // PEANUTS: the companion returns to the second display with the game (it left at onStop)
         // Another app took the audio focus for good while the game was away (AudioFocus): no gain would come, and the game stayed silent. Asked for again here
         if (audio != null && focus != null && focusState.askAgain()) {
