@@ -404,3 +404,10 @@ dm/games/0100C5000F294000/shader_pairs.tsv	Battle Brothers's generated table (sh
 dm/games/0100C5000F294000/pso_pairs.tsv	Battle Brothers's generated table (shader_split.py / dmsh_build.py), new in Peanuts Native (Banana Native has no profile for 0100C5000F294000); a marker comment would change the profile's shader inputs digest and with it every built library's stamp
 dm/games/0100C5000F294000/pso_manifest.tsv	Battle Brothers's generated table (shader_split.py / dmsh_build.py), new in Peanuts Native (Banana Native has no profile for 0100C5000F294000); a marker comment would change the profile's shader inputs digest and with it every built library's stamp
 dm/games/0100C5000F294000/bf_want.tsv	Battle Brothers's generated table (shader_split.py / dmsh_build.py), new in Peanuts Native (Banana Native has no profile for 0100C5000F294000); a marker comment would change the profile's shader inputs digest and with it every built library's stamp
+dm/games/01008FE00E2F6000/bf_want.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
+dm/games/01008FE00E2F6000/pso_manifest.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
+dm/games/01008FE00E2F6000/pso_pairs.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
+dm/games/01008FE00E2F6000/shader_facts.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
+dm/games/01008FE00E2F6000/shader_map.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
+dm/games/01008FE00E2F6000/shader_map.tsv.conflicts.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
+dm/games/01008FE00E2F6000/shader_pairs.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
