@@ -2992,7 +2992,6 @@ Upstream candidate: yes, a general fix with no Peanuts dependency.
 |---|---|---|---|
 | `dm/gfx/vk_android/vka_draw.c`, `dm/gfx/vk_android/vka_auto.h`, `dm/host/tests/t_android_auto.c` | 1, 1, 3 | Default `DM_VK_DYN_FILTER=0` when `qcom_old` (Qualcomm driver version before 512.800); fixes scrambled blocks and speckles across draws on Qualcomm 512.762.41 (Adreno 750) in OCTOPATH TRAVELER | `PEANUTS(upstream-candidate)` |
 | `docs/advanced_settings.tsv` | 1 | Update `DM_VK_DYN_FILTER` default text to name Qualcomm before 512.800 | generated / allow-listed in `peanuts/upstream-unmarked.txt` |
-
 ### Sea of Stars (`01008C0016544000`): base `v0` (`1.0.45861`), update `v983040` (`3.0.60151`), and Android memory/driver profile
 
 | File | Hunks | Change | Marker |
@@ -3246,3 +3245,7 @@ it held the scene at 800x450 of its 1600x900 targets. The profile key `gpu_times
 
 Peanuts' own files, no marker: `dm/games/01002C9022770000/game.tsv` (the key, with a `# PEANUTS:` comment) and its note. Upstream candidate: the reference
 entry's new symptom; the key itself is this Peanuts-only profile's.
+
+| `dm/games/01008C0016544000/{shader_map,shader_facts,shader_pairs,pso_pairs}.tsv` | generated | `v0` + `v983040` union tables from `shader_split.py` | allow-listed in `peanuts/upstream-unmarked.txt` |
+
+Added `01008C0016544000` (`Sea of Stars`, `0.1.9`, `Alliance-Sky`) to `peanuts/release-titles.txt` and `peanuts/games.tsv` after 20+ minutes of verified 60 fps Turnip play on OnePlus 13R (`v983040`).
