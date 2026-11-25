@@ -2800,3 +2800,16 @@ Left as they were: the hunks the check also flags that were unmarked before 0.1.
 ### OCTOPATH TRAVELER II 1.1.1, Android section of its note
 
 `dm/games/0100A3501946E000/README.md` (Banana Native's note for the profile) gets an `## Android` section, marked `PEANUTS:`, with what a PC-built pack and eight cold-start runs on an AYN Thor (Turnip 27.0.0-R2) showed: the profile plays at 60 fps, a first launch with no pipeline cache draws Hikari's opening green (the case of the rendering note on skipped draws), the system driver loses the device after New Game, and the stalls seen. No `game.tsv` key, shader table, seed or code changed; a prewarm seed of 918 keys was left out because the contributing rules keep seeds out of commits (offered on issue #515). The release list and the catalog row are not touched here. Upstream candidate: no.
+
+### Unreal heap: 16 bytes for every small 16-aligned block, and markers for the 0.1.9 batch (2026-11-25)
+
+PR #551 (intermission88, GitHub issue #455) makes the host's Unreal allocator ask malloc and realloc for at least 16 bytes when a 16-byte-aligned block is smaller than that (`malloc16_size`): jemalloc, which some Android builds use instead of Scudo, keeps an 8-byte size class at 8-byte alignment, and PhysX refuses a block that is not 16-aligned. The landing review added the markers the PR lacked.
+
+| File | Hunks | What | Marker |
+|---|---|---|---|
+| `dm/host/hle_uemalloc.c` | 3 | `malloc16_size` and its calls in `alloc` and `realloc_aligned` | `PEANUTS(upstream-candidate)` |
+| `dm/host/tests/t_ue_heap_alignment.c` | 1 | the `malloc16_size` asserts | `PEANUTS(upstream-candidate)` |
+| `docs/reference/memory.md` | 1 | the section "Small Unreal allocations only 8-byte aligned by the phone's malloc (Android)" | `PEANUTS(upstream-candidate)` begin/end |
+| `dm/games/0100DE501433A000/README.md` | 1 | Tetris Effect: Connected's #455 entry | `PEANUTS` |
+
+Upstream candidate: yes, a general fix with no game-specific branch; on Scudo and on Apple's allocator nothing changes. `docs/agents/symptoms.md` is generated (allow-listed) and current.
