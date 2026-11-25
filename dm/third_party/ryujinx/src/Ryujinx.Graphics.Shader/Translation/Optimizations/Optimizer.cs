@@ -32,7 +32,7 @@ namespace Ryujinx.Graphics.Shader.Translation.Optimizations
 
             GlobalToStorage.RunPass(context.Hfm, context.Blocks, context.ResourceManager, context.GpuAccessor, context.TargetLanguage, context.Ampere);
 
-            BindlessElimination.ForwardLocalHandles(context.Blocks, context.GpuAccessor);   // PEANUTS: handles spilled to local memory (BindlessElimination.ForwardLocalHandles)
+            BindlessElimination.ForwardLocalHandles(context.Blocks, context.ResourceManager, context.Hfm, context.GpuAccessor);   // PEANUTS: handles spilled to local memory (BindlessElimination.ForwardLocalHandles)
 
             bool hostSupportsShaderFloat64 = context.GpuAccessor.QueryHostSupportsShaderFloat64();
 
