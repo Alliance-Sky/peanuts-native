@@ -197,6 +197,9 @@ class Bottom(unittest.TestCase):
         self.assertIn('PeanutsPrefs.menuLayoutPicked(a)', q, 'asked until one is picked')
         self.assertIn('later.setOnClickListener(v -> d.dismiss());', q, 'Later picks nothing: asked again at the next start')
         self.assertIn('View first = made[second ? count - 1 : 0];', q, 'two screens: the focus starts on the bottom screen\'s')
+        self.assertIn('if (open != null && open.isShowing() && open.getOwnerActivity() == a) { if (then != null) waiting.add(then); return; }', q,
+                      "Home's list fills again on each refresh: a later offer's then (the quick button's question) waits until the question closes")
+        self.assertIn('for (Runnable r : after) r.run();', q[q.index('d.setOnDismissListener('):], 'the waiting ones run when it closes')
         self.assertIn('box.post(() -> LayoutChoice.offer(a, null));', (APP / 'main/java/dev/peanuts/ui/Library.java').read_text(encoding='utf-8'), "Home's list asks")
         for name in ('two', 'right', 'bottom'):
             x = (RES / f'drawable/pil_layout_{name}.xml').read_text(encoding='utf-8')

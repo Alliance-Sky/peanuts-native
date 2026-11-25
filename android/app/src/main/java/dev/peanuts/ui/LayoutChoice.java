@@ -23,6 +23,8 @@ public final class LayoutChoice {
     private LayoutChoice() {}
 
     private static boolean asked;   // once a run of the app
+    private static android.app.Dialog open;   // the question while it shows
+    private static final java.util.List<Runnable> waiting = new java.util.ArrayList<>();   // a later offer's then, run when the question closes
 
     private static final int[] LAYOUTS = {PeanutsPrefs.LAYOUT_TWO, PeanutsPrefs.LAYOUT_RIGHT, PeanutsPrefs.LAYOUT_BOTTOM};
     private static final String[] PICTURES = {"pil_layout_two", "pil_layout_right", "pil_layout_bottom"};   // Peanuts' res (src/peanuts/res): by name
@@ -34,6 +36,7 @@ public final class LayoutChoice {
 
     /** Home's list: the question while no layout is picked; then runs once it closes, or at once when it does not show */
     public static void offer(Activity a, Runnable then) {
+        if (open != null && open.isShowing() && open.getOwnerActivity() == a) { if (then != null) waiting.add(then); return; }   // Home's list fills again while it shows (each refresh): its then waits for the close
         if (asked || a.isFinishing() || !PeanutsPrefs.setupDone(a) || PeanutsPrefs.menuLayoutPicked(a)) { if (then != null) then.run(); return; }
         asked = true;
         boolean second = dev.peanuts.Companion.hasSecondDisplay(a);
@@ -87,7 +90,15 @@ public final class LayoutChoice {
         bp.topMargin = Math.round(8 * dp);
         box.addView(later, bp);
         d.setContentView(box);
-        d.setOnDismissListener(x -> { if (then != null) then.run(); });
+        d.setOwnerActivity(a);
+        d.setOnDismissListener(x -> {
+            open = null;
+            if (then != null) then.run();
+            java.util.List<Runnable> after = new java.util.ArrayList<>(waiting);
+            waiting.clear();
+            for (Runnable r : after) r.run();
+        });
+        open = d;
         if (d.getWindow() != null) {
             d.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
             int sw = a.getResources().getDisplayMetrics().widthPixels;
