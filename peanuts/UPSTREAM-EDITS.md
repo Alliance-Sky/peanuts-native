@@ -2985,6 +2985,7 @@ Qualcomm's driver 512.676.53 (Adreno 740) loses the depth / stencil dynamic stat
 Upstream candidate: yes, a general fix with no Peanuts dependency.
 
 
+
 ## Qualcomm driver before 512.800: auto-disable DM_VK_DYN_FILTER (2026-11-26)
 
 | File | Hunks | Change | Marker |
@@ -3082,3 +3083,4 @@ FINAL FANTASY RESONANCE on an AYN Odin 3 on its charger: the build paused at SEV
 Tests: `dm/tools/tests/test_android_packpolicy.py`, `peanuts/tests/test_heat_hold.py` (a counting stand-in tool held in a worker and in process: it does not move while held, goes on to the end, and does not start again; a stop ends a held worker).
 
 Upstream candidate: yes, for every game (the Peanuts card and queue parts excepted).
+
