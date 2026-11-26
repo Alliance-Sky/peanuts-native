@@ -135,6 +135,7 @@ not edited (see table above).
 | `dm/gfx/tools/uepak.py` | marked (`_nxaes` off-Mac AES path) | **yes** — lets the packer run without CommonCrypto/OpenSSL, general portability fix |
 | `dm/gfx/vk_android/vka_draw.c` | **fixed this pass** | **yes** — indirect quad/line-loop draws read on CPU instead of being skipped (Three Houses) |
 | `dm/gfx/vk_android/vka_exec.c` | **fixed this pass** | **yes** — sRGB↔linear converting copy between formats (Link's Awakening) |
+| `dm/gfx/vk_android/vka_exec.c` (`copy_t2t`: a multisample resolve takes the region both textures have) | marked `PEANUTS(upstream-candidate)` | **yes** — any game that downsamples a larger multisample target into a smaller texture (Digimon Story Time Stranger in handheld mode, issue #552) |
 | `dm/gfx/tools/vk_android_build.py` (`type2_sampler`, `sampler_half`), `dm/gfx/nvn/dmsh_abi_vk.h` (`DMSH_VK_BF_SAMP_RAW`), `dm/gfx/vk_android/vka_bind.c` (`samp_of`), `dm/gfx/nvn/dmsh_chain_vk.h` (regenerated) | marked `PEANUTS(upstream-candidate)` (the chain header is generated) | **yes** — handle-type-2 samplers (SeparateSamplerId) on Vulkan, every game that has them; nxnative ca26ef65 is the Metal side |
 | `dm/gfx/tools/vk_android_build.py` (`tess_mode_read`, `tess_modes_set`), `dm/gfx/vk_android/vka_pso.c` (lower-left tessellation domain origin), `dm/gfx/nvn/dmsh_chain_vk.h` (regenerated) | marked `PEANUTS(upstream-candidate)` | **yes** — every game's domain shaders take their own tessellation mode; nxnative 48dca7a4 reads the same fields for Metal |
 | `dm/gfx/vk_android/vka_present.c` | marked (pre-existing, `peanuts_tick()` hook) | no (the hook itself is Peanuts-specific; it is also the one documented allowed hook site in PEANUTS.md) |
@@ -334,7 +335,7 @@ included by `vka_tex.c`, since it works on the texture cache's tables under its 
 
 | File | Hunks | Hook | Marker |
 |---|---|---|---|
-| `dm/gfx/vk_android/vka.h` | 3 | `vka_img.rsc` / `rs_no`; the declarations (`vka_rs_q`, `vka_rs_st`, `vka_rs_mu`, `vka_tex_rs_*`, `vka_rp_rs`, `vka_rs_rect`); `vka_shader.rs_fetch` | trailing `// PEANUTS: ...`; a `PEANUTS begin`/`PEANUTS end` span |
+| `dm/gfx/vk_android/vka.h` | 3 | `vka_img.rsc` / `rs_no`; the declarations (`vka_rs_q`, `vka_rs_st`, `vka_rs_mu`, `vka_tex_rs_*`, `vka_rp_rs`, `vka_rs_rect`); `vka_shader.rs_fetch` and `rs_fb` (the 2D textures it fetches from or sizes by pixel, #703) | trailing `// PEANUTS: ...`; a `PEANUTS begin`/`PEANUTS end` span |
 | `dm/gfx/vk_android/vka_tex.c` | 8 | `g_rswant` and the scaled extent in `img_create_`; the include; `upload()` and the region writes never go into a scaled image; `img_storage_upgrade` and `vka_tex_id_storage_pending` make it 1x for a shader image binding; `rt_gpu` reads it through a 1x scratch image | trailing `// PEANUTS: ...`; a `PEANUTS begin`/`PEANUTS end` span |
 | `dm/gfx/vk_android/vka_draw.c` | 14 | `R.rsc` / `R.rsf`; `vka_rp_rs` (one scale per pass) and `rs_sc` (a scissor in the pass's pixels) with their three uses and `rp_begin`'s call; the viewport; `rs_support` (the support buffer's `render_scale`) and its call; `rs_fetch_fix` and its two calls; the memo's and the walk's resets; the NDSR stand-in's images at 1x | trailing `// PEANUTS: ...`; `PEANUTS begin`/`PEANUTS end` spans |
 | `dm/gfx/vk_android/vka_exec.c` | 9 | `scissored`; `clear_color` / `clear_ds` ask `vka_rp_rs`; `clear_tex`'s region; `copy_bt`; `copy_t2t`'s rectangles and the scaled / unscaled cases; the DLSS stand-in's images at 1x (2); the statistics line | trailing `// PEANUTS: ...`; a `PEANUTS begin`/`PEANUTS end` span |
@@ -2813,6 +2814,7 @@ stripped, the Python files have the same AST).
 | `android/app/src/jvmtest/java/dev/peanuts/overlay/FrameStatsJvmTest.java` | 1 | the stats temperature labelled TEMP (c0ae14e7) | `PEANUTS` on its first line |
 | `dm/gfx/nvn/hle_nvn.c` 1, `dm/gfx/nvn/nvn_obj.h` 1, `dm/gfx/tests/t_nvn.c` 1 | as listed | the NVNsampler layout agl hashes (g0giberry, #521) | `PEANUTS` |
 | `dm/gfx/nvn/hle_nvn.c` 3, `dm/gfx/tests/t_dirty_mpfail.c` 4, `dm/gfx/tests/t_dirty_race.c` 2, `dm/gfx/tests/t_nvn.c` 2, `dm/tools/tests/test_vka_write_region.py` (new) | as listed | bounded WriteTexels dirty prep and coalesced region writes (ts-miller, #403) | `PEANUTS` |
+| `dm/gfx/nvn/nvn_dirty.c` 3, `dm/gfx/tests/t_dirty_mpfail.c` 5, `dm/gfx/tests/t_dirty_race.c` 2 | as listed | #403's per-range count of protected pages and its two skips removed: LEGO MARVEL Super Heroes drew its streets as noise (#618) | `PEANUTS` |
 | `dm/gfx/nvn/hle_nvn.c` | 1 | `nvnCommandBufferSetScissor` / `SetDepthRange` over two lines each, in the texture storage round (540d0cd6) | `PEANUTS` |
 | `dm/gfx/vk_android/vka_perf.c` | 2 | the frame cap's period for the GPU floor and the ADPF target (ts-miller, #220; one function, `vka_cap_period_clamp`, since 2a65603b) | `PEANUTS` |
 | `dm/tools/tests/test_vk_floor_period.py` | new file | the frame cap in the GPU clock floor (ts-miller, #220) | `PEANUTS` on its first line |
@@ -2848,3 +2850,19 @@ PR #551 (intermission88, GitHub issue #455) makes the host's Unreal allocator as
 | `dm/games/0100DE501433A000/README.md` | 1 | Tetris Effect: Connected's #455 entry | `PEANUTS` |
 
 Upstream candidate: yes, a general fix with no game-specific branch; on Scudo and on Apple's allocator nothing changes. `docs/agents/symptoms.md` is generated (allow-listed) and current.
+
+### Socket waits are native waits (2026-11-24, issue #610)
+
+FINAL FANTASY RESONANCE's companion never had its load plan installed on 0.1.8: all 40 tries of the stop of all threads timed out. The game's Unreal
+HttpManagerThread polls its wakeup eventfd every 100 ms from boot, and `hle_net.c` waited for it in host code outside a native wait, so the stop never
+found that thread in game code ([docs/reference/threads.md](../docs/reference/threads.md#socket-poll-waits-are-native-waits)).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/host/hle_net.c` | 3 | `sk_sleep_ns` (new): `dm_guest_sleep_ns` inside `dm_thread_native_wait`, for `sk_idle` and the co-op mixed poll's 2 ms sleep; `efd_wait`'s `pthread_cond_timedwait` inside `dm_thread_native_wait` | `PEANUTS(upstream-candidate)`, `begin`/`end` on the new function |
+| `dm/host/tests/t_net_eventfd.c` | 2 | a `dm_thread_native_wait` that counts, and two checks: an eventfd Poll that waits and a Poll with nothing to wait on both enter a native wait and leave it | `PEANUTS(upstream-candidate) begin`/`end` |
+| `dm/host/tests/t_net_coop.c` | 1 | a `dm_thread_native_wait` stub (the file links `hle_net.c` without `hle_thread.c`) | `PEANUTS(upstream-candidate)` |
+| `docs/reference/threads.md` | 1 | "Socket Poll waits are native waits" | `PEANUTS begin`/`end` |
+| `dm/games/0100606026F12000/README.md` | 1 | its line under "Found on this game" | `PEANUTS` |
+
+Upstream candidate: Banana Native's `hle_net.c` has the same waits.
