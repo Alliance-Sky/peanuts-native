@@ -3713,3 +3713,15 @@ changes, so every title's profile.bin is regenerated with the APK; the struct si
 `render_cfg`), `peanuts/tests/test_push_desc_qcom_old.py` (the values, every real profile's macro, the generic profile field, the `layout_slow` line cut from
 vka_pso.c against the pre-#907 expression over every driver state with the key unset, and the `vka_auto.h` rule agreeing with it). No rewrite key or shader
 input changes: `vka_pso.c` layouts do not feed `DMSH_VK_CHAIN`. Upstream candidate: the switch and the key, if upstream wants a per-game choice.
+
+## Draws that write no colour on Qualcomm's Vulkan driver (2026-11-27)
+
+Qualcomm's own driver gives a draw that writes no colour channel wrong pixel shader inputs; NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS draws its effects in 32x32 cells there. Found while taking over the draft igawa6/peanuts-native#637 (codetz7).
+
+| File | Hunks | What | Marker |
+|---|---|---|---|
+| `dm/gfx/vk_android/vka_pso.c`, `vka_auto.h` | 2, 1 | `DM_VK_DEPTH_ONLY_BLEND` (`pstate_fill`): on Qualcomm's own driver (by driver ID) a pipeline that writes no colour channel writes its fixed-point targets that its pixel shader writes through blend ZERO, ONE, because the driver gives such a draw wrong pixel shader inputs; its `[auto]` rule | `PEANUTS` |
+| `dm/gfx/vk_android/vka_zonly.h`, `dm/host/tests/t_android_zonly.c` | new files | which colour targets that rule writes, and its test | `PEANUTS` |
+| `dm/host/tests/Makefile`, `dm/host/tests/t_android_auto.c` | 1, 2 | `t_android_zonly`; the `DM_VK_DEPTH_ONLY_BLEND` rule in the automatic defaults' test | `PEANUTS` |
+| `docs/env_switches.tsv`, `docs/advanced_settings.tsv` | 1, 1 | the `DM_VK_DEPTH_ONLY_BLEND` rows | rows |
+| `docs/reference/rendering.md`, `docs/agents/symptoms.md` | 1, 1 | the entry "Effects in 32x32 cells on Qualcomm's driver: a draw that writes no colour gets wrong pixel shader inputs", and its line in the generated index | `PEANUTS` / generated |
