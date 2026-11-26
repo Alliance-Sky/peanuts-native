@@ -784,8 +784,9 @@ static int storage_mode(const tex_t *t, const uint8_t *c, const vka_fmt *f, int 
     // PEANUTS: a SPARSE block-compressed texture outside a sparse pool (those returned above) is plain storage that the CPU fills: Unreal Engine 4 streams its levels into
     // CPU_UNCACHED pools (flags 0xe2) and samples the texture before they arrive, in storage that held another object's bytes. Taken once (ST_FILL, or ST_ZERO's fill of a
     // compressed texture), the image kept those bytes: DRAGON BALL Z: KAKAROT's 256x256 BC1 inputs read back as float data while their storage held the right blocks, and Raditz,
-    // Gohan and the foliage came out as noise or black (GitHub issue #298). The GPU cannot render into a compressed texture, so it is tracked from its first use, empty or not
-    else if (comp && (d->flags & NVN_TEXTURE_FLAGS_SPARSE) && !(d->flags & (NVN_TEXTURE_FLAGS_IMAGE | NVN_TEXTURE_FLAGS_COMPRESSIBLE)) && t->pool && (sampled || copy_src)
+    // Gohan and the foliage came out as noise or black (GitHub issue #298). So it is tracked from its first use, empty or not: a GPU write into the image (a copy, a clear, a
+    // bc_alias_match sync) sets gpu_owned, which ends tracking, and an image written at the same address first (gpu_image_over) keeps the old path. DM_VK_SPARSE_PLAIN_TRACK=0 turns it off
+    else if (comp && (d->flags & NVN_TEXTURE_FLAGS_SPARSE) && VKA_ENV("DM_VK_SPARSE_PLAIN_TRACK", 1) && !(d->flags & (NVN_TEXTURE_FLAGS_IMAGE | NVN_TEXTURE_FLAGS_COMPRESSIBLE)) && t->pool && (sampled || copy_src)
              && !(pf & (NVN_MEMORY_POOL_FLAGS_CPU_NO_ACCESS | NVN_MEMORY_POOL_FLAGS_VIRTUAL)) && !gpu_image_over(t->mem)) {
         want = ST_TRACK;
         static _Atomic int nsp; if (atomic_fetch_add(&nsp, 1) < 4)
