@@ -92,7 +92,7 @@ final class SidePanel extends FrameLayout {
         addView(sh, new LayoutParams(PanelLook.widthPx(Prefs.panelSize(a), dp, a.getResources().getDisplayMetrics().widthPixels), LayoutParams.MATCH_PARENT, Gravity.END));
         sheet = sh;
         InGamePanel.frame(this, sh, tabs, scroll);   // PEANUTS: the quick menu, its tabs on a rail at the left with a header over the rows (dev.peanuts.ingame.Rail)
-        getViewTreeObserver().addOnGlobalFocusChangeListener(this::focusMoved);
+        dev.peanuts.ingame.Look.focusListener(this, this::focusMoved);   // PEANUTS: kept from window to window (the bottom screen's menu gets a new window at each opening)
         setVisibility(GONE);
     }
 

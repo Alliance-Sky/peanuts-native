@@ -318,6 +318,22 @@ class ReviewFixes(unittest.TestCase):
                   'post(() -> { if (open && !isInTouchMode()) focusFirst(); });'):
             self.assertIn(s, side)
 
+    def test_bottom_menu_focus_listeners_follow_its_window(self):
+        # The Thor run, again: the bottom screen's menu joins a new window at each opening, and a focus listener added while it had no window stayed with
+        # the first window only (no frame, no rail switching, no ticks from the second opening). Every focus listener of the quick menus moves with it
+        look = (INGAME / 'Look.java').read_text(encoding='utf-8')
+        f = look[look.index('public static void focusListener('):]
+        for s in ('addOnAttachStateChangeListener', 'o.removeOnGlobalFocusChangeListener(l);', 'o.addOnGlobalFocusChangeListener(l);',
+                  'onViewDetachedFromWindow(android.view.View x) { x.getViewTreeObserver().removeOnGlobalFocusChangeListener(l); }'):
+            self.assertIn(s, f)
+        side = (LAUNCHER / 'SidePanel.java').read_text(encoding='utf-8')
+        self.assertTrue(marked(side, 'dev.peanuts.ingame.Look.focusListener(this, this::focusMoved);'))
+        self.assertNotIn('getViewTreeObserver().addOnGlobalFocusChangeListener(this::focusMoved)', side)
+        self.assertIn('Look.focusListener(sheet, (old, now) -> {', (INGAME / 'Rail.java').read_text(encoding='utf-8'))
+        self.assertIn('Look.focusListener(p, (old, now) -> {', self.panel)
+        for f in (LAUNCHER / 'InGamePanel.java', INGAME / 'Rail.java', INGAME / 'GameRows.java', INGAME / 'GameMenu.java'):
+            self.assertNotIn('addOnGlobalFocusChangeListener', f.read_text(encoding='utf-8'), f.name)
+
     def test_panel_polish_needs_no_r(self):
         self.assertNotIn('R.id', (APP / 'main/java/dev/peanuts/ui/PanelPolish.java').read_text(encoding='utf-8'), 'test_android_hud compiles it alone')
         self.assertNotIn('pn_inset', (RES / 'values/peanuts_ingame.xml').read_text(encoding='utf-8'))
