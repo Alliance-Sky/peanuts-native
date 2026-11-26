@@ -781,6 +781,16 @@ static int storage_mode(const tex_t *t, const uint8_t *c, const vka_fmt *f, int 
     else if (is_vid) want = ST_TRACK;
     else if (comp && !(d->flags & (NVN_TEXTURE_FLAGS_IMAGE | NVN_TEXTURE_FLAGS_COMPRESSIBLE | NVN_TEXTURE_FLAGS_SPARSE))
              && (mem_any_mapped(c, t) || dirty_first)) want = ST_TRACK;   // PEANUTS: dirty_first, a block-compressed texture still empty at its first use
+    // PEANUTS: a SPARSE block-compressed texture outside a sparse pool (those returned above) is plain storage that the CPU fills: Unreal Engine 4 streams its levels into
+    // CPU_UNCACHED pools (flags 0xe2) and samples the texture before they arrive, in storage that held another object's bytes. Taken once (ST_FILL, or ST_ZERO's fill of a
+    // compressed texture), the image kept those bytes: DRAGON BALL Z: KAKAROT's 256x256 BC1 inputs read back as float data while their storage held the right blocks, and Raditz,
+    // Gohan and the foliage came out as noise or black (GitHub issue #298). The GPU cannot render into a compressed texture, so it is tracked from its first use, empty or not
+    else if (comp && (d->flags & NVN_TEXTURE_FLAGS_SPARSE) && !(d->flags & (NVN_TEXTURE_FLAGS_IMAGE | NVN_TEXTURE_FLAGS_COMPRESSIBLE)) && t->pool && (sampled || copy_src)
+             && !(pf & (NVN_MEMORY_POOL_FLAGS_CPU_NO_ACCESS | NVN_MEMORY_POOL_FLAGS_VIRTUAL)) && !gpu_image_over(t->mem)) {
+        want = ST_TRACK;
+        static _Atomic int nsp; if (atomic_fetch_add(&nsp, 1) < 4)
+            VLOG("sparse-flagged texture serial %llu %ux%u format %#x in a plain pool (flags %#x), storage %s at its first use: tracked", (unsigned long long)t->serial, d->width, d->height, d->format, pf, mem_any_mapped(c, t) ? "with data" : "empty");
+    }
     else if (storage_sampled_content(t, f, pf, sampled, c)) {   // PEANUTS(upstream-candidate): the rule's two arms, NVN2 and NVN1
         int any = mem_any_mapped(c, t); uint64_t k = g_nvn2_first[!any]++; want = ST_TRACK;
         if (any && k < 4) VLOG("texture serial %llu %ux%ux%u format %#x pool flags %#x: written by the CPU before its first use, a sample (%s): uploaded from its storage, re-uploaded when it changes (%llu so far, %llu more with empty storage)",
