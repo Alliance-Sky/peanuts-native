@@ -112,6 +112,7 @@ final class Prepare {
             BuildLogShare.line(c, logId, "prepare: upstream reflection: " + e);
             throw new IOException("The build could not start because of a problem in the app. " + RETRY_SHARE);
         } finally {
+            BuildPipeline.heatPaused(null);   // #803
             unbind();
         }
     }
@@ -341,6 +342,7 @@ final class Prepare {
                         BuildWatch.full(err, detail) ? BuildListener.OUT_OF_SPACE : BuildListener.TOOL_STOPPED);   // a full disk: the card's Free up space, then Retry
             }
             int pct = pct(si, done, total);
+            BuildPipeline.heatPaused(goOn(state, reason, o) ? logId : null);   // the card's Go on anyway (#803)
             if (state.equals("paused")) {
                 // the pause of the run before (its "updated" older than this start): the packer has not taken the job yet. A queue would take it for a pause
                 // of this run and hold all its games; after 30 s it counts, as before
@@ -350,7 +352,7 @@ final class Prepare {
                     log("prepare: the job paused at " + step + " (" + reason + ")");
                     throw new BuildListener.Failure(pausedText(reason) + " Tap Resume on the game's card to go on.", BuildListener.CANCELLED);
                 }
-                p.on(pct, "Paused: " + reasonText(reason) + ". " + stepText(si, done, total, stage));
+                p.on(pct, pausedLine(reason, o) + " " + stepText(si, done, total, stage));   // a heat pause's words by how often it paused (#803)
                 lastChange = SystemClock.elapsedRealtime();   // a heat or battery pause is not a stall
                 w.changed(SystemClock.uptimeMillis());
                 continue;
@@ -378,6 +380,7 @@ final class Prepare {
             BuildLogShare.line(c, logId, "modded prepare: upstream reflection: " + e);
             throw new IOException("The build with mods could not start because of a problem in the app. " + MODS_AGAIN);
         } finally {
+            BuildPipeline.heatPaused(null);   // #803
             unbind();
         }
     }
@@ -529,9 +532,10 @@ final class Prepare {
                         BuildWatch.full(err, detail) ? BuildListener.OUT_OF_SPACE : BuildListener.TOOL_STOPPED);   // a full disk, as a build's
             }
             int pct = pct(si, done, total);
+            BuildPipeline.heatPaused(goOn(state, reason, o) ? logId : null);   // the card's Go on anyway (#803)
             if (state.equals("paused")) {
                 if (stops(reason)) throw new BuildListener.Failure(pausedText(reason) + " " + MODS_AGAIN, BuildListener.CANCELLED);
-                p.on(pct, "Paused: " + reasonText(reason) + ". " + stepText(si, done, total, stage));
+                p.on(pct, pausedLine(reason, o) + " " + stepText(si, done, total, stage));   // #803
                 lastChange = SystemClock.elapsedRealtime();
                 w.changed(SystemClock.uptimeMillis());
                 continue;
@@ -578,13 +582,28 @@ final class Prepare {
         return r.equals("user") ? "You paused the build." : "Paused: " + reasonText(r) + ".";
     }
 
+    /** From this many heat pauses in one run of the job (job.json "heat_pauses", PackService) the card puts Go on anyway first: PackPolicy.HOT_AGAIN_AT (#803) */
+    static final int HOT_AGAIN_AT = 2;
+    /** The card's words then, as the packer's (PackPolicy.HOT_AGAIN) */
+    static final String HOT_AGAIN = "The phone keeps getting hot; building on a charger heats it more. Go on anyway builds without pausing.";
+
+    /** Whether job.json says the packer waits in a heat pause that Go on anyway lifts (PackPolicy.canOverride: not at CRITICAL or worse) */
+    static boolean goOn(String state, String reason, JSONObject o) { return state.equals("paused") && reason.equals("thermal") && o.optBoolean("go_on"); }
+
+    /** A pause the build waits out, as the card's first sentence(s): a heat pause offers Go on anyway (the card's button), and says why once it keeps coming back */
+    static String pausedLine(String reason, JSONObject o) {
+        String s = "Paused: " + reasonText(reason) + ".";
+        if (!goOn("paused", reason, o)) return s;
+        return s + (o.optInt("heat_pauses") >= HOT_AGAIN_AT ? " " + HOT_AGAIN : " If the phone does not feel hot, tap Go on anyway.");
+    }
+
     private static String reasonText(String r) {
         switch (r) {
             case HUNG: return "it made no progress, so it was stopped";
             case ENDED: return "its process ended and was not started again";
             case "user": return "you paused the build";
             case "battery": return "the battery is below 20 %. Plug in the charger to go on";
-            case "thermal": return "the phone is too hot. It goes on when it has cooled down. If the phone does not feel hot, tap Go on anyway in the build notification";
+            case "thermal": return "the phone is too hot. It goes on from where it stopped when it has cooled down";   // the rest by pausedLine (#803)
             case "timeout": return "Android allows only so much background work a day";
             case "refused": return "Android did not let it start in the background";
             case "apk": return "the app was updated, so the shaders are made again";
