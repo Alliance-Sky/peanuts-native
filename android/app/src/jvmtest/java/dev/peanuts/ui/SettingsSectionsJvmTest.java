@@ -49,7 +49,6 @@ public final class SettingsSectionsJvmTest {
         eq("graphics/Driver", SettingsSections.place("GPU driver", "System"));
         eq("graphics/Picture", SettingsSections.place("Upscaler", "Performance and picture"));
         eq("graphics/Speed", SettingsSections.place("Overlay", "Display"));
-        eq("controls/Buttons", SettingsSections.place("Xbox button label swap", "Controls"));
         eq("screens/Second screen", SettingsSections.place("Swap screens", "Library"));
         eq("screens/Display", SettingsSections.place("Keep the screen on while preparing", "System"));
         eq("users/Users", SettingsSections.place("Users", "System"));

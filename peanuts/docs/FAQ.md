@@ -432,7 +432,7 @@ With an update, the `.nup` now holds the update alone. The update already carrie
 
 Tap a ready cover. To stop, open the in-game panel and choose **Stop the game**. The panel opens with a swipe in from the right edge, with Back, or on a controller with Home or by holding − and + for half a second.
 
-Games take the handheld's own buttons and sticks, external controllers and on-screen touch controls. Settings has **On-screen controls** (Auto, On, Off), **Button mapping**, **Xbox button label swap** and **Rumble**. Each game can override them in its own settings.
+Games take the handheld's own buttons and sticks, external controllers and on-screen touch controls. Settings has **On-screen controls** (Auto, On, Off), **Button mapping** and **Rumble**. Each game can override them in its own settings.
 
 ### What frame rate do games run at?
 

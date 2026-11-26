@@ -57,18 +57,24 @@ final class Prefs {
     static void pinThreadsDefault(Context c, boolean on) { of(c).edit().putBoolean("pin_threads", on).commit(); }
     static boolean pinThreads(Context c, String titleId) { return of(c).getBoolean(gameKey("pin_threads", titleId), pinThreads(c)); }
     static void pinThreads(Context c, String titleId, boolean on) { of(c).edit().putBoolean(gameKey("pin_threads", titleId), on).commit(); }
-    /** Xbox button label swap: 0 off; 1 labels (the prompts' A/B and X/Y drawn the Xbox way: DM_XBOX_LABELS, hle_fs.c); 2 labels + confirm with A (A and B by label,
-     *  DM_PAD_LABELLED=2, so only X/Y are redrawn). The main screen's default (off), then each game's own */
-    static final String[] XBOX_NAMES = {"Off", "Swap labels for X/Y and A/B", "Swap labels for X/Y, swap buttons A/B"};
-    static int xboxButtons(Context c) { int v = of(c).getInt("xbox_buttons", 0); return v >= 0 && v < XBOX_NAMES.length ? v : 0; }
-    static void xboxButtonsDefault(Context c, int v) { of(c).edit().putInt("xbox_buttons", v).commit(); }
-    static int xboxButtons(Context c, String titleId) { int v = of(c).getInt(gameKey("xbox_buttons", titleId), xboxButtons(c)); return v >= 0 && v < XBOX_NAMES.length ? v : 0; }
-    static boolean ownXboxButtons(Context c, String titleId) { return of(c).contains(gameKey("xbox_buttons", titleId)); }
-    /** null: back to Default (follows Settings) */
-    static void xboxButtons(Context c, String titleId, Integer v) {
-        if (v == null) of(c).edit().remove(gameKey("xbox_buttons", titleId)).commit(); else of(c).edit().putInt(gameKey("xbox_buttons", titleId), v).commit();
+    // PEANUTS begin: Xbox button label swap removed (owner 2026-11-26). Peanuts' Button mapping already maps face buttons by label (PEANUTS_PAD_MAP), which wins
+    // over the swap's A/B, and its label redraw (DM_XBOX_LABELS) then drew the prompts wrong; DM_XBOX_LABELS / DM_PAD_LABELLED stay as Advanced switches. Once, at the
+    // launcher's start: a saved "swap buttons A/B" (2) whose mapping is empty becomes that mapping's A/B, then every xbox_buttons key is dropped
+    static void dropXboxSwap(Context c) {
+        SharedPreferences sp = of(c);
+        SharedPreferences.Editor e = null;
+        for (String k : new java.util.ArrayList<>(sp.getAll().keySet())) {
+            if (!k.equals("xbox_buttons") && !k.startsWith("xbox_buttons@")) continue;
+            if (e == null) e = sp.edit();
+            int v; try { v = sp.getInt(k, 0); } catch (ClassCastException x) { v = 0; }
+            String id = k.startsWith("xbox_buttons@") ? k.substring("xbox_buttons@".length()) : null;
+            String map = id == null ? padMap(c) : padMap(c, id);
+            if (v == 2 && map.isEmpty()) e.putString(id == null ? "pad_map" : gameKey("pad_map", id), "BUTTON_A=A,BUTTON_B=B");
+            e.remove(k);
+        }
+        if (e != null) e.commit();
     }
-    static String xboxLabel(int v) { return XBOX_NAMES[v]; }
+    // PEANUTS end
     /** The in-game panel's Player 1 (PadOrder): the chosen gamepad's InputDevice descriptor, for every game; "" = automatic */
     static String padFirst(Context c) { return of(c).getString("pad_first", ""); }
     static void padFirst(Context c, String key) { of(c).edit().putString("pad_first", key == null ? "" : key).commit(); }

@@ -63,6 +63,7 @@ public final class MainActivity extends Activity {
 
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
+        Prefs.dropXboxSwap(this);   // PEANUTS: Xbox button label swap removed
         if (saved != null) settingsPage = saved.getBoolean("settings");
         if (saved != null && saved.getString("game_settings") != null)   // a fold or unfold makes the activity again: the game's settings page stays open
             for (Game g : Game.load(this)) if (g.gameDir.equals(saved.getString("game_settings"))) { settingsGame = g; break; }
@@ -381,12 +382,6 @@ public final class MainActivity extends Activity {
                 .value("On the controller, or the phone without one").view);
         perf.addView(new Ui.Setting(this, "🚀", "Use fast cores", null).toggle(this, Prefs.pinThreads(this), (b, on) -> Prefs.pinThreadsDefault(this, on))
                 .value("Keeps the busiest threads off the small cores").view);
-        Ui.Setting xbox = new Ui.Setting(this, "🅰️", "Xbox button label swap", null).chevron(this);
-        xbox.view.setOnClickListener(v -> new PadFocus.Builder(this).setTitle("Xbox button label swap")
-                .setSingleChoiceItems(Prefs.XBOX_NAMES, Prefs.xboxButtons(this), (d, w) -> { Prefs.xboxButtonsDefault(this, w); xbox.value(Prefs.xboxLabel(w)); d.dismiss(); })
-                .setNegativeButton("Cancel", null).show());
-        xbox.value(Prefs.xboxLabel(Prefs.xboxButtons(this)));
-        ctl.addView(xbox.view);
         Ui.Setting padMap = new Ui.Setting(this, "🕹️", "Button mapping", null).chevron(this);
         padMap.view.setOnClickListener(v -> PadMapUi.forDefault(this, () -> padMap.value(PadMapUi.label(this, null))));
         padMap.value(PadMapUi.label(this, null));

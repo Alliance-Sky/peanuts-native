@@ -151,7 +151,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         root.addView(panel, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
         controls.openSettings = panel::open;
         combo = new PadPanel.Combo(Prefs.panelPad(this));   // Settings › Controller: in-game panel
-        panel.padButtons(PadPanel.confirmBack(Prefs.padMap(this, id), Prefs.xboxButtons(this, id) == 2 ? 2 : 0));   // the game's own A and B, as the host maps them from this start
+        panel.padButtons(PadPanel.confirmBack(Prefs.padMap(this, id), 0));   // the game's own A and B, as the host maps them from this start
         panel.onOpen = this::releaseGameInput;
         // The layout editor needs the whole screen: the panel closes, and Paused (over the controls: its first tap would continue the game) hides while it is open;
         // the game stays paused
@@ -704,15 +704,12 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         dev.peanuts.overlay.Hud.driver(GpuDriver.selected(this, id) != null ? GpuDriver.selected(this, id).label() : Readiness.driverWord(Prefs.facts(this, Recommend.SYSTEM)));   // PEANUTS: the overlay's DRV row
         String ts = Prefs.gpuTs(this, id);   // Game settings › GPU timing; unset: the profile's gpu_timestamps (a DM_NVN_GPU_TS line of env.txt or the game's own lines comes later and wins)
         if (ts != null) env.add("DM_NVN_GPU_TS=" + ts);
-        int xb = Prefs.xboxButtons(this, id);   // Xbox button label swap (Game settings, Settings)
-        if (xb > 0) env.add("DM_XBOX_LABELS=1");
-        if (xb == 2) env.add("DM_PAD_LABELLED=2");
         if (Prefs.instancedDraws(this, id)) env.add("DM_VK_INSTANCE=1");   // Game settings › Instanced draws
         if (Prefs.classicPasses(this, id)) env.add("DM_VK_CLASSIC_RP=1");   // Game settings › Classic render passes
         if (Prefs.skipLayersGame(id) && Prefs.skipLayers(this, id)) env.add("DM_VK_SKIP_FS=" + Prefs.skipLayersKeys(id));   // Game settings › Speedhack: Turn off hidden layers
         env.add("DM_VK_PSO_ASYNC=" + (Prefs.psoAsync(this, id) ? 2 : 0));   // Game settings › Background pipelines (an env.txt line of the player's comes later and wins)
         if (Prefs.ramSaver(this, id)) { env.add("DM_MEM_FILEBACK=1"); env.add("DM_MEM_FILEBACK_KINDS=shader,texture"); }   // Game settings › RAM saver: texture pools in a file in TMPDIR, the cache folder (vka_mem.c "File-backed pools"); lines of env.txt or the game's own come later and win
-        String padMap = Prefs.padMap(this, id);   // Button mapping (Game settings, Settings): wins over the label swap's A/B for the buttons it names
+        String padMap = Prefs.padMap(this, id);   // Button mapping (Game settings, Settings)
         if (!padMap.isEmpty()) env.add("DM_PAD_MAP=" + padMap);
         env.add("DM_MOTION_SENS=" + Prefs.motionFactor(this, id));   // Game settings › Controls › Motion sensitivity (the phone's gyro, 50 % unless the player chose; env.txt lines come later and win)
         if (Prefs.stretch(this, id)) env.add("DM_VK_STRETCH=1");   // Game settings › Display › Stretch to screen (or the in-game panel's Picture rows)
