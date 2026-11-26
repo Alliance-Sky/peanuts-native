@@ -735,6 +735,7 @@ DM_VK_SKIP_NDVE	developer	Diagnostics			text			both
 DM_VK_SKIP_WARN	advanced	Diagnostics	Skipped-work notice	the notice "Part of the picture is not drawn" appears and you want it off (0) or only for larger gaps	number	0..100 %|0,5,10,25	5 %	both						
 DM_VK_SPARSE_DENSE_MB	developer	Graphics			text			both						
 DM_VK_SPARSE_LEVELS	developer	Graphics			text			both						
+DM_VK_SPARSE_PLAIN_TRACK	developer	Graphics			text			both						
 DM_VK_SPARSE_RES	developer	Graphics			text			both						
 DM_VK_SPARSE_RES_MB	developer	Graphics			text			both						
 DM_VK_SPEC_FOLD	developer	Graphics			text			both						
