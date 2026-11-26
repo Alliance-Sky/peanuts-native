@@ -943,7 +943,7 @@ New with this update:
 |---|---|---|---|
 | `docs/advanced_settings.tsv` | 42 rows | upstream's table for Settings › Advanced needs a row for every switch of `docs/env_switches.tsv`; the fork's switches got theirs from `dm/tools/advanced_switches.py` (tier `developer`: shown by name behind "Show developer options") | generated, in `peanuts/upstream-unmarked.txt` |
 | `dm/tools/tests/test_wiki.py` | 1 | the fork's three setting rows that upstream's player wiki does not name (Build again, Delete save data, Resolution scale) are listed as not documented there | `# PEANUTS begin`/`end` |
-| `dm/games/0400C3F00006E000/vk_delta.tsv` | 1 row | Mario Kart World's manifest names one shader that does not build; it excuses it only for the library version it names, so the version is this tree's (`b09844b02acf`; upstream's file says `19662e4c4a25`). To be written again whenever the version moves (`test_android_shader_delta.py` says so) | in `peanuts/upstream-unmarked.txt` |
+| `dm/games/0400C3F00006E000/vk_delta.tsv` (removed 2026-11-26 with the Switch 2 profiles) | 1 row | Mario Kart World's manifest names one shader that does not build; it excuses it only for the library version it names, so the version is this tree's (`b09844b02acf`; upstream's file says `19662e4c4a25`). To be written again whenever the version moves (`test_android_shader_delta.py` says so) | in `peanuts/upstream-unmarked.txt` |
 | `dm/gfx/tools/dmsh_xlate_bin/*.dll`, `dm/gfx/tools/dmsh_chain.lock`, `dm/gfx/nvn/dmsh_chain.h`, `dm/gfx/nvn/dmsh_chain_vk.h` | generated | the PC translator rebuilt on Linux (.NET 10.0.114) from the merged sources (upstream's newer translator with the fork's `ReadsWritableMemory` rule), and the versions that follow: `DMSH_CHAIN` 20aaebbe3106, `DMSH_VK_CHAIN` b09844b02acf, `DMSH_VK_ABI` cb5a89b39291. The lock's Apple and spirv-cross lines are upstream's (not measurable on Linux) | generated |
 
 Peanuts-owned files changed for it: `dm/gfx/vk_android/vka_readback.inc` (a level child is not read back: its image is its parent's) and the stand-in struct of
@@ -1039,7 +1039,7 @@ Protected shader-tool lint cleanup after controlled comparison: 52 findings remo
 `vk_android_build.py` and `vk_android_spv.py`. Normalized executable ASTs match; a cold full Monster Sanctuary build with each tool set translated all
 500 shaders and validated all 523 modules. All 500 entry hashes match, and every byte outside the Vulkan version stamp matches; the literal libraries differ.
 No same-version row was added. The generated Vulkan chain is `c13dc8b37b0f`; Apple chain `20aaebbe3106` and ABI `cb5a89b39291` are unchanged.
-Mario Kart World's manifest has no reusable hashes, only its known unbuilt-shader exception: its version row follows the generated chain.
+Mario Kart World's manifest has no reusable hashes, only its known unbuilt-shader exception: its version row follows the generated chain (the profile is removed since 2026-11-26: Switch 1 only).
 Existing old-library ABI compatibility remains unchanged, so this offers a shader update rather than invalidating old playable libraries.
 
 The two rewriter-source lint fixes remain outside this primary review tree. Their three-module Monster Sanctuary comparison is byte-identical except
@@ -1224,7 +1224,7 @@ The profile (`dm/games/0100F7E00C70E000/`, listed under "Per-game" above) and wh
 | `dm/gfx/tools/vk_android_build.py` | 2 | a texture handle in a game uniform buffer whose separate sampler is in c2 gets its uniform slot (TEX_UBO); the `nonuniform_arrays` call in `finish` | `# PEANUTS` each |
 | `dm/gfx/tools/vk_android_spv.py` | 1 | `nonuniform_arrays` and its constants (one span): a texture or sampler taken from a descriptor array at a computed index is decorated NonUniform | `# PEANUTS begin`/`end` |
 | `dm/gfx/nvn/dmsh_chain_vk.h` | 1 | `DMSH_VK_CHAIN` f20f62a0ebfb (generated) | generated header |
-| `dm/games/0400C3F00006E000/vk_delta.tsv` | 1 row | the version row follows `DMSH_VK_CHAIN` (the manifest only lists the one shader that does not build, and excuses it for the version it names: `test_android_shader_delta`) | allow-listed |
+| `dm/games/0400C3F00006E000/vk_delta.tsv` (removed 2026-11-26) | 1 row | the version row follows `DMSH_VK_CHAIN` (the manifest only lists the one shader that does not build, and excuses it for the version it names: `test_android_shader_delta`) | allow-listed |
 | `dm/tools/tests/test_vk_android_ubo_tex.py`, `test_vk_android_nonuniform.py` (new) | whole files | each pass on a small module | Peanuts-owned |
 
 **Texel buffers in the Vulkan replay** ([rendering.md](../docs/reference/rendering.md)):
@@ -2930,3 +2930,31 @@ frontend or a shortcut hands the game to Home's Play. The first start of another
 | `android/app/src/main/java/dev/nxnative/android/SaveStore.java` | 2 | `when`: the `-before-update` label; `BEFORE_UPDATE`, `beforeNewBuild`, `sameAsNewest` | `// PEANUTS:` and `PEANUTS begin` / `end` |
 | `android/app/src/jvmtest/java/dev/nxnative/android/LauncherJvmTest.java` | 2 | `beforeNewBuild` case | `// PEANUTS:` and `PEANUTS begin` / `end` |
 | `docs/guides/saves.md`, `README.md` | 1 each | the backup before a new build; Play waits for the build with mods | `<!-- PEANUTS: issue #514 -->` |
+
+### Switch 1 only: the Switch 2 profiles removed (2026-11-26, owner)
+
+Peanuts Native supports Switch 1 games only. The 19 Switch 2 profiles (`dm/games/04*`; none shipped in `peanuts/release-titles.txt`) and the
+host gates only those games used are deleted, and `peanuts/upstream-dropped.txt` keeps them out on every sync (`upstream-update.sh`,
+[UPSTREAM.md 3.8](docs/UPSTREAM.md#38-dropped-upstream-content-switch-2)). A deleted upstream file has no hunk to mark; the edits that go with
+the deletions are marked:
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/04*/` (19 folders), `dm/host/android/{dkb_wide,mkw_wide,oot_wide,mtf_size,pkp_aspect}.c`, `dm/host/tests/t_{dkb_wide,mkw_wide,oot_wide,mtf_size,pkp_aspect}.c` | deleted | Switch 2 profiles and their gates | listed in `peanuts/upstream-dropped.txt` |
+| `dm/host/dm.h` | 1 | `OBS_PKP_*` (28-30), `OBS_OOT_WIDE`, `OBS_DKB_WIDE`, `OBS_MKW_WIDE`, `OBS_MTF_SIZE` (31-34) removed; the numbers stay unused | `// PEANUTS:` |
+| `dm/host/tests/Makefile` | 2 | the five gate tests' run lines and rules | `# PEANUTS:` |
+| `android/app/gradle.properties` | 1 | `nxGames` = the release titles, Breath of the Wild (`01007EF00011E000`) first, not upstream's readiness-row list | `# PEANUTS:` |
+| `dm/tools/tests/test_android_games.py` | 2 | `nxGames` must equal `peanuts/release-titles.txt`, start with Breath of the Wild and hold no `04` title ID | `# PEANUTS` |
+| `docs/env_switches.tsv`, `docs/advanced_settings.tsv`, `docs/agents/game-patches.md` | regenerated | the gates' switches gone; `DM_GFX_QUALITY` and `DM_RENDER_PCT` (render_cfg profiles only) internal | allow-listed (generated) |
+| `android/app/src/jvmtest/java/dev/nxnative/android/AdvancedTableJvmTest.java` | 3 | the game-only friendly row is a fixture row for a Switch 1 title ID | `// PEANUTS` span |
+| `dm/tools/tests/test_docs.py`, `dm/tools/docs_gallery.py` | 3, 2 | a link, games-table row or gallery row that names a dropped path is accepted (`peanuts/scripts/dropped.py`) | `# PEANUTS` |
+| `dm/tools/tests/test_cheats.py`, `test_android_cheats.py`, `test_cheat_log_check.py`, `dm/host/tests/t_cheats.c` | several | the cheat files of Ocarina of Time and Fire Emblem Fortune's Weave read from `peanuts/tests/fixtures/profiles/` (or synthetic) | `# PEANUTS` / `// PEANUTS` |
+| `dm/tools/tests/test_android_recommend.py`, `test_android_res_presets.py`, `test_android_scene_res.py`, `test_scene_res.py`, `test_android_profile_options.py` | several | presets, 3D scene, scene_arg, recommend and option rows from the fixtures, or the Switch 1 profiles that have them | `# PEANUTS` |
+| `dm/tools/tests/test_android_gamelist.py`, `test_android_shader_delta.py`, `test_pack_android_builds.py`, `test_android_game_settings.py` | several | a romfs_check row and the delta manifest inline; Mario Kart 8 Deluxe's optional keys; fewer option rows | `# PEANUTS` |
+| `dm/tools/tests/test_nsp_dump.py`, `test_nup.py`, `test_split_boot_nro.py`, `test_split_stream.py`, `test_split_viper.py` | several | a Switch 1 profile (Breath of the Wild, Super Mario 3D World) where a profile must exist | `# PEANUTS` |
+| `peanuts/upstream-unmarked.txt` | 1 row | Mario Kart World's `vk_delta.tsv` row removed with the file | Peanuts-owned |
+
+Left as they are (upstream text, no checker needs a change): `docs/reference`, `docs/agents` (other than the generated page), `wiki/`, the
+`docs/banana-native-README*` pages, `dm/games/README.md`'s notes and table rows, `android/NOTICE.md`'s sections on the removed gates, and code
+comments that name a Switch 2 game. The shared Switch 2 support (NVN2, Program-n and the Switch 2 dump layout, `Edition.java`, the `Switch2/`
+storage folder name, `wide_shape.h` for `aspect_plan.h`, `boot_nro.py`) stays.
