@@ -3137,7 +3137,7 @@ icons against icons.py), `peanuts/tests/test_cheat_loader.py` (Part E's hooks in
 ### In-game menus as one menu: at the right over the game, or on the bottom screen with the game in full view on top (2026-11-24, on the in-game menus; two menus stay the default)
 
 The player picks the layout once: Home's list asks at the app's start until one is picked (`dev.peanuts.ui.LayoutChoice`; Later asks once more at the
-next start, then no more; a new player is asked at the start after the one with the first start's setup), with a picture of each (`drawable/pil_layout_*.xml` from `design/peanuts-native/layouts/layouts.py`): Two menus (the game menu at the left,
+next start, then no more; a new player is asked at the start after the one with the first start's setup), with a picture of each (`drawable/pil_layout_*.xml`): Two menus (the game menu at the left,
 the quick menu at the right; kept until one is picked), One menu at the right, and on a device with a second screen (the AYN Thor) Bottom screen (one
 menu there), where the focus starts there. The menu's own settings change it later (Layout). `PeanutsPrefs.menuLayout` keeps both with when, the newer counts. One menu is a second
 quick menu whose rail starts with Game (the game menu's rows, `dev.peanuts.ingame.GameRows`) above the quick menu's tabs; Home pressed, − and + held and
@@ -3180,6 +3180,33 @@ Kept in "peanuts" (`PeanutsPrefs.quickKey`), which the launcher writes and the g
 | `android/app/src/main/java/dev/nxnative/android/InGamePanel.java` | (Peanuts' own) | `quickKey`; the Quick menu row's value | Peanuts' own file |
 
 Peanuts-owned: `dev.peanuts.ui.QuickButton`, its row in `LibrarySettings`, `SettingsSections` and `SettingsHelp`, `PeanutsPrefs.quickKey`. Tests: `peanuts/tests/test_ingame_menus.py` (QuickMenuButton).
+
+### In-game menus: the review's fixes (2026-11-26, for 0.1.9)
+
+The review of #678, #679 and #680, fixed on the merged branch before it landed in 0.1.9.
+
+- **Back under the cover**: `InGamePanel.backKey` takes no Back down while the Preparing shaders cover shows (GameActivity passes `prewarmCover != null`),
+  during a shader preparation boot (`ShaderCapture.active`) or while the controller applet's join screen is up (the host's state, as `CtrlScreen` reads it),
+  so `onBackPressed` handles them before the menus as before: nothing under the cover, a preparation cancelled, the join screen cancelled.
+- **Back up the save once at a time**: the row is ignored while a backup runs (`backingUp`, UI thread); two at once took the same name and temp folder.
+- **A screen made again** while the game runs (GameActivity recreated): `attach` starts with `reset()`, the bottom screen's window first, every view and
+  row the last screen made, the keys' state; a backup still running is left to end. The old screen's lifecycle callbacks act only while it is the current one.
+- **The bottom screen's edge** (`BottomMenu.edgeRoot`, the root of `dev.peanuts.ui.GameScreen` while the layout is Bottom screen): watches the touches on
+  their way and takes a gesture only once it is the swipe up, so a tap in the bottom 28 dp reaches the page (the strip over it took every touch).
+- **The left edge's strip** reads the layout (two prefs files and the displays) only after a display was added, removed or changed, the screen's size
+  changed or Layout was picked in the menu, not on each global layout (about twice a second).
+- **The game menu's width** follows the screen's size (`GameMenu.width`). **The layout question** counts as asked once it shows, and takes no press in its
+  first 600 ms (an A on its way to Home's list picked the focused card).
+- **Text**: Settings' help of Controller: in-game panel and Mods tab, the Mods tab rows of the game page and of Library settings, the Quick menu button's
+  warning, the game page's Cheats row (`cheats_on`, overridden in `values/peanuts_ingame.xml`) and FirstImport's running line name the two menus;
+  `wiki/Side-Panel-In-Game.md` (now The in-game menus), `wiki/Settings-Controls.md`, `wiki/Cheats.md` and `docs/guides/saves.md` describe them.
+- **Tests**: `PanelPolish` keeps its inset rows in a weak set instead of a tag keyed by `R.id.pn_inset` (dropped), so `test_android_hud` compiles it
+  alone again; `test_android_padpanel` finds the combination in `InGamePanel.key`. `peanuts/tests/test_ingame_menus.py` (ReviewFixes) checks each fix.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/src/main/java/dev/nxnative/android/GameActivity.java` | (the backKey hook's line) | `InGamePanel.backKey(this, e, prewarmCover != null)` | `// PEANUTS` |
+| `dm/tools/tests/test_android_padpanel.py` | 1 | the combination through `InGamePanel.key` | `# PEANUTS` |
 
 ## Android 12 (API 31/32): the app installs and runs, games need Android 13 (2026-11-26, on dev-0.1.9)
 
