@@ -3202,7 +3202,7 @@ The review of #678, #679 and #680, fixed on the merged branch before it landed i
   changed or Layout was picked in the menu, not on each global layout (about twice a second).
 - **The game menu's width** follows the screen's size (`GameMenu.width`). **The layout question** counts as asked once it shows, and takes no press in its
   first 600 ms (an A on its way to Home's list picked the focused card).
-- **Text**: Settings' help of Controller: in-game panel and Mods tab, the Mods tab rows of the game page and of Library settings, the Quick menu button's
+- **Text**: Settings' help of Controller: in-game panel and Mods tab (the switch is under Settings › App since #827), the Mods tab rows of the game page and of Library settings, the Quick menu button's
   warning, the game page's Cheats row (`cheats_on`, overridden in `values/peanuts_ingame.xml`) and FirstImport's running line name the two menus;
   `wiki/Side-Panel-In-Game.md` (now The in-game menus), `wiki/Settings-Controls.md`, `wiki/Cheats.md` and `docs/guides/saves.md` describe them.
 - **Tests**: `PanelPolish` keeps its inset rows in a weak set instead of a tag keyed by `R.id.pn_inset` (dropped), so `test_android_hud` compiles it
@@ -3212,6 +3212,7 @@ The review of #678, #679 and #680, fixed on the merged branch before it landed i
 |---|---|---|---|
 | `android/app/src/main/java/dev/nxnative/android/GameActivity.java` | (the backKey hook's line) | `InGamePanel.backKey(this, e, prewarmCover != null)` | `// PEANUTS` |
 | `dm/tools/tests/test_android_padpanel.py` | 1 | the combination through `InGamePanel.key` | `# PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/MainActivity.java` | 1 | `padPanelLabel`: by touch, the left edge for the game menu, the right edge for the quick menu (the Thor run found the old text) | `// PEANUTS` |
 
 ## Android 12 (API 31/32): the app installs and runs, games need Android 13 (2026-11-26, on dev-0.1.9)
 
