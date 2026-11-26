@@ -2851,8 +2851,8 @@ icons against icons.py), `peanuts/tests/test_cheat_loader.py` (Part E's hooks in
 
 The player picks the layout once: Home's list asks at the app's start until one is picked (`dev.peanuts.ui.LayoutChoice`; Later asks once more at the
 next start, then no more; a new player is asked at the start after the one with the first start's setup), with a picture of each (`drawable/pil_layout_*.xml` from `design/peanuts-native/layouts/layouts.py`): Two menus (the game menu at the left,
-the quick menu at the right; kept until one is picked), One menu at the right, and on a device with a second screen (the AYN Thor) One menu on the bottom
-screen, where the focus starts there. The menu's own settings change it later (Layout). `PeanutsPrefs.menuLayout` keeps both with when, the newer counts. One menu is a second
+the quick menu at the right; kept until one is picked), One menu at the right, and on a device with a second screen (the AYN Thor) Bottom screen (one
+menu there), where the focus starts there. The menu's own settings change it later (Layout). `PeanutsPrefs.menuLayout` keeps both with when, the newer counts. One menu is a second
 quick menu whose rail starts with Game (the game menu's rows, `dev.peanuts.ingame.GameRows`) above the quick menu's tabs; Home pressed, − and + held and
 Back open it on Game, Home held (or the controller's Back held) on the tab shown last, L and R step over Game and the tabs, B closes it. On Game
 its own header (the cover, the name, the version, this session's time) is the top, as in the game menu, without the tabs' header over it.
