@@ -9,6 +9,7 @@ import java.io.IOException;
 public final class BuiltWithJvmTest {
     private static void check(boolean c, String what) { if (!c) throw new AssertionError(what); }
 
+    // PEANUTS begin: 0.1.9, a whole upgrade path to this version with its DMSH_CHAIN, and the REMAKE line for 0.1.7 and 0.1.8
     static final String CUR = "aaaaaaaaaaaa", DM = "bbbbbbbbbbbb", V18 = "327c6383b614", DM18 = "cdcf140b1558", GAME = "0100ABCD00000000", ABI = "111111111111";
 
     static void lib(File pack, String version, String game) throws IOException { ShaderUpgradeJvmTest.lib(new File(pack, "shaders/v-" + version + "/dmsh_vk.lib"), version, game, ABI, 0); }
@@ -99,4 +100,5 @@ public final class BuiltWithJvmTest {
         check(BuiltWith.of(p, GAME, CUR, DM).kind == BuiltWith.Kind.UNKNOWN, "an unreadable header says nothing");
         System.out.println("ok");
     }
+    // PEANUTS end
 }
