@@ -910,7 +910,7 @@ The game's sheet, opened with **Build again**, says which app version made its g
 
 ### Will I lose my saves?
 
-No. An update keeps the app's storage, and saves are in it. The first start of each game after an update backs up its save first, so **Restore saves** can bring back the save from before the update. A game with code mods waits for its build with mods after an update: **Play** says when it is ready. Uninstalling can delete saves: Android asks whether to keep the app's data. Use **Back up saves** first.
+No. An update keeps the app's storage, and saves are in it. For a game with code mods, the first start after an update backs up its save first, so **Restore saves** can bring back the save from before the update. For other games, use **Back up saves** before updating if you want a copy. A game with code mods waits for its build with mods after an update: **Play** says when it is ready. Uninstalling can delete saves: Android asks whether to keep the app's data. Use **Back up saves** first.
 
 ### How do I tell which version I have?
 

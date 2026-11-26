@@ -567,6 +567,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
     // that cannot be made stops no start: a toast says so, and the next start tries again
     private void beforeNewBuild(File save, File game, String saveId, File packDir) {
         if (testSave != null || "recovering".equals(saveHow)) return;
+        if (!dev.peanuts.settings.ModsSection.codeModsOn(this, saveId, game, packDir)) return;   // games with code mods only (owner 2026-11-26)
         File shared = Prefs.backupsDir(game, saveId), appRoot = AppStorage.root(this);
         File backups = SaveZip.export(shared, appRoot, android.os.Environment.isExternalStorageManager() && SaveZip.writable(shared)) ? SaveZip.appBackups(appRoot, saveId) : shared;
         String start = BuildConfig.VERSION_NAME + " " + BuildConfig.NX_COMMIT + "\t" + packDir.getAbsolutePath() + "\t" + save.getAbsolutePath();

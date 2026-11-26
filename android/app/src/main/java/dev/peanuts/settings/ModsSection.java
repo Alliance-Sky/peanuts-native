@@ -152,6 +152,22 @@ public final class ModsSection {
     }
 
     /**
+     * Whether a start of this game runs with code mods on (issue #514, owner 2026-11-26: only such games get the backup before the first start of a new build,
+     * SaveStore.beforeNewBuild): the pack is a build with mods, or code mods are enabled for the game (Play without mods starts its own pack). Unreadable: false
+     */
+    public static boolean codeModsOn(android.content.Context c, String titleId, File gameDir, File packDir) {
+        try {
+            if (packDir != null && ModdedBuild.isVariantPack(packDir)) return true;
+            File p = normalPack(c, titleId, packDir);
+            if (p == null) return false;
+            return !ModStore.enabledCodeMods(ModRuntime.mods(ModRuntime.home(c, titleId, gameDir, p.getParentFile()), titleId)).isEmpty();
+        } catch (RuntimeException e) {
+            android.util.Log.w("peanuts", "mods: code mods on: " + e);
+            return false;
+        }
+    }
+
+    /**
      * Play's question while this game's code mods are on and their build with mods cannot be played (issue #514; ModdedBuild.waitText): how far the build is
      * and when it should be ready, that it waits, or why it failed. stale: there is a build, of another version of the app or the game. Called after {@link #due},
      * which starts the build when it is due, so a Play right after an app update starts the build that the game's page would have started
