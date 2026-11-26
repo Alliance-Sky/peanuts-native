@@ -91,7 +91,7 @@ class GameSettingsPage(unittest.TestCase):
 
     def test_option_descriptions_for_players(self):   # game.tsv option rows: plain sentences for the player, no developer wording
         rows = [l.split('\t') for p in sorted((REPO / 'dm/games').glob('*/game.tsv')) for l in p.read_text(encoding='utf-8').splitlines() if l.startswith('option\t')]
-        self.assertGreater(len(rows), 2)
+        self.assertTrue(rows)   # PEANUTS: two option rows are left once the Switch 2 profiles are gone (upstream: more than 2)
         for r in rows:
             d = r[3]
             self.assertGreater(len(d), 40, r[2]); self.assertLess(len(d), 260, r[2])
