@@ -204,6 +204,10 @@ class Bottom(unittest.TestCase):
         self.assertIn('if (!PeanutsPrefs.setupDone(a)) { setupRun = true; return; }', offer, "not in the run of the first start's setup: one question a start")
         self.assertIn('setupRun ||', offer)
         self.assertIn('View first = made[second ? count - 1 : 0];', q, 'two screens: the focus starts on the bottom screen\'s')
+        self.assertIn('cards.setBaselineAligned(false);', q)
+        self.assertIn('new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)', q, 'side by side, the cards are one size')
+        self.assertIn('Math.round(PICTURE_DP * dp)', q, 'every picture in a box of one height, so the names line up')
+        self.assertNotIn('setAdjustViewBounds', q, "no picture sets its card's height")
         self.assertIn('box.post(() -> LayoutChoice.offer(a));', (APP / 'main/java/dev/peanuts/ui/Library.java').read_text(encoding='utf-8'), "Home's list asks")
         for name in ('two', 'right', 'bottom'):
             x = (RES / f'drawable/pil_layout_{name}.xml').read_text(encoding='utf-8')
@@ -228,7 +232,9 @@ class Bottom(unittest.TestCase):
         self.assertIn('if (rightMode(a)) vis = View.GONE;', b, "the left edge is the game's")
         self.assertIn('rightRows = gameRows(a, () -> rightPanel);', b, 'Game first on its rail, its rows closing it')
         self.assertIn('{ openRight(a, onGame, pad); return; }', b, 'the bottom screen gone: the one at the right')
-        self.assertIn('"One menu at the right"', b, 'the choice in Layout')
+        self.assertIn('String[] names = {"Two menus", "One menu at the right", "One menu on the bottom screen"};', b, "Layout's choices have the question's names")
+        rows = (INGAME / 'GameRows.java').read_text(encoding='utf-8')
+        self.assertIn('c.getDrawable(dev.nxnative.android.R.drawable.ic_chevron)', rows, "Game's rows that open a page show the launcher's chevron")
         self.assertIn('if (i == dev.peanuts.PeanutsPrefs.LAYOUT_BOTTOM && !second) continue;', b, 'the bottom screen only with a second display')
 
 
