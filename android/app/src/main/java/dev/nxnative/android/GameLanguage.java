@@ -6,7 +6,7 @@ import java.util.Locale;
  * The game's language (Game settings › Game language): one of the console's language codes (nn::settings::LanguageCode), passed to the host as DM_LANG, or the
  * phone's language (the default), mapped to the console's code as the host maps DM_LANG (hle_oe.c dm_lang_code: fr-FR is fr, pl-PL is pl, th-TH is th, es-MX is es-419, zh-TW is zh-Hant).
  * A phone language the console has no code for sets nothing: the host's default, en-US. A DM_LANG line of env.txt or the game's extra environment comes later and
- * wins. A language the game's NACP lacks becomes one it has (supported), as the console does. No Android classes: GameLanguageJvmTest runs it.
+ * wins. A language the game's NACP lacks becomes one it has (supported), as the console does. No Android classes: GameLanguageJvmTest runs it.   // PEANUTS: #639
  */
 final class GameLanguage {
     private GameLanguage() {}
@@ -49,7 +49,7 @@ final class GameLanguage {
     }
 
     /** The DM_LANG line for a choice (null: the phone's language; else a code of CODES), null when nothing is set (the phone's language has no console code) */
-    static String env(String choice, String phoneTag) { return env(choice, phoneTag, 0); }
+    static String env(String choice, String phoneTag) { return env(choice, phoneTag, 0); }   // PEANUTS: #639
 
     /** As env, resolved against the game's NACP SupportedLanguageFlag (0: not known, nothing changes; supported) */
     static String env(String choice, String phoneTag, int flags) {
@@ -57,7 +57,7 @@ final class GameLanguage {
         return c == null ? null : "DM_LANG=" + c;
     }
 
-    /**
+    /**   // PEANUTS: #639
      * The language the console hands a game for a wanted one (oe::GetDesiredLanguage takes the title's supported languages into account): the code itself when
      * the NACP's SupportedLanguageFlag (bit i: Nacp.LANGUAGES[i]) has it, else the same language's other variant (en-US → en-GB, fr → fr-CA ...), else the
      * game's first language. flags 0 (not known) and codes outside the NACP's sixteen (pl, th) come back as they are. Xenoblade Chronicles 3's European

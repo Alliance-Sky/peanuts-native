@@ -10,7 +10,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
 SRC = REPO / 'android/app/src/main/java/dev/nxnative/android/GameLanguage.java'
-NACP = REPO / 'android/app/src/main/java/dev/nxnative/android/Nacp.java'
+NACP = REPO / 'android/app/src/main/java/dev/nxnative/android/Nacp.java'   # PEANUTS: #639
 TEST = REPO / 'android/app/src/jvmtest/java/dev/nxnative/android/GameLanguageJvmTest.java'
 T_OE = REPO / 'dm/host/tests/t_oe.c'
 HOST = REPO / 'dm/host/hle_oe.c'
@@ -21,7 +21,7 @@ class GameLanguage(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.tmp = Path(tempfile.mkdtemp(prefix='gamelang_'))
-        subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', str(cls.tmp), str(SRC), str(NACP), str(TEST)], check=True)
+        subprocess.run(['javac', '-Xlint:all', '-Werror', '-d', str(cls.tmp), str(SRC), str(NACP), str(TEST)], check=True)   # PEANUTS: #639
 
     @classmethod
     def tearDownClass(cls):
@@ -41,7 +41,7 @@ class GameLanguage(unittest.TestCase):
             ['DM_LANG=pl', "Phone's language · Polish"],
             ['DM_LANG=th', "Phone's language · Thai"]])
 
-    def test_nacp_languages(self):   # a language the game's NACP lacks becomes one it has: Xenoblade Chronicles 3 (EU, flags 0x70de) has en-GB, not en-US
+    def test_nacp_languages(self):   # a language the game's NACP lacks becomes one it has: Xenoblade Chronicles 3 (EU, flags 0x70de) has en-GB, not en-US   # PEANUTS: #639
         self.assertEqual([g[0] for g in self.run_on('- en-US 70de', 'en-US x 70de', 'fr-CA x 70de', 'ru x 70de', '- en-US 0', '- en-US 3', 'pl x 70de')],
                          ['DM_LANG=en-GB', 'DM_LANG=en-GB', 'DM_LANG=fr', 'DM_LANG=en-GB', 'DM_LANG=en-US', 'DM_LANG=en-US', 'DM_LANG=pl'])
 
