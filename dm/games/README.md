@@ -226,6 +226,7 @@ One row per profile; the notes are each profile's `README.md`.
 | [The Great Ace Attorney Chronicles](010036E00FB20000/README.md) | `010036E00FB20000` | 1.0.0 (base) | 10.4.1 | Capcom's MT Framework | NVN |
 | [The Hundred Line -Last Defense Academy-](010093C0215B4000/README.md) | `010093C0215B4000` | 1.2.1 (plays: title, story and the first battle on a Retroid Pocket Nova, Turnip T30) | 18.3.2 | Media.Vision's engine (MVGL archives), CRIWARE | NVN <!-- PEANUTS: a profile of this fork, packed on a PC, checked on one device only --> |
 | [THE HOUSE OF THE DEAD: Remake](010088401495E000/README.md) | `010088401495E000` | 1.1.0 | 13.3.2 | Unity 2020.3.25f1 IL2CPP, FMOD | NVN <!-- PEANUTS: Peanuts-only profile --> |
+| [THE HOUSE OF THE DEAD 2: Remake](01007A3024D10000/README.md) | `01007A3024D10000` | 1.0.2 | 19.3.5 | Unity 2022.3.55f1 IL2CPP, FMOD | NVN <!-- PEANUTS: Peanuts-only profile --> |
 | [The Legend of Zelda: Breath of the Wild](01007EF00011E000/README.md) | `01007EF00011E000` | 1.9.0 | 20.5.22 | Nintendo EPD (sead / agl / gsys / ksys, Havok) | NVN |
 | [The Legend of Zelda: Echoes of Wisdom](01008CF01BAAC000/README.md) | `01008CF01BAAC000` | 1.1.0 | 20.5.1 | NintendoWare (G3d / Ui2d / Vfx) | NVN |
 | [The Legend of Zelda: Link's Awakening](01006BB00C6F0000/README.md) | `01006BB00C6F0000` | 1.1.0 | 8.2.0 | Grezzo's engine on NintendoWare | NVN |
