@@ -790,7 +790,7 @@ public final class InGamePanel {
         Activity a = (Activity) p.getContext();
         box.addView(head(p, "Layout"));
         boolean second = dev.peanuts.Companion.hasSecondDisplay(a);
-        String[] names = {"Two menus", "One menu at the right", "One menu on the bottom screen"};   // the launcher's question's names (LayoutChoice); the line under them says more
+        String[] names = {"Two menus", "One menu at the right", "Bottom screen"};   // the launcher's question's names (LayoutChoice); the line under them says more
         String[] notes = {
                 "Home or Back opens the game menu at the left, held the quick menu at the right.",
                 "Home or Back opens one menu at the right with Game first; held, on the tab shown last.",
