@@ -406,8 +406,13 @@ public final class BottomScreen {
         if (owner != a) { if (owner != null) dismiss(); owner = a; started = resumed = a.hasWindowFocus(); }
         if (watching) return;
         watching = true;
-        a.getApplicationContext().registerReceiver(companionState, new IntentFilter(Companion.STATE), Context.RECEIVER_NOT_EXPORTED);
-        a.getApplicationContext().registerReceiver(pageState, new IntentFilter(AppScreens.STATE), Context.RECEIVER_NOT_EXPORTED);
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            a.getApplicationContext().registerReceiver(companionState, new IntentFilter(Companion.STATE), Context.RECEIVER_NOT_EXPORTED);
+            a.getApplicationContext().registerReceiver(pageState, new IntentFilter(AppScreens.STATE), Context.RECEIVER_NOT_EXPORTED);
+        } else {   // Android 12: the flag is API 33; the 2-argument call with the same filters (exported state follows the filter)
+            a.getApplicationContext().registerReceiver(companionState, new IntentFilter(Companion.STATE));
+            a.getApplicationContext().registerReceiver(pageState, new IntentFilter(AppScreens.STATE));
+        }
         Context app = a.getApplicationContext();
         Pads.watch(app, () -> { if (panel != null) panel.setPad(Pads.connected(app)); });
         a.getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {

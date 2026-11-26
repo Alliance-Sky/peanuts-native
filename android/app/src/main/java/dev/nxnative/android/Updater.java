@@ -473,13 +473,14 @@ final class Updater {
     private static synchronized void receiver(Context app) {
         if (receiverOn) return;
         receiverOn = true;
-        app.registerReceiver(new BroadcastReceiver() {
+        BroadcastReceiver rx = new BroadcastReceiver() {   // PEANUTS: Android 12 (registered below)
             @Override public void onReceive(Context c, Intent i) {
                 int st = i.getIntExtra(PackageInstaller.EXTRA_STATUS, PackageInstaller.STATUS_FAILURE);
                 String msg = i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE);
                 Activity a = front.get();
                 if (st == PackageInstaller.STATUS_PENDING_USER_ACTION) {
-                    Intent confirm = i.getParcelableExtra(Intent.EXTRA_INTENT, Intent.class);
+                    @SuppressWarnings("deprecation")   // PEANUTS: Android 12: the typed overload is API 33, Android 12 has only the untyped one
+                    Intent confirm = android.os.Build.VERSION.SDK_INT >= 33 ? i.getParcelableExtra(Intent.EXTRA_INTENT, Intent.class) : (Intent) i.getParcelableExtra(Intent.EXTRA_INTENT);
                     if (confirm == null) return;
                     if (a != null && !gone(a)) a.startActivity(confirm);
                     else c.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
@@ -491,6 +492,12 @@ final class Updater {
                         msg(a, "Update not installed", msg != null ? msg : "The installer answered status " + st + ".");
                 }
             }
-        }, new IntentFilter(app.getPackageName() + ACTION), Context.RECEIVER_NOT_EXPORTED);
+        };
+        // PEANUTS begin: Android 12: the flag is API 33. Below it the 2-argument call with the same filter, whose exported state then follows the filter: the
+        // installer answers through this app's own PendingIntent, but on Android 12 another app could send this action too (no narrower call exists there)
+        IntentFilter f = new IntentFilter(app.getPackageName() + ACTION);
+        if (android.os.Build.VERSION.SDK_INT >= 33) app.registerReceiver(rx, f, Context.RECEIVER_NOT_EXPORTED);
+        else app.registerReceiver(rx, f);
+        // PEANUTS end
     }
 }
