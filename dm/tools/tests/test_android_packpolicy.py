@@ -68,6 +68,16 @@ class Policy(unittest.TestCase):
         note = src[src.index('private Notification note(Job j)'):]
         self.assertIn('if (again) b.addAction(goOnAction).addAction(pauseAction);', note)
 
+    def test_destroy_lifts_the_hold(self):   # a service that is destroyed leaves no cool-down check behind and no stopped (SIGSTOP) worker group: the hold file goes
+        src = SERVICE.read_text(encoding='utf-8')
+        d = src[src.index('@Override public void onDestroy() {'):]
+        d = d[:d.index('\n    }\n')]
+        self.assertIn('main.removeCallbacks(heatRecheck);', d)
+        self.assertIn('unhold();', d)
+        self.assertLess(d.index('unhold();'), d.index('super.onDestroy();'))
+        h = src[src.index('private void unhold() {'):]
+        self.assertIn('holdFile().delete()', h[:h.index('\n    }\n')])
+
     def test_sticky_restart_resumes_a_policy_pause(self):   # Android ended the packer while a heat hold or a battery pause waited: the job runs again and waits there
         out = [l.split('\t')[:2] for l in self.run_on('restart running', 'restart paused thermal', 'restart paused battery', 'restart paused user',
                                                         'restart paused timeout', 'restart paused hung', 'restart paused ended', 'restart done', 'restart failed')[:-1]]
