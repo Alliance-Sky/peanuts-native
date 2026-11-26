@@ -579,7 +579,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
     private final List<String> quietNotes = new ArrayList<>();   // PEANUTS: start lines for the log only, no toast (a default frame rate's missing variant)
     private List<String> advNotes = new ArrayList<>();   // the [adv] log lines: every override in effect and where it came from (AdvancedSettings.notes)
     private String shapeNote;   // Aspect ratio › Screen shape: the window it read and the shape passed, for the log
-    private String langNote;    // the game language changed to one the game's NACP has, for the log
+    private String langNote;    // the game language changed to one the game's NACP has, for the log   // PEANUTS: #639
 
     /** The game's NACP SupportedLanguageFlag: a .nup's meta block (its control.nacp record), a folder dump's control data; 0 when not known */
     static int gameLanguages(String game) {
@@ -742,10 +742,10 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         }
         int picSize = Prefs.pictureSize(this, id);   // the in-game panel's Picture size; 100 (the default) is not passed
         if (picSize < PictureFit.SIZE_MAX) env.add("DM_VK_PICTURE_SIZE=" + picSize);
-        int langs = gameLanguages(getIntent().getStringExtra("game"));   // the game's NACP languages: a language it lacks becomes one it has, as on the console
+        int langs = gameLanguages(getIntent().getStringExtra("game"));   // the game's NACP languages: a language it lacks becomes one it has, as on the console   // PEANUTS: #639
         String lang = GameLanguage.env(Prefs.gameLang(this, id), GameSettings.phoneTag(), langs);   // Game settings › Game language: the phone's by default (a DM_LANG line of the user's wins)
         if (lang != null) env.add(lang);
-        langNote = lang != null && !lang.equals(GameLanguage.env(Prefs.gameLang(this, id), GameSettings.phoneTag()))
+        langNote = lang != null && !lang.equals(GameLanguage.env(Prefs.gameLang(this, id), GameSettings.phoneTag()))   // PEANUTS: #639
                 ? "[nxlaunch] game language: " + lang + " (the game's NACP languages 0x" + Integer.toHexString(langs) + " lack the one asked for)" : null;
         env.addAll(Users.env(Users.list(this), dev.peanuts.users.WhoPlaysActivity.startUser(this, getIntent(), Users.defaultUid(this))));   // PEANUTS: Settings › Users: the users the game's account calls list and its user selector offers (hle_account.c), and the one it starts with: the one Who's playing? picked
         return gpuNote;
@@ -1108,7 +1108,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
             Native.note(Recommend.logLine(Prefs.recStates(this, id)));   // each recommended setting with its value and source (yours / recommended / default); env.txt lines come later and win
             if (resNote != null) Native.note(resNote);
             if (shapeNote != null) Native.note(shapeNote);
-            if (langNote != null) Native.note(langNote);
+            if (langNote != null) Native.note(langNote);   // PEANUTS: #639
             for (String n : advNotes) Native.note(n);
             if (sceneNote != null) Native.note(sceneNote);
             input = Native.hasInput();
