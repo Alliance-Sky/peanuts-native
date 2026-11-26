@@ -313,6 +313,9 @@ public final class PeanutsPrefs {
     }
     /** A layout was picked, in the launcher's question or in the menu's own settings: the question is not asked again */
     public static boolean menuLayoutPicked(Context c) { return of(c).contains("menu_layout_pick") || panel(c).contains("menu_layout"); }
+    /** How often the launcher's question showed (LayoutChoice.TIMES at most: closed without a pick, once more at the next start) */
+    public static int menuLayoutAsked(Context c) { return of(c).getInt("menu_layout_asked", 0); }
+    public static void menuLayoutAsked(Context c, int times) { of(c).edit().putInt("menu_layout_asked", times).apply(); }
 
     /** The in-game panel's tab shown last (its name), so it opens there again; "" none yet. In a file of its own: the game's process writes it, and the launcher's
      *  process, which keeps "peanuts" in memory, would write its older copy back over it */
