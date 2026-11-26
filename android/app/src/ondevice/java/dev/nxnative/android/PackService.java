@@ -137,6 +137,8 @@ public final class PackService extends Service {
     @Override public void onDestroy() {
         unregisterReceiver(batteryReceiver);
         pm.removeThermalStatusListener(thermalListener);
+        main.removeCallbacks(heatRecheck);   // PEANUTS: no cool-down check on a service that is gone (#803)
+        unhold();   // PEANUTS: a held worker group is not left stopped (SIGSTOP) behind a service that is gone: the hold file goes, the tool goes on or takes the stop
         if (wake.isHeld()) wake.release();
         super.onDestroy();
     }
