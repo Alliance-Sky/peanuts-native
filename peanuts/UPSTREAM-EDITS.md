@@ -1163,7 +1163,7 @@ PEANUTS on its first line) checks where the `TU_DEBUG` line goes: after the opti
 
 ## Batman: Arkham Knight on Android
 
-The profile's readiness row and its `nxGames` entry in `android/app/gradle.properties`; three game options for the Turnip road fixes (`DM_VK_ONE_LANE` with two
+Source only (no readiness row and no `nxGames` entry: the default APK does not carry the game); three game options for the Turnip road fixes (`DM_VK_ONE_LANE` with two
 `subgroup_one_lane` rows, `DM_VK_TU_FLUSHALL`, `DM_VK_NO_OCCLUSION`), each recommended on Turnip. PEANUTS-marked hunks in `game.tsv` and the note; no prewarm seed.
 [Game note](../dm/games/0100ACD0163D0000/README.md#android)
 
