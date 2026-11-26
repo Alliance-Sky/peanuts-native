@@ -557,7 +557,7 @@ public final class InGamePanel {
     static void frame(SidePanel p, LinearLayout sheet, LinearLayout tabs, ScrollView rows) {
         rails.put(p, new Rail(p.getContext(), sheet, tabs, rows, () -> panelBack(p), makingBottom));
         // Each step of the controller's focus in the quick menu: the fine tick (and the menu sound when on); a touch moves no focus
-        p.getViewTreeObserver().addOnGlobalFocusChangeListener((old, now) -> {
+        Look.focusListener(p, (old, now) -> {
             if (now == null || !p.isOpen() || p.isInTouchMode() || !within(now, sheet)) return;
             View chosen = dev.peanuts.ui.PanelPolish.chosen(old, now);   // into a track of choices, or the first focus there: onto the chosen one
             // After this change has reached every listener: moved inside it, SidePanel's frame would be drawn for this change after the next one's
