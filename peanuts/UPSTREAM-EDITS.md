@@ -3180,3 +3180,29 @@ Kept in "peanuts" (`PeanutsPrefs.quickKey`), which the launcher writes and the g
 | `android/app/src/main/java/dev/nxnative/android/InGamePanel.java` | (Peanuts' own) | `quickKey`; the Quick menu row's value | Peanuts' own file |
 
 Peanuts-owned: `dev.peanuts.ui.QuickButton`, its row in `LibrarySettings`, `SettingsSections` and `SettingsHelp`, `PeanutsPrefs.quickKey`. Tests: `peanuts/tests/test_ingame_menus.py` (QuickMenuButton).
+
+
+## Android 12 (API 31/32): the app installs and runs, games need Android 13 (2026-11-26, on dev-0.1.9)
+
+The owner asked for Android 12 support for the app only, with no change on Android 13 and newer. minSdk is 31 in the normal build (`-PnxMinSdk=32` or `33` raises it; targetSdk unchanged). Every API 32+ call has an `if (Build.VERSION.SDK_INT >= 33) { the call as before } else { fallback }` guard, so Android 13 and newer run the same calls as before. Lint at minSdk 31 found 18 NewApi and 9 InlinedApi before, 0 and 0 after. Taken from Banana Native v0.3.41 (d54b922e, not yet in this tree): the `-PnxMinSdk` switch (default 31 here, 33 there), `Streams` (here public, and from API 33 it makes the platform call itself), the Rumble, Updater, PackService and Ondevice guards, and its `test_android_api31.py` source scan. Not taken: its lowered Readiness row (here the `android.sdk 33` row stays, so starting a game on Android 12 shows the readiness notice with an Android 12 note), the Languages guard (Peanuts has no `LocaleManager`), and the pack-stage scripts' android31 target (they make the shipped stage's binaries; the stage-019 libraries import nothing newer than API 24 symbol versions and resolve against the NDK's API 31 libraries, which `test_stage_libs_api31` checks with `PN_STAGE` set).
+
+| File | Hunks | What | Marker |
+|---|---|---|---|
+| `android/app/build.gradle` | 2 | `nxMinSdk` (31..33, default 31); `minSdk nxMinSdk` | `PEANUTS begin/end`, `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/Streams.java` | new | `readAll`, `readUpTo`, `readInto`: the platform call from API 33, a loop below | `PEANUTS` in the class comment |
+| `AdvancedSettings.java`, `DriverFetch.java`, `DriverZip.java`, `FixOffer.java`, `PackCheck.java`, `PackZip.java`, `GameActivity.java` (fonts) | 1 each (2 in AdvancedSettings and the fonts) | `readAllBytes()` through `Streams.readAll` | `PEANUTS` in each line |
+| `Updater.java` | 3 | `readNBytes` through `Streams.readUpTo`; the typed `getParcelableExtra` from API 33; the installer receiver's flag from API 33 | `PEANUTS`, `PEANUTS begin/end` |
+| `Rumble.java` | 2 | `VibrationAttributes` and `vibrate(effect, attrs)` from API 33, `vibrate(effect)` below | `PEANUTS`, `PEANUTS begin/end` |
+| `Readiness.java` | 2 | the `android.sdk` row's reason (shown only when it fails); `failed(checks, fact)` | `PEANUTS` |
+| `GameActivity.java` (start-up notice) | 2 | below API 33 with the `android.sdk` row failed, `android12Note` in place of the generic tail | `PEANUTS`, `PEANUTS begin/end` |
+| `android/app/src/ondevice/java/dev/nxnative/android/PackService.java`, `Ondevice.java` | 1 each | the battery receiver's flag from API 33; no notification permission request below 33 | `PEANUTS` |
+| `dm/tools/tests/test_android_driverzip.py`, `test_android_packzip.py`, `test_android_saf.py` | 1 each | `Streams.java` in the javac sources | `PEANUTS` |
+| `dm/tools/tests/test_android_api31.py` | new | the source scan, `Streams`' Android 12 paths on the JVM, the lint gate (0 NewApi/InlinedApi, needs the Android SDK, `PN_SKIP_LINT=1` skips), the stage libraries (with `PN_STAGE`) | `PEANUTS` in the docstring |
+| `README.md` | 1 | What you need: Android 12 (experimental) | `<!-- PEANUTS -->` |
+| `dev/peanuts/ui/AboutPage.java`, `DriverActivity.java`, `Haptics.java`, `BottomScreen.java`, `Library.java`, `dev/peanuts/mii/MiiImport.java`, `users/WhoPlaysActivity.java`, `ctl/GameLink.java`, `build/BuildService.java` | | the same guards | Peanuts' own files |
+
+On Android 12 the receivers registered without the flag follow the filter's exported state: other apps can send `GameLive.ACTION`, `Companion.STATE`, `AppScreens.STATE` and the updater's installer action there (no narrower call exists before API 33). `peanuts/scripts/check-min-api.py` reads the dex without the guards, so it stays a check at API 33 (`nothing newer than API 33`); the lint gate is the Android 12 check.
+
+Tests: `dm/tools/tests/test_android_api31.py`; the javac tests that compile `Streams` callers (`test_android_driverzip.py`, `test_android_packzip.py`, `test_android_saf.py`, `peanuts/tests/test_first_import.py`, `test_mii_import.py`, `test_mii_editor.py`).
+
+Upstream candidate: the `Streams` guard (the platform call kept from API 33) and the Peanuts-side guards, if upstream lowers minSdk.
