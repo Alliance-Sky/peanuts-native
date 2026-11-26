@@ -382,6 +382,7 @@ public final class MainActivity extends Activity {
                 .value("On the controller, or the phone without one").view);
         perf.addView(new Ui.Setting(this, "🚀", "Use fast cores", null).toggle(this, Prefs.pinThreads(this), (b, on) -> Prefs.pinThreadsDefault(this, on))
                 .value("Keeps the busiest threads off the small cores").view);
+        // PEANUTS: the Xbox button label swap row is removed (owner 2026-11-26; Prefs.dropXboxSwap)
         Ui.Setting padMap = new Ui.Setting(this, "🕹️", "Button mapping", null).chevron(this);
         padMap.view.setOnClickListener(v -> PadMapUi.forDefault(this, () -> padMap.value(PadMapUi.label(this, null))));
         padMap.value(PadMapUi.label(this, null));

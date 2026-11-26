@@ -51,6 +51,7 @@ public final class SettingsSectionsJvmTest {
         eq("graphics/Speed", SettingsSections.place("Overlay", "Display"));
         eq("screens/Second screen", SettingsSections.place("Swap screens", "Library"));
         eq("screens/Display", SettingsSections.place("Keep the screen on while preparing", "System"));
+        // PEANUTS: the Xbox button label swap row is removed (owner 2026-11-26)
         eq("users/Users", SettingsSections.place("Users", "System"));
         eq("users/Miis", SettingsSections.place("Miis", "Library"));
         eq("app/Feel", SettingsSections.place("Haptics", "Library"));

@@ -21,6 +21,7 @@ class GameSettingsPage(unittest.TestCase):
         self.gs = (SRC / 'GameSettings.java').read_text(encoding='utf-8')
 
     def test_every_setting_reachable(self):
+        # PEANUTS: xbox(a, g, again) is gone with the Xbox button label swap (owner 2026-11-26)
         for call in ('presets(a, g, again)', 'resolution(a, g, again)', 'scene(a, g, again)', 'upscaler(a, g, again)', 'sharpness(a, g, again)', 'dlssMode(a, g, again)',
                      'clarity(a, g, again)', 'dlssSharp(a, g, again)', 'display(a, g, again)', 'aspect(a, g, again)', 'cap(a, g, again)', 'drs(a, g, again)',
                      'gpuTiming(a, g, again)', 'language(a, g, again)', 'PadMapUi.forGame(a, g, again)', 'env(a, g, again)',
