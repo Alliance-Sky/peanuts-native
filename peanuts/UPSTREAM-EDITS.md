@@ -2881,3 +2881,21 @@ The Hundred Line -Last Defense Academy- (`010093C0215B4000`) keeps its shaders i
 ### FANTASIAN Neo Dimension
 
 The [experimental profile](../dm/games/01001BB01E8E2000/README.md) registers the 1.0.0 and 1.0.2 executables. Its shader indexes come from 1.0.2; their generated files are listed in `upstream-unmarked.txt`.
+
+### Bring-up of FINAL FANTASY (Pixel Remaster) (2026-11-25)
+
+The profile folder `dm/games/01000EA014150000/` is new: `scripts/build_ipa_from_nsp.py` with `dm/games/profile_guess.py`
+wrote `game.tsv` from the game's survey and `shader_split.py` wrote the seven tables beside it (1,655 programs from the
+v262144 update, `split: shaders: 1655`, no `[RED]`). The eight tables are as `shader_split.py` wrote them, and
+`check-profiles.sh` passes with the profile in place (186 titles checked, exit 0). The game plays on a phone (see the
+game note); its memory keys in `game.tsv` were
+changed after crashes, and the shader tables are as generated, so the profile stays marked provisional.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/01000EA014150000/game.tsv`, `dm/games/01000EA014150000/README.md` | new files | FINAL FANTASY (Pixel Remaster) `01000EA014150000`, build `v262144` (display 1.2.0): the generated provisional profile and its notes | `# PEANUTS: new profile, provisional`, `<!-- PEANUTS: new profile, provisional -->` |
+
+The seven generated tables (`bf_want.tsv`, `pso_manifest.tsv`, `pso_pairs.tsv`, `shader_facts.tsv`, `shader_map.tsv`,
+`shader_map.tsv.conflicts.tsv`, `shader_pairs.tsv`) are allow-listed in `peanuts/upstream-unmarked.txt`: they are data
+tables read row by row and stay byte-identical to what `shader_split.py` wrote.
+
