@@ -3287,3 +3287,15 @@ so every title's profile.bin is regenerated with the APK, as for any new key), `
 the generic profile field, `join_cap` cut from vka_mem.c with the profile at 0 and 512 and the player's line set and unset). No rewrite key or shader input
 changes: `place_join_mb` is not a build row (`pack_android.py build_rows`), and `vka_mem.c` does not feed `DMSH_VK_CHAIN`. Upstream candidate: the key, if
 upstream wants a per-game join cap.
+
+### BuildConfig.NX_PROFILES as one literal per game (2026-11-27)
+
+At 87 games the launcher's profile table (`BuildConfig.NX_PROFILES`, about 71.7 KB) passed javac's 65,535-byte limit for one constant string, and the APK
+did not compile (`Profile.java: error: constant string too long`). `build.gradle` now writes it as `String.join("\n", new String[] {...})` with one literal
+per game (about 0.8 KB each), joined when BuildConfig loads. The value is the same; it is no longer a compile-time constant, which nothing needs.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/build.gradle` | 1 | `NX_PROFILES`: one literal per game, joined at class load | `// PEANUTS:` |
+
+Upstream candidate: yes, for any build with enough games to reach the limit.

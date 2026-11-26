@@ -338,7 +338,9 @@ android {
         versionName nxVersion
         ndk { abiFilters 'arm64-v8a' }
         // The games this APK runs, with what the launcher needs of their profiles (Profile.java)
-        buildConfigField 'String', 'NX_PROFILES', "\"$nxProfiles\""
+        // PEANUTS: one string literal per game, joined when the class loads: one literal of all of them passed javac's 65,535-byte limit for a constant
+        // ("constant string too long") at 87 games
+        buildConfigField 'String', 'NX_PROFILES', 'String.join("\\n", new String[] {' + nxProfiles.split(java.util.regex.Pattern.quote('\\n')).collect { "\"$it\"" }.join(', ') + '})'
         buildConfigField 'String', 'NX_COMMIT', "\"${commit ?: 'unknown'}\""
         buildConfigField 'String', 'NX_BRANCH', "\"${branch ?: 'unknown'}\""
         buildConfigField 'String', 'NX_DIRTY', "\"${commit ? dirty : ''}\""
