@@ -59,7 +59,7 @@ int main(void) {
     uint64_t s = nvn_dirty_now(); g_mode = 1; g_mode_prot = PROT_READ; nvn_dirty_protect(m, len); g_mode = 0;
     range_t *r = find_span((uintptr_t)m, len);   // PEANUTS: bounded WriteTexels dirty prep, #403 (0.1.8)
     EXPECT("1 failed protection: pages NONE (as mprotect left them)", 4, count_state(m, len, PG_NONE));
-    EXPECT("1 failed protection: protected pages is 0", 0, r ? (long long)count_state(m, len, PG_PROT) : -1);
+    EXPECT("1 failed protection: protected pages is 0", 0, r ? (long long)count_state(m, len, PG_PROT) : -1);   // PEANUTS: #729
     EXPECT("1 failed protection: page writable", 1, writable(m + pg));
     EXPECT("1 failed protection: texture counts as written", 1, nvn_dirty_since(m, len, s));
     s = nvn_dirty_now();
@@ -98,7 +98,7 @@ int main(void) {
     EXPECT("4 failed unprotection: protected pages stays 4", 4, r ? (long long)count_state(m, len, PG_PROT) : -1);   // PEANUTS: bounded WriteTexels dirty prep, #403 (0.1.8)
     prep_write(m + pg, 16);   // succeeds now
     EXPECT("4 retried unprotection: page writable", 1, writable(m + pg));
-    EXPECT("4 retried unprotection: protected pages drops to 3", 3, r ? (long long)count_state(m, len, PG_PROT) : -1);
+    EXPECT("4 retried unprotection: protected pages drops to 3", 3, r ? (long long)count_state(m, len, PG_PROT) : -1);   // PEANUTS: #729
     EXPECT("4 ... and counted as written", 1, nvn_dirty_since(m, len, s));
 
     printf("t_dirty_mpfail: %s\n", g_fail ? "FAILED" : "all passed");

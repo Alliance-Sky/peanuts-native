@@ -125,26 +125,26 @@ static void prot_states(size_t pg) {   // PEANUTS: bounded WriteTexels dirty pre
     if (buf == MAP_FAILED) { perror("mmap"); g_fail++; return; }
     nvn_dirty_add_range(buf, 4 * pg);
     range_t *r = find_span((uintptr_t)buf, 4 * pg);
-    EXPECT("protected pages starts at 0", 0, r ? prot_pages(r) : -1);
+    EXPECT("protected pages starts at 0", 0, r ? prot_pages(r) : -1);   // PEANUTS: #729
     nvn_dirty_protect(buf, 4 * pg);
-    EXPECT("protected pages is 4 after protecting 4 pages", 4, r ? prot_pages(r) : -1);
+    EXPECT("protected pages is 4 after protecting 4 pages", 4, r ? prot_pages(r) : -1);   // PEANUTS: #729
     nvn_dirty_protect(buf, 4 * pg);   // re-protecting already-protected pages does not double-count
-    EXPECT("protected pages stays 4 after re-protecting already-protected pages", 4, r ? prot_pages(r) : -1);
+    EXPECT("protected pages stays 4 after re-protecting already-protected pages", 4, r ? prot_pages(r) : -1);   // PEANUTS: #729
     prep_write(buf, 2 * pg);
-    EXPECT("protected pages drops to 2 after prep_write on 2 pages", 2, r ? prot_pages(r) : -1);
+    EXPECT("protected pages drops to 2 after prep_write on 2 pages", 2, r ? prot_pages(r) : -1);   // PEANUTS: #729
     uint64_t f0, p0, f1, p1;
     nvn_dirty_stats(&f0, &p0);
     prep_write(buf, 2 * pg);   // already PG_NONE: skips CAS and leaves g_preps unchanged
     nvn_dirty_stats(&f1, &p1);
     EXPECT("prep_write on PG_NONE pages skips unprotect work", 0, (long long)(p1 - p0));
-    EXPECT("protected pages stays 2", 2, r ? prot_pages(r) : -1);
+    EXPECT("protected pages stays 2", 2, r ? prot_pages(r) : -1);   // PEANUTS: #729
     ((volatile uint8_t *)buf)[2 * pg] = 0x11;   // faults on page 2
     ((volatile uint8_t *)buf)[3 * pg] = 0x22;   // faults on page 3 (or released in fault_run with page 2)
-    EXPECT("protected pages drops to 0 after remaining pages unprotect", 0, r ? prot_pages(r) : -1);
+    EXPECT("protected pages drops to 0 after remaining pages unprotect", 0, r ? prot_pages(r) : -1);   // PEANUTS: #729
     nvn_dirty_stats(&f0, &p0);
-    prep_write(buf, 4 * pg);   // no page of the range protected: nothing to unprotect
+    prep_write(buf, 4 * pg);   // no page of the range protected: nothing to unprotect   // PEANUTS: #729
     nvn_dirty_stats(&f1, &p1);
-    EXPECT("prep_write over a range with no protected page unprotects nothing", 0, (long long)(p1 - p0));
+    EXPECT("prep_write over a range with no protected page unprotects nothing", 0, (long long)(p1 - p0));   // PEANUTS: #729
     nvn_dirty_remove_range(buf); munmap(buf, 4 * pg);
 }
 
@@ -181,7 +181,7 @@ static void concurrent_stress(size_t pg) {
     pthread_join(t1, NULL); pthread_join(t2, NULL); pthread_join(t3, NULL);
     prep_write(g_stress_mem, 4 * pg);
     range_t *r = find_span((uintptr_t)g_stress_mem, 4 * pg);
-    EXPECT("stress: protected pages returns to 0 after full prep_write", 0, r ? prot_pages(r) : -1);
+    EXPECT("stress: protected pages returns to 0 after full prep_write", 0, r ? prot_pages(r) : -1);   // PEANUTS: #729
     int all_none = r != NULL, all_writable = 1;
     int fd = open("/dev/zero", O_RDONLY);
     for (int k = 0; k < 4; k++) {
