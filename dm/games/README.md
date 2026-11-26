@@ -81,6 +81,7 @@ One row per profile; the notes are each profile's `README.md`.
 | [Celeste](01002B30028F6000/README.md) | `01002B30028F6000` | 1.4.1.1 | 15.3.2 | MonoGame (C# → C++ by BRUTE) | NVN |
 | [Chained Echoes](0100C510166F0000/README.md) | `0100C510166F0000` | v1310720 | 14.3.0 | Unity 2020.3.36f1 IL2CPP | NVN |
 | [Crash Team Racing Nitro-Fueled](0100F9F00C696000/README.md) | `0100F9F00C696000` | 1.0.15 | 8.2.0 | Vicarious Visions' Alchemy | NVN <!-- PEANUTS: Peanuts-only profile --> |
+| [CRISIS CORE –FINAL FANTASY VII– REUNION](01004BC0166CC000/README.md) | `01004BC0166CC000` | 1.0.0 | 13.3.0 | Unreal Engine 4.27 | NVN <!-- PEANUTS: Android bring-up --> |
 | [Cult of the Lamb](01002E7016C46000/README.md) | `01002E7016C46000` | 1.5.28 | 19.3.14 | Unity 2022.3.62f3 IL2CPP, FMOD | NVN |
 | [Cuphead](0100A5C00D162000/README.md) | `0100A5C00D162000` | 1.3.7 | 5.5.0 | Unity 2017.4.9f1 IL2CPP | NVN |
 | [DARK SOULS: REMASTERED](01004AB00A260000/README.md) | `01004AB00A260000` | 1.0.3 | 4.5.0 | FromSoftware's engine | NVN |
@@ -182,7 +183,7 @@ One row per profile; the notes are each profile's `README.md`.
 | [Return of the Obra Dinn](010032E00E6E2000/README.md) | `010032E00E6E2000` | 1.0.1 | 8.2.0 | Unity 2017.4.28f1 IL2CPP | NVN |
 | [Rhythm Heaven Groove](0100D9F01D474000/README.md) | `0100D9F01D474000` | 1.0.0 (base) | 21.4.0 | Nintendo's own 2D engine | NVN |
 | [ROMANCE OF THE THREE KINGDOMS 8 REMAKE](0100C2A01A730000/README.md) | `0100C2A01A730000` | 1.1.3 | 17.5.3 | Koei Tecmo's KTGL | NVN |
-| [Sea of Stars](01008C0016544000/README.md) | `01008C0016544000` | 2.0.59001 | 16.2.0 | Unity 2021.3.25f1 IL2CPP | NVN |
+| [Sea of Stars](01008C0016544000/README.md) | `01008C0016544000` | 1.0.45861 / 2.0.59001 / 3.0.60151 | 16.2.0 | Unity 2021.3.25f1 IL2CPP | NVN <!-- PEANUTS: added v0 and v983040 --> |
 | [SHIN MEGAMI TENSEI V: Vengeance](010069C01AB82000/README.md) | `010069C01AB82000` | 1.0.3 | 15.3.2 | Unreal Engine 4.27 | NVN |
 | [Silver Pines](0100D5B026844000/README.md) | `0100D5B026844000` | 1.0.0 (base) | 21.4.7 | Unity 6000.3.15f1 IL2CPP | NVN |
 | [Sonic Frontiers Definitive Edition](0400921025B32000/README.md) | `0400921025B32000` | v65536 (Switch 2) | 21.4.1 (Ounce) | Hedgehog Engine 2, CRIWARE | NVN2 |
@@ -231,7 +232,7 @@ One row per profile; the notes are each profile's `README.md`.
 | [The Legend of Zelda: Tears of the Kingdom](0100F2C0115B6000/README.md) | `0100F2C0115B6000` | 1.4.3 | 20.5.22 | Nintendo EPD (sead / agl / gsys) | NVN |
 | [The Witcher 3: Wild Hunt — Complete Edition](01003D100E9C6000/README.md) | `01003D100E9C6000` | 4.04b | 15.3.0 | REDengine 3 (Saber Interactive port), Havok, Wwise | NVN <!-- PEANUTS: from nxnative's RU profile, EU edition --> |
 | [Tomodachi Life: Living the Dream](010051F0207B2000/README.md) | `010051F0207B2000` | 1.0.4 | 20 | Nintendo | NVN |
-| [Trails in the Sky 1st Chapter](01002C9022770000/README.md) | `01002C9022770000` | 1.0.7 | 21.4.4 | Nihon Falcom | NVN | <!-- PEANUTS -->
+| [Trails in the Sky 1st Chapter](01002C9022770000/README.md) | `01002C9022770000` | 1.0.7, 1.0.8 | 21.4.4 | Nihon Falcom | NVN | <!-- PEANUTS -->
 | [Trails in the Sky 2nd Chapter](01007A2027548000/README.md) | `01007A2027548000` | 1.0.3 | 21.4.4 | Nihon Falcom | NVN | <!-- PEANUTS -->
 | [TRIANGLE STRATEGY](0100CC80140F8000/README.md) | `0100CC80140F8000` | 1.1.1 | 12.3.2 | Unreal Engine 4.27 | NVN |
 | [Unicorn Overlord](010069401ADB8000/README.md) | `010069401ADB8000` | 1.05 | 16.2.4 | Vanillaware's engine | NVN |
