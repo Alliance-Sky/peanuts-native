@@ -137,6 +137,7 @@ public final class ModdedBuild {
             b.append(". ");
         } else if (waits) b.append("It starts by itself when the build that is running now finishes. ");
         else if (failed != null) b.append("The last try failed: ").append(failed.trim()).append(failed.trim().endsWith(".") ? " " : ". ").append("The game's Mods & Cheats area can start it again. ");
+        else if (stale) b.append("Tap Rebuild with mods in the game's Mods & Cheats area to make it again. ");
         else b.append("The game's Mods & Cheats area makes it. ");
         return b.append("Play when it is ready: without its mods the game can write over the save you made with them, even before its first picture shows.").toString();
     }
@@ -151,7 +152,7 @@ public final class ModdedBuild {
     /** The warning before Play without mods (issue #514): what can happen to the save, and the backup the start makes first (dev.nxnative.android.SaveStore.beforeNewBuild) */
     public static String withoutModsWarning(String name) {
         return name + " starts without its code mods. The game may change or replace the save you made with the mods, even before its first picture shows, and that "
-                + "cannot be undone in the game. The app backs up the save before the first start of another build, and Restore saves on the game's Saves tab brings it back.";
+                + "cannot be undone in the game. The app backs up the save first when it changed since the last backup, and Restore saves on the game's Saves tab brings it back. If that backup fails, the game does not start.";
     }
 
     /** {@link #variantProblem}'s answer for a variant that has no pack yet */
