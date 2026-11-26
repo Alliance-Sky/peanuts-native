@@ -64,6 +64,7 @@ One row per profile; the notes are each profile's `README.md`.
 | [Balatro](0100CD801CE5E000/README.md) | `0100CD801CE5E000` | 1.1.3 | 18.3.2 | LÖVE 11.4 (love-nx, LuaJIT, SDL) | OpenGL |
 | [Bastion](010038600B27E000/README.md) | `010038600B27E000` | 1.0.0 (base) | 5.4.0 | Supergiant Games' engine on MonoGame 3.0 | NVN |
 | [Batman: Arkham Knight](0100ACD0163D0000/README.md) | `0100ACD0163D0000` | 1.0.5 | 14.3.0 | Unreal Engine 3 (Rocksteady), Wwise | NVN |
+| [Battle Brothers](0100C5000F294000/README.md) | `0100C5000F294000` | 1.14.0 | 13.3.2 | Overhype Studios' engine (Squirrel 3, NoesisGUI) | NVN <!-- PEANUTS: Peanuts-only profile --> |
 | [Bayonetta](010076F0049A2000/README.md) | `010076F0049A2000` | 1.1 | 3.6.0 | PlatinumGames' engine (Wii U form) | NVN |
 | [Bayonetta 2](01007960049A0000/README.md) | `01007960049A0000` | 1.2 | 3.6.0 | PlatinumGames' engine (Wii U form) | NVN |
 | [Bayonetta 3](01004A4010FEA000/README.md) | `01004A4010FEA000` | 1.2.0 | 13.3.2 | PlatinumGames' engine | NVN |
@@ -97,12 +98,16 @@ One row per profile; the notes are each profile's `README.md`.
 | [DRAGON QUEST VII Reimagined](0100A9D01C446000/README.md) | `0100A9D01C446000` | 1.2.0 | 19.3.1 | Unreal Engine 4.27 | NVN |
 | [DRAGON QUEST XI S: Echoes of an Elusive Age – Definitive Edition](01006C300E9F0000/README.md) | `01006C300E9F0000` | 1.0.4 | 7.3.2 | Unreal Engine 4.18 | NVN |
 | [EA SPORTS FC 27](0100C49025D3E000/README.md) | `0100C49025D3E000` | 1.8d.6523 | 22.2.0 | Frostbite 2025.1.2 (its NVN renderer in an NRO) | NVN |
+| [FANTASIAN Neo Dimension](01001BB01E8E2000/README.md) | `01001BB01E8E2000` | 1.0.0, 1.0.2 | 17.5.8 | Unity 2022.3.30f1 IL2CPP, FMOD | NVN <!-- PEANUTS: experimental Android profile --> |
+| [FANTASY LIFE i: The Girl Who Steals Time](0100755017EE0000/README.md) | `0100755017EE0000` | 2.2.0 (and 1.5.0) | 18.3.7 | Unreal Engine 4 | NVN | <!-- PEANUTS -->
 | [FANTASY LIFE i: The Girl Who Steals Time](0100755017EE0000/README.md) | `0100755017EE0000` | 1.5.0 | 18.3.7 | Unreal Engine 4 | NVN | <!-- PEANUTS -->
+| [FINAL FANTASY (Pixel Remaster)](01000EA014150000/README.md) | `01000EA014150000` | 1.2.0 | 19.2.2 | Unity 2022.3.30f1 | NVN <!-- PEANUTS: Peanuts-only profile, provisional --> |
 | [FINAL FANTASY CRYSTAL CHRONICLES Remastered Edition](0100CE4010AAC000/README.md) | `0100CE4010AAC000` | 1.0.3 | 8.2.1 | Unity 2018.4.2f1 IL2CPP, FMOD | NVN |
 | [FINAL FANTASY RESONANCE](0100606026F12000/README.md) | `0100606026F12000` | 1.0.1 | 20.5.17 | Unreal Engine 5.6.1 | NVN |
 | [FINAL FANTASY RESONANCE, Asian release](0100B8A026F14000/README.md) | `0100B8A026F14000` | 1.0.1 | 20.5.17 | Unreal Engine 5.6.1 | NVN |
 | [FINAL FANTASY TACTICS - The Ivalice Chronicles](010038B015560000/README.md) | `010038B015560000` | 1.4.0 | 19.3.9 | Square Enix's engine | NVN |
 | [FINAL FANTASY X/X-2 HD Remaster](0100BC300CB48000/README.md) | `0100BC300CB48000` | 1.0.0 (base) | 5.4.0 | PhyreEngine (Virtuos) | NVN |
+| [FINAL FANTASY XII THE ZODIAC AGE](0100EB100AB42000/README.md) | `0100EB100AB42000` | 1.1.0 | 6.4.0 | PhyreEngine (Virtuos) | NVN |
 | [Fast Fusion](040041E0212AE000/README.md) | `040041E0212AE000` | v262144 (Switch 2) | 20.5.13 (Ounce) | Shin'en's engine | NVN2 |
 | [Fire Emblem Engage](0100A6301214E000/README.md) | `0100A6301214E000` | 2.0.0 | 12.3.7 | Unity 2020.3.18f1 IL2CPP, Wwise | NVN |
 | [Fire Emblem Fortune's Weave](04007EF01F8AE000/README.md) | `04007EF01F8AE000` | v131072 (Switch 2) | 22.2.0 (Ounce) | Intelligent Systems' engine, NintendoWare | NVN2 |
@@ -123,6 +128,7 @@ One row per profile; the notes are each profile's `README.md`.
 | [Kirby's Return to Dream Land Deluxe](01006B601380E000/README.md) | `01006B601380E000` | 1.0.0 (base) | 13.3.5 | HAL Laboratory's engine (NintendoWare) | NVN <!-- PEANUTS: Peanuts-only profile --> |
 | [LEGO 2K Drive](0100739018020000/README.md) | `0100739018020000` | 1.17 | 14.3.0 | Unreal Engine 4.27.2, FMOD | NVN <!-- PEANUTS: Peanuts-only profile --> |
 | [LEGO CITY UNDERCOVER](010085500130A000/README.md) | `010085500130A000` | 1.0.3 | 1.3.1 | TT Games' engine (Nu2) | NVN <!-- PEANUTS: Peanuts-only profile --> |
+| [One Piece Pirate Warriors 4](01008FE00E2F6000/README.md) | `01008FE00E2F6000` | 1.0.0, 1.8.7 | 8.3.2 | Unknown | NVN <!-- PEANUTS: Peanuts-only profile --> |
 | [LEGO MARVEL Super Heroes](01006F600FFC8000/README.md) | `01006F600FFC8000` | 1.0.1 | 9.3.1 | TT Games' engine (Nu2), Havok | NVN <!-- PEANUTS: Peanuts-only profile --> |
 | [Luigi's Mansion 3](0100DCA0064A6000/README.md) | `0100DCA0064A6000` | 1.4.0 | 7.3.2 | Next Level Games' engine | NVN |
 | [Mario Kart 8 Deluxe](0100152000022000/README.md) | `0100152000022000` | 4.0.0, 4.0.1 | 4.4.0 | Nintendo (sead / agl / gsys, NintendoWare, Pia) | NVN |
@@ -215,6 +221,7 @@ One row per profile; the notes are each profile's `README.md`.
 | [Team Sonic Racing](010092B0091D0000/README.md) | `010092B0091D0000` | 1.0.3 | 5.6.0 | Sumo Digital's engine, Wwise | NVN |
 | [Tetris Effect: Connected](0100DE501433A000/README.md) | `0100DE501433A000` | 2.0.2.2 | 13.3.2 | Unreal Engine 4 (IoStore), Wwise | NVN <!-- PEANUTS: Peanuts-only profile; runs on Turnip, system driver untested --> |
 | [The Great Ace Attorney Chronicles](010036E00FB20000/README.md) | `010036E00FB20000` | 1.0.0 (base) | 10.4.1 | Capcom's MT Framework | NVN |
+| [The Hundred Line -Last Defense Academy-](010093C0215B4000/README.md) | `010093C0215B4000` | 1.2.1 (plays: title, story and the first battle on a Retroid Pocket Nova, Turnip T30) | 18.3.2 | Media.Vision's engine (MVGL archives), CRIWARE | NVN <!-- PEANUTS: a profile of this fork, packed on a PC, checked on one device only --> |
 | [The Legend of Zelda: Breath of the Wild](01007EF00011E000/README.md) | `01007EF00011E000` | 1.9.0 | 20.5.22 | Nintendo EPD (sead / agl / gsys / ksys, Havok) | NVN |
 | [The Legend of Zelda: Echoes of Wisdom](01008CF01BAAC000/README.md) | `01008CF01BAAC000` | 1.1.0 | 20.5.1 | NintendoWare (G3d / Ui2d / Vfx) | NVN |
 | [The Legend of Zelda: Link's Awakening](01006BB00C6F0000/README.md) | `01006BB00C6F0000` | 1.1.0 | 8.2.0 | Grezzo's engine on NintendoWare | NVN |

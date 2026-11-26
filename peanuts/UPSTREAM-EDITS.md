@@ -104,8 +104,10 @@ not edited (see table above).
 | `dm/games/01006A800016E000/README.md` | marked (Super Smash Bros. Ultimate, Android notes) | no |
 | `dm/games/010035F022078000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for DRAGON BALL: Sparking! ZERO |
 | `dm/games/01006B601380E000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for Kirby's Return to Dream Land Deluxe |
+| `dm/games/0100C5000F294000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for Battle Brothers |
 | `dm/games/0100DE501433A000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for Tetris Effect: Connected |
 | `dm/games/010085500130A000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for LEGO CITY UNDERCOVER |
+| `dm/games/01008FE00E2F6000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: new One Piece Pirate Warriors 4 profile |
 | `dm/games/01006F600FFC8000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for LEGO MARVEL Super Heroes |
 | `dm/games/0100A7C01B792000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for Minecraft Dungeons II |
 | `dm/games/0100F9F00C696000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for Crash Team Racing Nitro-Fueled |
@@ -153,6 +155,7 @@ not edited (see table above).
 | `scripts/pack_android.py` | marked (2026-11-14, PR #13): the AppleDouble skip in `split_shaders`/`swap_in`, `peanuts_env` | partly: the AppleDouble skip yes (summary 11); `peanuts_env` no |
 | `scripts/pack_android.py`, `docs/reference/packing.md`, `dm/games/0100F7E00C70E000/README.md` | marked `PEANUTS(upstream-candidate)` (2026-11-25, issue #495): `copy_time` (block), its calls in `copy_counted` and `pack_shaders`, the `errno` import; the reference entry and Hogwarts Legacy's "Found on this game" line | **yes** (summary 14) |
 | `docs/guides/pc-mac-packing.md` | marked (`<!-- PEANUTS begin/end -->` section: send the pack to the phone) | no (Peanuts-specific) |
+| `dm/games/0100EB100AB42000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be, once it plays: Banana Native has no profile for FINAL FANTASY XII THE ZODIAC AGE (plays on the Android test app on Turnip; the system driver shows the texture issues known from other games) |
 
 ## Generic host runtime-profile sites
 
@@ -2877,3 +2880,35 @@ The Hundred Line -Last Defense Academy- (`010093C0215B4000`) keeps its shaders i
 |---|---|---|---|
 | `dm/gfx/tools/mvgl.py` | 3 | `wide` also takes 24-byte data entries; `data_entry` gives the entry size; `Archive` reads the entries by it | `PEANUTS begin`/`end`, `PEANUTS` |
 | `peanuts/tests/test_mvgl_wide.py` | 3 | `test_reader_24`: an archive with 24-byte entries reads, and `data_entry` gives 16 for the 16-byte one | `PEANUTS begin`/`end`, `PEANUTS` (a Peanuts-owned file) |
+
+### FANTASIAN Neo Dimension
+
+The [experimental profile](../dm/games/01001BB01E8E2000/README.md) registers the 1.0.0 and 1.0.2 executables. Its shader indexes come from 1.0.2; their generated files are listed in `upstream-unmarked.txt`.
+
+### Bring-up of FINAL FANTASY (Pixel Remaster) (2026-11-25)
+
+The profile folder `dm/games/01000EA014150000/` is new: `scripts/build_ipa_from_nsp.py` with `dm/games/profile_guess.py`
+wrote `game.tsv` from the game's survey and `shader_split.py` wrote the seven tables beside it (1,655 programs from the
+v262144 update, `split: shaders: 1655`, no `[RED]`). The eight tables are as `shader_split.py` wrote them, and
+`check-profiles.sh` passes with the profile in place (186 titles checked, exit 0). The game plays on a phone (see the
+game note); its memory keys in `game.tsv` were
+changed after crashes, and the shader tables are as generated, so the profile stays marked provisional.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/01000EA014150000/game.tsv`, `dm/games/01000EA014150000/README.md` | new files | FINAL FANTASY (Pixel Remaster) `01000EA014150000`, build `v262144` (display 1.2.0): the generated provisional profile and its notes | `# PEANUTS: new profile, provisional`, `<!-- PEANUTS: new profile, provisional -->` |
+
+The seven generated tables (`bf_want.tsv`, `pso_manifest.tsv`, `pso_pairs.tsv`, `shader_facts.tsv`, `shader_map.tsv`,
+`shader_map.tsv.conflicts.tsv`, `shader_pairs.tsv`) are allow-listed in `peanuts/upstream-unmarked.txt`: they are data
+tables read row by row and stay byte-identical to what `shader_split.py` wrote.
+
+### The Hundred Line -Last Defense Academy-, a profile for Android (2026-11-26)
+
+A new profile for The Hundred Line -Last Defense Academy- (`010093C0215B4000`, update v589824 = 1.2.1), written from a survey of the game files and a PC shader split (7,204 shaders; the split needs the 24-byte MVGL entries of the entry above). Packed on a Windows PC and played on a Retroid Pocket Nova (Turnip T30): the story to Day 1 and the first battle at 30 fps. The profile files are all new and it has no `patches.py`. The game holds itself to 30 fps; two reviewed `fpslocker` rows (main 1.2.1 only) let the launcher's frame rate choice of 60 apply, and 30 stays the default.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/010093C0215B4000/game.tsv`, `README.md` | new | the profile and its note | `PEANUTS` in the first lines; the note's Android text in `<!-- PEANUTS begin: Android -->` / `<!-- PEANUTS end -->`; also allow-listed in `peanuts/upstream-unmarked.txt` |
+| `dm/games/010093C0215B4000/shader_map.tsv`, `shader_map.tsv.conflicts.tsv`, `shader_facts.tsv`, `shader_pairs.tsv`, `pso_pairs.tsv`, `pso_manifest.tsv`, `bf_want.tsv` | new | the generated tables | allow-listed in `peanuts/upstream-unmarked.txt` (read row by row) |
+| `dm/games/README.md` | 1 | the game's table row | `<!-- PEANUTS: ... -->` in the row's last cell |
+| `docs/agents/game-patches.md` | regenerated | the profile in the `fps_modes 30,60` and `fps_limit 30` rows | generated by `dm/tools/docs_patches.py` |
