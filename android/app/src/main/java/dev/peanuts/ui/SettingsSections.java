@@ -66,7 +66,7 @@ public final class SettingsSections {
                             r("FSR sharpness", "search"), r("CRT filter", "screen-landscape"), r("Dynamic resolution", "gauge")),
                     new Group("Speed", r("Frame rate cap", "gauge"), r("Frame generation", "gauge"), r("Use fast cores", "gauge"), r("Overlay", "list"))),
             new Section("controls", "Controls", "controller", DEFAULTS,
-                    new Group("Buttons", r("Button mapping", "controller"), r("Xbox button label swap", "controller")),
+                    new Group("Buttons", r("Button mapping", "controller")),
                     new Group("Touch", r("On-screen controls", "game"), r("Show / hide button", "game")),
                     new Group("Controller", r("Controller: in-game panel", "controller"), r("Mods tab", "mods"), r("Rumble", "controller"))),
             new Section("screens", "Screens", "companion", "What each screen shows, and when the screen stays on.",

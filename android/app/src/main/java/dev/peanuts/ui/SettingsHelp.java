@@ -54,7 +54,6 @@ public final class SettingsHelp {
         put(m, "Overlay", "Shows the frame rate and other values over the game. Tap the row to pick what it shows.", "On");
         // Controls
         put(m, "Button mapping", "Which button of your controller presses which Switch button. A game can have its own.", null);
-        put(m, "Xbox button label swap", "For a controller labelled like an Xbox pad: whether A and B, and X and Y, change places.", "Off");
         put(m, "On-screen controls", "When the touch controls show over the game.", "Auto");
         put(m, "Show / hide button", "The small button at the top centre of the game that hides the on-screen controls.", "On");
         put(m, "Controller: in-game panel", "How a controller opens the in-game panel. By touch it opens with a swipe in from the right edge, or Back.", "Home, or hold − and +");
