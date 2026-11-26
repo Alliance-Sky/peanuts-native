@@ -37,7 +37,10 @@ public final class GameLink {
             }
         };
         try {
-            game.registerReceiver(r, new IntentFilter(GameLive.ACTION), Context.RECEIVER_NOT_EXPORTED);
+            if (android.os.Build.VERSION.SDK_INT >= 33) game.registerReceiver(r, new IntentFilter(GameLive.ACTION), Context.RECEIVER_NOT_EXPORTED);
+            // Android 12: the flag is API 33; the 2-argument call with the same filter, whose exported state follows the filter (no flag exists to narrow it there;
+            // Ctl sends this action with the app's own package set, and onReceive answers only ordered broadcasts)
+            else game.registerReceiver(r, new IntentFilter(GameLive.ACTION));
             return r;
         } catch (RuntimeException e) {
             Log.w(Ctl.TAG, "live game commands not available: " + e);
