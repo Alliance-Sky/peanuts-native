@@ -28,7 +28,7 @@ too.
 
 <!-- PEANUTS begin: the Supported games table, written by peanuts/scripts/games_catalog.py from peanuts/games.tsv, peanuts/release-titles.txt and the profiles. Edit peanuts/games.tsv, not this table -->
 
-Peanuts Native 0.1.8 includes 76 games. The Companion column shows whether a game appears in the Eden Duo Companions catalog, and the Contributor column the community members who brought a game to Peanuts Native. Updates are shown as version numbers or numeric update IDs.
+Peanuts Native 0.1.8 includes 76 games, and 11 more are coming in 0.1.9 (marked in the table). The Companion column shows whether a game appears in the Eden Duo Companions catalog, and the Contributor column the community members who brought a game to Peanuts Native. Updates are shown as version numbers or numeric update IDs.
 
 | Game | Title ID | Game update | Companion | Contributor |
 |---|---|---|---|---|
@@ -108,6 +108,17 @@ Peanuts Native 0.1.8 includes 76 games. The Companion column shows whether a gam
 | Minecraft Dungeons II | `0100A7C01B792000` | 1.1.3.0 | No | ⭐<br><a href="https://github.com/intermission88"><img src="https://img.shields.io/badge/intermission88-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="intermission88"></a> |
 | The Witcher 3: Wild Hunt — Complete Edition | `01003D100E9C6000` | 4.04b | No |  |
 | Pokémon Mystery Dungeon: Rescue Team DX | `01003D200BAA2000` | 1.0.0 | No | ⭐<br><a href="https://github.com/shamonj03"><img src="https://img.shields.io/badge/shamonj03-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="shamonj03"></a> |
+| One Piece: Pirate Warriors 4 (coming in 0.1.9) | `01008FE00E2F6000` | 1.0.0, 1.8.7 | No | ⭐<br><a href="https://github.com/codetz7"><img src="https://img.shields.io/badge/codetz7-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="codetz7"></a> |
+| FINAL FANTASY XII THE ZODIAC AGE (coming in 0.1.9) | `0100EB100AB42000` | 1.1.0 | No | ⭐<br><a href="https://github.com/shamonj03"><img src="https://img.shields.io/badge/shamonj03-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="shamonj03"></a> |
+| FINAL FANTASY (Pixel Remaster) (coming in 0.1.9) | `01000EA014150000` | 1.2.0 | No | ⭐<br><a href="https://github.com/shamonj03"><img src="https://img.shields.io/badge/shamonj03-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="shamonj03"></a> |
+| Battle Brothers (coming in 0.1.9) | `0100C5000F294000` | 1.14.0 | No | ⭐<br><a href="https://github.com/marojiro"><img src="https://img.shields.io/badge/marojiro-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="marojiro"></a> |
+| The Hundred Line -Last Defense Academy- (coming in 0.1.9) | `010093C0215B4000` | 1.2.1 | No | ⭐<br><a href="https://github.com/buinghia98"><img src="https://img.shields.io/badge/buinghia98-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="buinghia98"></a> |
+| DRAGON QUEST VII Reimagined (coming in 0.1.9) | `0100A9D01C446000` | 1.0.0, 1.1.0, 1.2.0 | No | ⭐<br><a href="https://github.com/tapionallanaire"><img src="https://img.shields.io/badge/tapionallanaire-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="tapionallanaire"></a> |
+| Sea of Stars (coming in 0.1.9) | `01008C0016544000` | 1.0.45861, 2.0.59001, 3.0.60151 | No | ⭐<br><a href="https://github.com/Alliance-Sky"><img src="https://img.shields.io/badge/Alliance--Sky-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="Alliance-Sky"></a> |
+| FANTASIAN Neo Dimension (coming in 0.1.9) | `01001BB01E8E2000` | 1.0.0, 1.0.2 | No | ⭐<br><a href="https://github.com/tapionallanaire"><img src="https://img.shields.io/badge/tapionallanaire-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="tapionallanaire"></a> |
+| CRISIS CORE –FINAL FANTASY VII– REUNION (coming in 0.1.9) | `01004BC0166CC000` | 1.0.0 | No | ⭐<br><a href="https://github.com/tapionallanaire"><img src="https://img.shields.io/badge/tapionallanaire-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="tapionallanaire"></a> |
+| Batman: Arkham Knight (coming in 0.1.9) | `0100ACD0163D0000` | 1.0.5 | No | ⭐<br><a href="https://github.com/tapionallanaire"><img src="https://img.shields.io/badge/tapionallanaire-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="tapionallanaire"></a> |
+| OCTOPATH TRAVELER (coming in 0.1.9) | `010057D006492000` | 1.0.5 | No | ⭐<br><a href="https://github.com/Alliance-Sky"><img src="https://img.shields.io/badge/Alliance--Sky-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="Alliance-Sky"></a> |
 
 <!-- PEANUTS end: the Supported games table -->
 
