@@ -24,8 +24,11 @@ class Wiring(unittest.TestCase):
 
     def test_panel(self):
         t = (JAVA / 'SidePanel.java').read_text()
-        for s in ('boolean padKey(KeyEvent e)', 'boolean padMotion(MotionEvent e)', 'requestFocusFromTouch', 'OnGlobalFocusChangeListener', 'TAB_NAMES'):
+        for s in ('boolean padKey(KeyEvent e)', 'boolean padMotion(MotionEvent e)', 'requestFocusFromTouch', 'TAB_NAMES'):
             self.assertIn(s, t)
+        # PEANUTS: the focus frame's listener goes through dev.peanuts.ingame.Look.focusListener (kept from window to window)
+        self.assertIn('Look.focusListener(this, this::focusMoved)', t)   # PEANUTS
+        self.assertIn('OnGlobalFocusChangeListener', (JAVA.parents[1] / 'peanuts/ingame/Look.java').read_text())   # PEANUTS
 
     def test_settings(self):
         self.assertIn('PadPanel.OPEN_NAMES', (JAVA / 'MainActivity.java').read_text())
