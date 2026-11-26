@@ -691,7 +691,7 @@ DM_VK_PSO_PREP_MEM_MB	developer	Memory			text			both
 DM_VK_PSO_PREP_THREADS	developer	Performance			text			both						
 DM_VK_PSO_SLOTS	developer	Performance			text		1 with Turnip, 4 with other drivers	both						
 DM_VK_PUSH_DEDUP	developer	Graphics			text			both						
-DM_VK_PUSH_DELTA	developer	Diagnostics			text			both						
+DM_VK_PUSH_DELTA	developer	Diagnostics			text		1 on Turnip and Qualcomm, 0 on other drivers	both						
 DM_VK_QS_TRACE	developer	Diagnostics			text			both						
 DM_VK_QUAD_SHFL	developer	Graphics			text		1 with Turnip, 0 with other drivers	both						
 DM_VK_RANGE_WATCH	developer	Diagnostics			text			both						
@@ -776,6 +776,7 @@ DM_VK_TS_LOG	developer	Diagnostics			text			both
 DM_VK_TU_UBWC_HINT	developer	Graphics			text			both						
 DM_VK_UBWC	developer	Graphics			text			both						
 DM_VK_UB_DEFER	developer	Graphics			text			both						
+DM_VK_UB_DEFER_OUTSIDE	developer	Graphics			text			both						
 DM_VK_UB_PEEK	developer	Diagnostics			text			both						
 DM_VK_UB_PEEK_AT	developer	Diagnostics			text			both						
 DM_VK_UB_PEEK_DONE	developer	Diagnostics			text			both						
