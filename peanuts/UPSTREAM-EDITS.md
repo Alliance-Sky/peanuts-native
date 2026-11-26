@@ -1163,7 +1163,7 @@ PEANUTS on its first line) checks where the `TU_DEBUG` line goes: after the opti
 
 ## Batman: Arkham Knight on Android
 
-Source only (no readiness row and no `nxGames` entry: the default APK does not carry the game); three game options for the Turnip road fixes (`DM_VK_ONE_LANE` with two
+On the 0.1.9 release list (in `nxGames` through `peanuts/release-titles.txt`; no readiness row); three game options for the Turnip road fixes (`DM_VK_ONE_LANE` with two
 `subgroup_one_lane` rows, `DM_VK_TU_FLUSHALL`, `DM_VK_NO_OCCLUSION`), each recommended on Turnip. PEANUTS-marked hunks in `game.tsv` and the note; no prewarm seed.
 [Game note](../dm/games/0100ACD0163D0000/README.md#android)
 
@@ -2902,7 +2902,7 @@ The Hundred Line -Last Defense Academy- (`010093C0215B4000`) keeps its shaders i
 
 ### FANTASIAN Neo Dimension
 
-The [experimental profile](../dm/games/01001BB01E8E2000/README.md) registers the 1.0.0 and 1.0.2 executables. Its shader indexes come from 1.0.2; their generated files are listed in `upstream-unmarked.txt`.
+The [experimental profile](../dm/games/01001BB01E8E2000/README.md) registers the 1.0.0 and 1.0.2 executables. Its shader indexes come from 1.0.2; their generated files are listed in `upstream-unmarked.txt`. On the 0.1.9 release list (no readiness row); the note's Android section has the contributor's Thor run (#579), marked `PEANUTS begin`/`end`.
 
 ### Bring-up of FINAL FANTASY (Pixel Remaster) (2026-11-25)
 
@@ -3262,7 +3262,7 @@ Added `01008C0016544000` (`Sea of Stars`, `0.1.9`, `Alliance-Sky`) to `peanuts/r
 
 ### Crisis Core –Final Fantasy VII– Reunion
 
-The [base-game profile](../dm/games/01004BC0166CC000/README.md) registers an Android bring-up target. Its generated shader tables remain unmodified. The matching-bank test cleared the first station encounter; it did not test later progression. Landed for 0.1.9 as source only (#578): no readiness row and no `nxGames` entry; the first run washes out white with an empty pipeline cache on both Turnip builds (a skipped draw the game keeps), and the stock driver does not get past the title.
+The [base-game profile](../dm/games/01004BC0166CC000/README.md) registers an Android bring-up target. Its generated shader tables remain unmodified. The matching-bank test cleared the first station encounter; it did not test later progression. Landed for 0.1.9 (#578) with no readiness row, and on the 0.1.9 release list as a bring-up (in `nxGames` through `peanuts/release-titles.txt`); the first run washes out white with an empty pipeline cache on both Turnip builds (a skipped draw the game keeps), and the stock driver does not get past the title.
 
 ### NieR:Automata: a profile key for the pool-join cap (2026-11-26)
 
@@ -3287,6 +3287,25 @@ so every title's profile.bin is regenerated with the APK, as for any new key), `
 the generic profile field, `join_cap` cut from vka_mem.c with the profile at 0 and 512 and the player's line set and unset). No rewrite key or shader input
 changes: `place_join_mb` is not a build row (`pack_android.py build_rows`), and `vka_mem.c` does not feed `DMSH_VK_CHAIN`. Upstream candidate: the key, if
 upstream wants a per-game join cap.
+
+### 0.1.9 release list: eleven more games (2026-11-27)
+
+The owner put eleven profiles that landed for 0.1.9 on the release list: One Piece: Pirate Warriors 4 (#714), FINAL FANTASY XII THE ZODIAC AGE
+(#776), FINAL FANTASY (Pixel Remaster) (#802), Battle Brothers (#747), The Hundred Line -Last Defense Academy- (#752), DRAGON QUEST VII Reimagined (#575),
+Sea of Stars (#659), FANTASIAN Neo Dimension (#579), CRISIS CORE –FINAL FANTASY VII– REUNION (#578), Batman: Arkham Knight (#657) and OCTOPATH TRAVELER
+(#767). No readiness row is added: the release titles need none (`test_android_games.py` compares `nxGames` with the list, not with readiness rows).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/gradle.properties` | 1 | `nxGames` = the release titles (87), Breath of the Wild first | `# PEANUTS:` comment line above the row |
+| `dm/tools/tests/test_android_frame_rate_games.py` | 1 | the eleven games' pinned caps, from their `game.tsv` frame rows | `# PEANUTS:` comment line above the rows |
+| `dm/games/0100A9D01C446000/README.md` | 1 | Android: not run on a phone yet, on the release list | `<!-- PEANUTS: ... -->` |
+| `dm/games/010057D006492000/README.md` | 1 | Android: the contributor's OnePlus 13R results (#767), on the release list | `PEANUTS begin`/`end` |
+| `dm/games/0100ACD0163D0000/README.md` | 1 | Android: on the release list, Turnip only | `<!-- PEANUTS -->` |
+| `dm/games/01004BC0166CC000/README.md`, `dm/games/01001BB01E8E2000/README.md` | 2 each | on the release list; FANTASIAN's Android section (#579) | `<!-- PEANUTS: ... -->`, `PEANUTS begin`/`end` |
+
+Peanuts' own files, no marker: `peanuts/release-titles.txt`, `peanuts/games.tsv`, `peanuts/games.json`, `android/app/src/peanuts/res/raw/peanuts_games.json`,
+`peanuts/docs/README.github.md`; `README.md`'s table and the issue forms are generated (`games_catalog.py`, `issue_forms.py`).
 
 ### BuildConfig.NX_PROFILES as one literal per game (2026-11-27)
 
