@@ -108,6 +108,15 @@ public final class PackService extends Service {
     private volatile long heatSince;   // when the heat pause began, or the status last fell below SEVERE in it (elapsedRealtime): PackPolicy.COOL_MS
     private int heatPauses;   // heat pauses in this run of the job (Job.heatPauses: Go on anyway first from PackPolicy.HOT_AGAIN_AT)
     private final Runnable heatRecheck = this::policy;   // the cool-down ends without a thermal change to call policy()
+    // A step asked to hold is held only once its tool says so (HELD_LINE, pack_android.py: its worker group stopped, or the rewrite in this process waiting at
+    // a progress line): until then it runs (a rewrite in this process up to its next progress line), and a tool that never holds (identify, pack) runs to
+    // its step's end. job.json says paused from that line on, not before (holdTaken), and at CRITICAL or worse a step not held by HOLD_GRACE_MS is stopped
+    // (policy): it runs again when the phone has cooled down. Found in review: the card said paused while the step ran on into CRITICAL heat
+    private final Object holdLock = new Object();
+    private volatile boolean holdSeen;   // the tool said it is held (HELD_LINE) since the hold was asked
+    private volatile long heldAt;   // when the hold was asked (elapsedRealtime)
+    static final String HELD_LINE = "held where it is";   // the start of pack_android.py's line (wait_while_held, _rewrite_worker_once), trimmed
+    static final long HOLD_GRACE_MS = 3_000;   // a worker group is stopped within 0.5 s of the hold file
     // PEANUTS end
     private int batteryPct = 100, thermal;
     private boolean charging = true;
@@ -485,15 +494,23 @@ public final class PackService extends Service {
             if (working) stepLog(j, "going on after the " + was + " pause: " + readings() + (held ? " (the step goes on from where it was held)" : ""));   // PEANUTS: #803
             else Log.i(TAG, "going on: " + readings());
             // PEANUTS begin: a held step goes on where it is (#803)
-            if (held && j != null) {
-                unhold();
-                j.state("running", null, null);
-                save(j, true);
+            boolean wasHeld;
+            synchronized (holdLock) {
+                wasHeld = held && j != null;
+                if (wasHeld) { unhold(); j.state("running", null, null); }
             }
+            if (wasHeld) save(j, true);
             // PEANUTS end
             synchronized (lock) { lock.notifyAll(); }
         }
-        // PEANUTS begin: the cool-down at MODERATE ends with no thermal change to call this again (#803)
+        // PEANUTS begin: at CRITICAL or worse a step asked to hold that has not said it is held is stopped (holdLock's note); a held one uses no CPU and stays held
+        if ("thermal".equals(r) && held && !holdSeen && inTool && thermal >= PackPolicy.CRITICAL && SystemClock.elapsedRealtime() - heldAt >= HOLD_GRACE_MS) {
+            stepLog(j, "heat " + PackPolicy.thermalName(thermal) + ": the step did not hold where it is (its tool cannot hold, or has not reached a point where it can): "
+                    + "it is stopped and runs again when the phone has cooled down; " + readings());
+            unhold();
+            engine.interrupt();
+        }
+        // the cool-down at MODERATE ends with no thermal change to call this again (#803)
         main.removeCallbacks(heatRecheck);
         if ("thermal".equals(r)) main.postDelayed(heatRecheck, 15_000);
         // PEANUTS end
@@ -513,15 +530,25 @@ public final class PackService extends Service {
             stepLog(j, "the step cannot be held (" + holdFile() + ": " + e.getMessage() + "): it finishes, and the build waits before the next step");
             return;
         }
-        held = true;
-        stepLog(j, "the step is held where it is (not ended): it goes on from there when the phone has cooled down");
-        j.state("paused", "thermal", null);
-        j.reasonDetail(PackPolicy.plainReadings(batteryPct, charging, thermal), PackPolicy.canOverride("thermal", thermal));
+        synchronized (holdLock) { held = true; holdSeen = false; heldAt = SystemClock.elapsedRealtime(); }
+        stepLog(j, "the step is asked to hold where it is (not ended): it goes on from there when the phone has cooled down; a tool that cannot hold finishes its step first");
+        save(j, true);   // its heat pause count; job.json says paused once the tool says it is held (holdTaken)
+    }
+
+    /** The tool said it is held (HELD_LINE, Tail): job.json says paused now, for the card and the notification, and the watchdog takes it for a pause */
+    private void holdTaken(Job j) {
+        synchronized (holdLock) {
+            if (!held || holdSeen) return;
+            holdSeen = true;
+            if (!"thermal".equals(autoReason)) return;
+            j.state("paused", "thermal", null);
+            j.reasonDetail(PackPolicy.plainReadings(batteryPct, charging, thermal), PackPolicy.canOverride("thermal", thermal));
+        }
         save(j, true);
     }
 
     private void unhold() {
-        held = false;
+        synchronized (holdLock) { held = false; holdSeen = false; }
         if (holdFile().exists() && !holdFile().delete()) Log.w(TAG, "the hold file could not be deleted: " + holdFile());
     }
     // PEANUTS end
@@ -1451,6 +1478,8 @@ public final class PackService extends Service {
                 } else if (st.find()) {
                     j.stepNote(step, st.group(1).trim());
                     changed = true;
+                } else if (line.startsWith(HELD_LINE)) {   // PEANUTS: the tool is held now (holdTaken, #803)
+                    holdTaken(j);
                 } else if (step.equals("shaders") && (m = BUILT.matcher(line)).find()) {   // PEANUTS: the library's summary line: shaders that did not translate or validate (Try anyway writes the library without them)
                     long of = Long.parseLong(m.group(1));
                     j.shadersFailed(of - Long.parseLong(m.group(2)), of);
