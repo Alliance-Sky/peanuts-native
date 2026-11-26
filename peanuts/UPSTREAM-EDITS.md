@@ -3136,3 +3136,27 @@ Added `01008C0016544000` (`Sea of Stars`, `0.1.9`, `Alliance-Sky`) to `peanuts/r
 ### Crisis Core –Final Fantasy VII– Reunion
 
 The [base-game profile](../dm/games/01004BC0166CC000/README.md) registers an Android bring-up target. Its generated shader tables remain unmodified. The matching-bank test cleared the first station encounter; it did not test later progression. Landed for 0.1.9 as source only (#578): no readiness row and no `nxGames` entry; the first run washes out white with an empty pipeline cache on both Turnip builds (a skipped draw the game keeps), and the stock driver does not get past the title.
+
+### NieR:Automata: a profile key for the pool-join cap (2026-11-26)
+
+GitHub issues #394, #651: buffers in the game's 1.3 GiB pool lie across two placed parts that join to 288 to 368 MiB, past the replay's 256 MiB
+`DM_VK_PLACE_JOIN_MB` default, so they were not joined and their draws skipped. A player's run with `DM_VK_PLACE_JOIN_MB=512` (6 GB phone): no "not joined"
+line (4 before), 24 joins, the largest 192 MiB in 123 ms. The owner chose a profile key over a larger default for every game (a join holds the joined bytes
+twice for a moment). game.tsv had no generic host-env default, so `place_join_mb` is a new scalar key, wired like the low-RAM keys but on every device.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/game.py` | 2 | `place_join_mb` checked (0 = not set, or 64 to 2048 MiB), `#define DM_GAME_PLACE_JOIN_MB` | `PEANUTS` |
+| `dm/gfx/vk_android/vka_mem.c` | 1 | `join_cap()`: the profile's value as the default of `DM_VK_PLACE_JOIN_MB` (256 without it); the env line still wins | `PEANUTS` |
+| `dm/games/README.md` | 1 | the key's row | `<!-- PEANUTS -->` |
+| `docs/reference/memory.md` | 2 | "A range given to the GPU across two placed parts of a pool": the cap's profile default, NieR:Automata | `<!-- PEANUTS: ... -->` |
+| `docs/env_switches.tsv` | 1 | `DM_VK_PLACE_JOIN_MB`: or the profile's `place_join_mb` | `[PEANUTS]` |
+| `dm/tools/docs_patches.py` | 1 | the key's binding entry (`game` → `host`) | `PEANUTS` |
+| `dm/games/010056B015FE8000/*`, `dm/games/0100B8E016F76000/*` | 2 each | `place_join_mb 512` (`# PEANUTS:` comment), the notes' rows and Found on | `PEANUTS` |
+| `docs/agents/game-patches.md` | generated | `dm/tools/docs_patches.py` | (generated) |
+
+Peanuts' own files: `dm/peanuts/profile/` (`PLACE_JOIN_MB` scalar, `place_join_mb` u32 after `low_ram_app_pool_mb`: the runtime profile schema changes,
+so every title's profile.bin is regenerated with the APK, as for any new key), `peanuts/tests/test_place_join_mb.py` (the range, every real profile's macro,
+the generic profile field, `join_cap` cut from vka_mem.c with the profile at 0 and 512 and the player's line set and unset). No rewrite key or shader input
+changes: `place_join_mb` is not a build row (`pack_android.py build_rows`), and `vka_mem.c` does not feed `DMSH_VK_CHAIN`. Upstream candidate: the key, if
+upstream wants a per-game join cap.
