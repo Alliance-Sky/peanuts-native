@@ -1,6 +1,7 @@
 # Peanuts Native
 
-A second-screen companion layer for Banana Native, the sibling of Eden Duo for Switch 2 titles. Upstream
+A second-screen companion layer for Banana Native, the sibling of Eden Duo, for Switch 1 games only: Banana Native's Switch 2
+profiles and their host gates are not carried (`peanuts/upstream-dropped.txt`, kept out on every sync). Upstream
 Banana Native ships several releases a day, so this fork is kept as a **thin overlay** that rebases cleanly.
 
 ## Rules that keep upstream updates cheap
@@ -429,3 +430,8 @@ The script fetches, rebases `peanuts` onto the target, then checks that every `P
   takes the corner's side margin on the right side (`Hud.margins`, one hook in `Overlay.Block.draw`). Players who never picked a style keep the table (igawa6, landing #538: the pill is a choice, not the default). The build tag is off by default under the pill (`Hud.tagOn`,
   used by `GameActivity` in two marked lines; a player's own switch wins, and only the Full preset turns it on there).
   Tests: `t_android_ovl`, `t_peanuts_graph`, `dm/tools/tests/test_android_hud.py` (`test_pill`).
+- 2026-11-26 (Switch 1 only, owner): the 19 Switch 2 profiles (`dm/games/04*`) and the host gates only they used (`dkb_wide.c`, `mkw_wide.c`,
+  `oot_wide.c`, `mtf_size.c`, `pkp_aspect.c`, their tests and `OBS_*` rows) are removed; `nxGames` (the default APK's games) is
+  `peanuts/release-titles.txt` with Breath of the Wild first. `upstream-update.sh` keeps them out on every sync (`peanuts/upstream-dropped.txt`,
+  [UPSTREAM.md](peanuts/docs/UPSTREAM.md#38-dropped-upstream-content-switch-2)). Tests that read those profiles use Switch 1 profiles or
+  `peanuts/tests/fixtures/profiles/`. The shared Switch 2 support in the host and the app (NVN2, Program-n, `Edition.java`) stays.

@@ -26,6 +26,8 @@ The chain version is not in the profile: one version serves every game (`dm/gfx/
 
 Everything game-specific belongs here. Code reads the profile; it does not hard-code a game.
 
+Peanuts Native carries Switch 1 profiles only (title IDs `01…`): Banana Native's Switch 2 profiles (`04…`) are not part of it (`peanuts/upstream-dropped.txt`), though the notes and the table below may still cite them. <!-- PEANUTS: Switch 1 only (owner, 2026-11-26) -->
+
 | Who | Picks the profile with | Reads |
 |---|---|---|
 | Shader tools (`shader_split.py`, `dmsh_chain.py`, `dmsh_build.py`, `dmsh_facts.py`) | `DM_GAME=<id>` | tables, `shader_*` keys |
