@@ -127,9 +127,8 @@ public final class PackService extends Service {
         wake = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "nxnative:pack");
         wake.setReferenceCounted(false);
         engine = PackEngine.create(this);
-        // PEANUTS: Android 12: the flag is API 33; below it the 2-argument call with the same filter (exported state follows the filter; a system broadcast)
-        battery(android.os.Build.VERSION.SDK_INT >= 33 ? registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED), Context.RECEIVER_NOT_EXPORTED)
-                : registerReceiver(batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED)));
+        // PEANUTS: from API 33 not exported (the call as before); on Android 12 the app's signature permission (InternalBroadcast; the system, which sends this, passes it)
+        battery(dev.peanuts.InternalBroadcast.register(this, batteryReceiver, new IntentFilter(Intent.ACTION_BATTERY_CHANGED)));
         thermal = pm.getCurrentThermalStatus();
         pm.addThermalStatusListener(getMainExecutor(), thermalListener);
         policy();

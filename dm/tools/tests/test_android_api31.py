@@ -67,6 +67,47 @@ class Api31(unittest.TestCase):
         self.assertIn('minSdk nxMinSdk', s)
         self.assertIn('targetSdk 35', s)
 
+    def test_internal_receivers(self):
+        """Below API 33 no receiver takes broadcasts from other apps: every registerReceiver with a receiver goes through dev.peanuts.InternalBroadcast,
+        whose Android 12 call is the 4-argument one with the app's signature-level permission (never the plain 2-argument call); from API 33 the flag as before"""
+        ib = (SRC / 'main/java/dev/peanuts/InternalBroadcast.java').read_text(encoding='utf-8')
+        self.assertIn('if (Build.VERSION.SDK_INT >= 33) return c.registerReceiver(r, f, Context.RECEIVER_NOT_EXPORTED);', ib)
+        self.assertIn('return c.registerReceiver(r, f, permission(c), null);', ib)
+        self.assertIn('public static final String SUFFIX = ".permission.INTERNAL_BROADCAST";', ib)
+        bad = []
+        for f in sorted(SRC.glob('*/java/**/*.java')):
+            if 'jvmtest' in f.parts or f.name == 'InternalBroadcast.java':
+                continue
+            for n, line in enumerate(f.read_text(encoding='utf-8').splitlines(), 1):
+                code = line.split('//')[0]
+                for m in re.finditer(r'(?<!un)registerReceiver\(\s*([^,\s)]+)', code):
+                    if m.group(1) == 'null':   # a sticky read with no receiver
+                        continue
+                    bad.append(f'{f.relative_to(SRC)}:{n}: register through dev.peanuts.InternalBroadcast.register')
+        self.assertEqual(bad, [], '\n'.join(bad))
+        for rel, count in (('main/java/dev/nxnative/android/Updater.java', 1), ('ondevice/java/dev/nxnative/android/PackService.java', 1),
+                           ('main/java/dev/peanuts/build/BuildService.java', 1), ('main/java/dev/peanuts/ctl/GameLink.java', 1),
+                           ('main/java/dev/peanuts/ui/BottomScreen.java', 2)):
+            self.assertEqual((SRC / rel).read_text(encoding='utf-8').count('dev.peanuts.InternalBroadcast.register('), count, rel)
+
+    def test_internal_permission_signature(self):
+        """The permission is declared signature-level and requested, named after the application ID (the dev build and the release each their own)"""
+        root = ET.parse(SRC / 'main/AndroidManifest.xml').getroot()
+        A = '{http://schemas.android.com/apk/res/android}'
+        name = '${applicationId}.permission.INTERNAL_BROADCAST'
+        decl = [p for p in root.findall('permission') if p.get(A + 'name') == name]
+        self.assertEqual(len(decl), 1)
+        self.assertEqual(decl[0].get(A + 'protectionLevel'), 'signature')
+        self.assertTrue(any(u.get(A + 'name') == name for u in root.findall('uses-permission')))
+
+    def test_internal_senders(self):
+        """The in-app senders of those broadcasts name this package (sent as this app, they hold the permission); the installer's PendingIntent too"""
+        for rel, needle in (('main/java/dev/peanuts/Companion.java', 'new android.content.Intent(STATE).setPackage(c.getPackageName())'),
+                            ('main/java/dev/peanuts/ui/AppScreens.java', 'new Intent(STATE).setPackage(a.getPackageName())'),
+                            ('main/java/dev/peanuts/ctl/Ctl.java', 'new Intent(GameLive.ACTION).setPackage(app.getPackageName())'),
+                            ('main/java/dev/nxnative/android/Updater.java', 'new Intent(app.getPackageName() + ACTION).setPackage(app.getPackageName())')):
+            self.assertIn(needle, (SRC / rel).read_text(encoding='utf-8'), rel)
+
     def test_streams_guard(self):
         """Each helper makes the platform call from API 33 (no other path runs there)"""
         s = (SRC / 'main/java/dev/nxnative/android/Streams.java').read_text(encoding='utf-8')
