@@ -124,6 +124,7 @@ class WiringTest(unittest.TestCase):
         self.assertLess(hook, start.index('"DM_SAVE=" + save'))
         body = method(src, '    private void beforeNewBuild(File save, File game, String saveId, File packDir) {')
         self.assertIn('SaveStore.beforeNewBuild(', body)
+        self.assertLess(body.index('ModsSection.codeModsOn('), body.index('SaveStore.beforeNewBuild('), 'only games with code mods are backed up')
         self.assertIn('UserSaveDirs.others(save)', body)
         self.assertIn('SaveZip.appBackups(appRoot, saveId) : shared', body)   # where Back up saves puts them: Restore saves lists it
 
