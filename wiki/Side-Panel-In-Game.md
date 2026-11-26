@@ -62,7 +62,7 @@ Only for a game with cheats and with Game settings > Cheats on: one switch per c
 ### Mods
 Only for a game with mods: the game's mods, as on its Mods & Cheats page.
 
-Settings > Controls > **Mods tab** (and a game's own Mods & Cheats page) can hide the Cheats and Mods tabs.
+Settings > App > **Mods tab** (and a game's own Mods & Cheats page) can hide the Cheats and Mods tabs.
 
 ### Controls
 - **Controllers > Player 1** (while a gamepad is connected).

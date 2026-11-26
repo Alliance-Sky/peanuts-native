@@ -20,11 +20,7 @@ How you play: the on-screen controls, a controller, rumble, button mapping and m
 
 ## Quick menu button
 - **What it does:** a button of your own that opens the quick menu at once, and closes either menu. A button games use asks first, since the game no longer gets it.
-- **Default:** not set.
-
-## Mods tab
-- **What it does:** shows the quick menu's **Cheats** and **Mods** tabs, each when the game has some. A game's own Mods & Cheats page can hide them for that game.
-- **Default:** on. <!-- PEANUTS: in-game menus -->
+- **Default:** not set. <!-- PEANUTS: in-game menus -->
 
 ## Players and controllers
 Each connected gamepad is a player of its own. The quick menu's **Controllers > Player 1** (shown while a gamepad is connected) picks which one is player 1, or **Automatic**; the choice is kept for every game. <!-- PEANUTS: in-game menus -->
