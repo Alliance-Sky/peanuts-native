@@ -390,7 +390,7 @@ public final class InGamePanel {
 
     private static int[] keys(Activity a) {
         String id = String.valueOf(a.getIntent().getStringExtra("title_id"));
-        return PadPanel.confirmBack(Prefs.padMap(a, id), Prefs.xboxButtons(a, id) == 2 ? 2 : 0);
+        return PadPanel.confirmBack(Prefs.padMap(a, id), 0);   // PEANUTS: 0, the Xbox button label swap is removed (owner 2026-11-26), as GameActivity's padButtons
     }
 
     // ---- The game menu's rows ----
