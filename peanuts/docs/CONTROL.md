@@ -74,7 +74,7 @@ rest of the file.
 | `job` | `-e cmd job -e do pause` (or `stop`) | The button of the card that shows: Stop on the build card, Pause on the Prepare card. For the build queue `stop` stops the game that builds and the queue goes on with the next; `pause` pauses the queue (the game goes on first at `resume`) |
 | | `-e cmd job -e do resume` (or `retry`) | Resume or Retry: a paused build queue goes on, a stopped build builds on; a Prepare job's own button is pressed |
 | | `-e cmd job -e do try_anyway -e title_id 0100F2C0115B6000` | The answer "yes" to "Build anyway?" or to the Prepare card's "Try anyway": the game may not start or may draw wrongly |
-| `play` | `-e cmd play -e title_id 0100F2C0115B6000` | Home's Play: the same checks, the build with mods when one is ready. A dialog Play would show is the refusal: its text comes back and the dialog is closed |
+| `play` | `-e cmd play -e title_id 0100F2C0115B6000` | Home's Play: the same checks, the build with mods when one is ready (while code mods are on and their build is not, Play's message that it is not ready is the refusal). A dialog Play would show is the refusal: its text comes back and the dialog is closed |
 | `game` | `-e cmd game -e do stop -e confirm true` | Ends the running game as its panel's Stop does. Unsaved progress is lost |
 | | `-e cmd game -e do ctl -e line "A~0.5"` | One line into the running game's live control file (the lines of `android/TESTING.md`, "Live control"). Its answer is in the run's log. `-e line` without `do` is the same |
 | | `-e cmd game -e do fps_cap -e value 30` | The running game's frame rate cap, as the stats page on the second screen sets it: a rate (`30`), `own` (Game owned) or `default`. See below |
