@@ -100,6 +100,7 @@ final class SidePanel extends FrameLayout {
     void padButtons(int[] cb) { confirm = cb[0]; back = cb[1]; }
 
     boolean isOpen() { return open; }
+    @Override public boolean isInTouchMode() { return super.isInTouchMode() && !InGamePanel.keyDriven(this); }   // PEANUTS: the bottom screen's menu driven by keys: Android keeps that display in touch mode (InGamePanel.keyDriven)
     Rows rows() { return rows; }   // PEANUTS: the bottom screen's menu builds the same rows (InGamePanel)
     void toggle() { if (open) close(); else open(); }
     /** Opened or closed by a controller (GameActivity: Home, or − and + held): opened, the focus on its first row, out of touch mode */

@@ -165,7 +165,7 @@ public final class InGamePanel {
         release();
         menu = null; panelOf = null; backupRow = null; quickRow = null; menuRows = null; menuStop = null;
         rightPanel = null; bottomPanel = null; bottomScreen = null; topDim = null; rightRows = null; gameRows = null; cover = null; version = null;
-        fromGame = false; padOpened = false; homeHeld = false; backDown = false; backHeld = false; shownTab = -1; quickKey = -1; layoutMode = -1;
+        fromGame = false; padOpened = false; homeHeld = false; bottomKeys = false; backDown = false; backHeld = false; shownTab = -1; quickKey = -1; layoutMode = -1;
         stickDir = PadPanel.NONE;
         taken.clear();
     }
@@ -397,6 +397,7 @@ public final class InGamePanel {
             if (down) taken.add(k); else if (up) taken.remove(k);
             // The bottom screen's window never has the keys' focus, so it does not hear that a key left touch mode: it leaves it here, or the focus would
             // move without its frame (SidePanel.focusMoved draws none in touch mode)
+            if (down && o == bottomPanel) bottomKeys = true;   // keys drive it now: SidePanel takes it as out of touch mode (keyDriven)
             if (down && o.isInTouchMode()) { View f = o.findFocus(); if (f != null) f.requestFocusFromTouch(); }
             Rail r = rails.get(o);
             if ((k == KeyEvent.KEYCODE_BUTTON_L1 || k == KeyEvent.KEYCODE_BUTTON_R1) && r != null) { if (down && e.getRepeatCount() == 0) r.step(k == KeyEvent.KEYCODE_BUTTON_L1 ? -1 : 1); return true; }
@@ -816,10 +817,28 @@ public final class InGamePanel {
         if (menu != null && menu.isOpen()) menu.close(null);
         if (rightPanel != null && rightPanel.isOpen()) rightPanel.close();
         if (bottomScreen == null) {
-            try { bottomScreen = new dev.peanuts.ingame.BottomScreen(a, d, bottomPanel); bottomScreen.show(); }
+            try { bottomScreen = new dev.peanuts.ingame.BottomScreen(a, d, bottomPanel, InGamePanel::bottomTouched); bottomScreen.show(); }
             catch (RuntimeException e) { Native.note("[RED] [peanuts] the bottom screen's menu could not open: " + e); bottomScreen = null; openRight(a, onGame, pad); return; }
         }
+        bottomKeys = pad;   // opened with the controller: its frame shows at once and its first D-pad press moves
         show(bottomPanel, gameRows, onGame, pad);
+    }
+
+    /**
+     * Keys drive the bottom screen's menu (it opened with the controller, or a key went to it since the last touch). Android leaves touch mode only for the
+     * display with the focused window, and the bottom screen's window never takes the focus, so requestFocusFromTouch there is refused ("Touch mode switch
+     * rejected"): the panel stayed in touch mode, drew no focus frame and took the first D-pad press only to find a focus. SidePanel.isInTouchMode asks this
+     */
+    private static boolean bottomKeys;
+
+    static boolean keyDriven(SidePanel p) { return bottomKeys && p != null && p == bottomPanel; }
+
+    /** A touch on the bottom screen's menu: touch drives it again, the frame goes until the next key */
+    private static void bottomTouched() {
+        if (!bottomKeys) return;
+        bottomKeys = false;
+        View f = bottomPanel == null ? null : bottomPanel.findFocus();
+        if (f != null) f.setForeground(null);   // SidePanel's focus frame (its only foreground)
     }
 
     private static View topDim;   // the game on the top screen, dimmed a little while the bottom screen's menu is open: it runs on, but is not being played
