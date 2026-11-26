@@ -3212,7 +3212,7 @@ The review of #678, #679 and #680, fixed on the merged branch before it landed i
 | File | Hunks | Change | Marker |
 |---|---|---|---|
 | `android/app/src/main/java/dev/nxnative/android/GameActivity.java` | (the backKey hook's line) | `InGamePanel.backKey(this, e, prewarmCover != null)` | `// PEANUTS` |
-| `dm/tools/tests/test_android_padpanel.py` | 1 | the combination through `InGamePanel.key` | `# PEANUTS` |
+| `dm/tools/tests/test_android_padpanel.py` | 2 | the combination through `InGamePanel.key`; SidePanel's focus listener through `Look.focusListener` | `# PEANUTS` |
 | `android/app/src/main/java/dev/nxnative/android/SidePanel.java` | 1 | `isInTouchMode` overridden: out of touch mode while `InGamePanel.keyDriven` (the bottom screen's menu driven by keys; Android refuses to leave touch mode on a display whose window has no focus, so the frame was missing after the first opening and the first D-pad press only found a focus) | `// PEANUTS` |
 | `android/app/src/main/java/dev/nxnative/android/SidePanel.java` | 1 | its focus frame's listener through `dev.peanuts.ingame.Look.focusListener` (kept from window to window: the bottom screen's menu joins a new window at each opening, and a listener added before the first window stayed with that window only) | `// PEANUTS` |
 | `android/app/src/main/java/dev/nxnative/android/MainActivity.java` | 1 | `padPanelLabel`: by touch, the left edge for the game menu, the right edge for the quick menu (the Thor run found the old text) | `// PEANUTS` |
