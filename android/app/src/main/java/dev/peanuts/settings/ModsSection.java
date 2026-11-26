@@ -143,7 +143,10 @@ public final class ModsSection {
             String variantId = ModStore.variantId(titleId, codeMods);
             if (variantId == null) return packDir;
             File variantPack = dev.nxnative.android.AppStorage.pack(c, variantId);
-            if (variantProblem(c, titleId, p, variantPack) == null) return variantPack.getPath();
+            // a build of this very variant that is still running (its last module key is written before its shaders, game.tsv and mark): not ready, so Play
+            // waits for it instead of starting a pack that is still being written (#514, found on the Thor)
+            boolean running = variantId.equals(buildVariant);
+            if (!running && variantProblem(c, titleId, p, variantPack) == null) return variantPack.getPath();
             if (notBuilt != null) notBuilt.run();
         } catch (RuntimeException e) {
             android.util.Log.w("peanuts", "mods: the pack to play: " + e);
