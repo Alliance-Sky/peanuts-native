@@ -127,7 +127,13 @@ class Wiring(unittest.TestCase):
         prep = (REPO / 'android/app/src/main/java/dev/peanuts/build/Prepare.java').read_text(encoding='utf-8')
         self.assertEqual(prep.count('BuildPipeline.heatPaused(goOn(state, reason, o) ? logId : null);'), 2, 'a build and a build with mods')
         self.assertEqual(prep.count('BuildPipeline.heatPaused(null);'), 2)
-        self.assertIn('w.changed(SystemClock.uptimeMillis());', prep[prep.index('p.on(pct, pausedLine(reason, o)'):][:400])
+        # a pause the packer no longer holds (its process ended while held or waiting) is watched as a running job is: it ends as a packer that ended, not
+        # "too hot, goes on when cooled" for good (BuildWatch.Watch.paused; BuildWatchJvmTest runs the rule)
+        self.assertNotIn('w.changed(SystemClock.uptimeMillis());', prep[prep.index('p.on(pct, pausedLine(reason, o)'):][:400])
+        for mods in ('false', 'true'):
+            at = prep.index('w.paused(SystemClock.uptimeMillis(), packerHolds());', prep.index('p.on(pct, pausedLine(reason, o)') if mods == 'false' else prep.index('MODS_AGAIN, BuildListener.CANCELLED);'))
+            self.assertIn(f'watch(w, file, step, stage, startedAt, {mods});', prep[at:at + 300])
+        self.assertIn('boolean waited = why.equals("thermal") || why.equals("battery");', prep)   # the watchdog's end keeps such a job as paused for its own reason
         lib = (REPO / 'android/app/src/main/java/dev/peanuts/ui/Library.java').read_text(encoding='utf-8')
         self.assertIn('BuildPipeline.goOnAnyway(a)', lib)
         self.assertIn('BuildPipeline.goOnOffered(b.titleId)', lib)

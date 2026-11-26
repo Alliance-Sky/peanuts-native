@@ -221,7 +221,8 @@ public final class PackService extends Service {
         }
         // PEANUTS end
         // A sticky restart (no intent: the process was killed) resumes only a job that was running; a start resumes one that is not done
-        boolean go = check || !checkAsked && j != null && (intent == null ? "running".equals(j.state()) : !"done".equals(j.state()) || j.apkChanged());   // PEANUTS: check ||, !checkAsked: a check's start never runs a job (an app update's job waits for the user)
+        // PEANUTS: a sticky restart also resumes a job the policy paused (heat, battery: PackPolicy.resumesAfterRestart), which waits in the pause again
+        boolean go = check || !checkAsked && j != null && (intent == null ? PackPolicy.resumesAfterRestart(j.state(), j.reason()) : !"done".equals(j.state()) || j.apkChanged());   // PEANUTS: check ||, !checkAsked: a check's start never runs a job (an app update's job waits for the user)
         if (go && intent == null) stepLog(j, "going on after Android ended the job's process (a sticky restart; " + readings() + ")");
         if (!go && (worker == null || !worker.isAlive())) {
             // startForegroundService must be answered by startForeground even when there is nothing to do

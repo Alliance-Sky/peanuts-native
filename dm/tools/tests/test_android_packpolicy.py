@@ -68,6 +68,15 @@ class Policy(unittest.TestCase):
         note = src[src.index('private Notification note(Job j)'):]
         self.assertIn('if (again) b.addAction(goOnAction).addAction(pauseAction);', note)
 
+    def test_sticky_restart_resumes_a_policy_pause(self):   # Android ended the packer while a heat hold or a battery pause waited: the job runs again and waits there
+        out = [l.split('\t')[:2] for l in self.run_on('restart running', 'restart paused thermal', 'restart paused battery', 'restart paused user',
+                                                        'restart paused timeout', 'restart paused hung', 'restart paused ended', 'restart done', 'restart failed')[:-1]]
+        self.assertEqual([o[1] for o in out], ['true', 'true', 'true', 'false', 'false', 'false', 'false', 'false', 'false'])
+        src = SERVICE.read_text(encoding='utf-8')
+        self.assertIn('intent == null ? PackPolicy.resumesAfterRestart(j.state(), j.reason()) :', src)
+        work = src[src.index('private void work()'):]
+        self.assertLess(work.index('j.state("running", null, null);'), work.index('if (!waitWhileAuto(j)) break;'), 'the resumed job goes back into the pause before a step')
+
     def test_hot_again_words_match(self):   # the card (Prepare) and the packer (PackPolicy) say the same, from the same count
         pol = SRC.read_text(encoding='utf-8')
         prep = (REPO / 'android/app/src/main/java/dev/peanuts/build/Prepare.java').read_text(encoding='utf-8')
