@@ -3443,3 +3443,13 @@ NVN_FORMAT_BGR5A1 (0x97) had no Vulkan format; NARUTO X BORUTO Ultimate Ninja ST
 |---|---|---|---|
 | `dm/gfx/vk_android/vka_tex.c` | 1 | NVN BGR5A1 (0x97) → `VK_FORMAT_A1R5G5B5_UNORM_PACK16` in `fmt_ent_of` | `PEANUTS` |
 | `docs/reference/rendering.md`, `docs/agents/symptoms.md` | 1, 1 | the entry "A material's body invisible or black: NVN_FORMAT_BGR5A1 had no Vulkan format", and its line in the generated index | `PEANUTS` / generated |
+## NVN games with an OpenGL UI on Android (2026-11-26)
+
+NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS draws its UI with OpenGL through EGL into a texture NVN samples. Taken over from the draft igawa6/peanuts-native#637 (codetz7) and split by scope.
+
+| File | Hunks | What | Marker |
+|---|---|---|---|
+| `dm/host/hle_bigstack.c` | 3 | the big-stack entry copies the caller's first two stack slots (a 9th and 10th integer argument: `glTexImage2D`) onto the host stack (codetz7's change), and its comments say so. Every game: any big-stack wrapper of a function with stack-passed arguments | `PEANUTS` |
+| `dm/host/hle.h` | 1 | `HLE_FORCE_BIG`'s comment: two stack slots carried over | `PEANUTS` |
+| `dm/host/tests/t_bigstack.c` | 4 | a ten-argument take-over through the switch and on the direct path; the call helpers use `PLAT_ASM_SYM` (ELF too) | `PEANUTS` |
+| `docs/reference/memory.md` | 1 | "Host calls on small guest stacks": the two stack slots | `PEANUTS` |
