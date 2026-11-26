@@ -467,6 +467,7 @@ DM_VK_B2T_MIRROR	developer	Graphics			text			both
 DM_VK_BANDS	developer	Graphics			text			both						
 DM_VK_BAR_KEEP	developer	Diagnostics			text			both						
 DM_VK_BAR_NARROW	developer	Graphics			text			both						
+DM_VK_BAR_SCOPED	developer	Graphics			text			both						
 DM_VK_BC_RT	developer	Graphics			text			both						
 DM_VK_BIGIMG_MB	developer	Diagnostics			text			both						
 DM_VK_BIND_LOG	developer	Diagnostics			text			both						

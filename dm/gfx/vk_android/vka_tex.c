@@ -168,7 +168,11 @@ void vka_barrier_at(VkCommandBuffer cb, const char *file, int line) {
     vka_xp_ts(cb, 8);
 }
 // PEANUTS begin: stage-scoped memory barrier (avoids ALL_COMMANDS -> ALL_COMMANDS drain when src/dst are narrower)
+// DM_VK_BAR_SCOPED=0 (live): the full barrier instead, at every site (the pass end, clears outside a pass, the dispatch settle, inline uniform copies, transform
+// feedback copies), as before #505/#562; the two sites that had no barrier before (the copies' first barrier, transform feedback's) get a full one too
+int vka_bar_scoped(void) { return VKA_ENV("DM_VK_BAR_SCOPED", 1) != 0; }
 void vka_barrier_stages_at(VkCommandBuffer cb, VkPipelineStageFlags src, VkAccessFlags src_acc, VkPipelineStageFlags dst, VkAccessFlags dst_acc, const char *file, int line) {
+    if (!vka_bar_scoped()) { vka_barrier_at(cb, file, line); return; }
     vka_n_sbar++;
     if ((src & VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT) && (src_acc & VK_ACCESS_SHADER_WRITE_BIT) &&
         dst == VK_PIPELINE_STAGE_ALL_COMMANDS_BIT && (dst_acc & (VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT)) == (VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT)) {
