@@ -561,6 +561,29 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
 
     private static boolean isEmpty(File d) { String[] l = d.list(); return l == null || l.length == 0; }
 
+    // PEANUTS begin: the save backed up before the first start of another app version, pack or save folder (issue #514: SaveStore.beforeNewBuild), under the save's
+    // lock (saveDir took it) and before the host has the save. Where Back up saves puts its copies (the shared save-backups/<id>, else the app's own when backups
+    // go out as a .zip: SaveUi.target), so Restore saves lists it. A test run's own save, and a save whose commit the host finishes at mount, get none. A backup
+    // that cannot be made stops no start: a toast says so, and the next start tries again
+    private void beforeNewBuild(File save, File game, String saveId, File packDir) {
+        if (testSave != null || "recovering".equals(saveHow)) return;
+        File shared = Prefs.backupsDir(game, saveId), appRoot = AppStorage.root(this);
+        File backups = SaveZip.export(shared, appRoot, android.os.Environment.isExternalStorageManager() && SaveZip.writable(shared)) ? SaveZip.appBackups(appRoot, saveId) : shared;
+        String start = BuildConfig.VERSION_NAME + " " + BuildConfig.NX_COMMIT + "\t" + packDir.getAbsolutePath() + "\t" + save.getAbsolutePath();
+        String note;
+        try {
+            List<SaveStore.Backup> made = SaveStore.beforeNewBuild(save, new ArrayList<>(UserSaveDirs.others(save).values()), backups,
+                    new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).format(new Date()), new File(getFilesDir(), "save-starts/" + saveId + ".txt"), start);
+            if (made.isEmpty()) return;
+            note = "backed up before the first start of this build: " + made.get(0).dir + (made.size() > 1 ? " and " + (made.size() - 1) + " more" : "");
+        } catch (IOException | RuntimeException e) {
+            note = "not backed up before the first start of this build (" + e.getMessage() + ")";
+            Toast.makeText(this, "Your save could not be backed up before this first start of a new build: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+        saveNote = saveNote == null ? note : saveNote + "; " + note;
+    }
+    // PEANUTS end
+
     private static void copyTree(File from, File to) throws IOException {
         if (from.isDirectory()) {
             if (!to.isDirectory() && !to.mkdirs()) throw new IOException("cannot create " + to);
@@ -967,7 +990,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
             // its temp, logs and host are its own. So every start of it (the card's edition switch, a frontend, a shortcut) plays the same save
             String saveId = pack.application.isEmpty() ? id : pack.application;
             File save = dev.peanuts.build.ShaderCapture.save(this);   // PEANUTS: a preparation boot never opens the player's save
-            if (save == null) save = saveDir(files, game, saveId);   // PEANUTS
+            if (save == null) { save = saveDir(files, game, saveId); beforeNewBuild(save, game, saveId, packDir); }   // PEANUTS: beforeNewBuild (#514)
             File temp = mkdirs(new File(files, "temp/" + id)), root = mkdirs(new File(files, "root"));   // PEANUTS: save is chosen above
             // The DLC links live in internal app storage: the external files folder is shared storage (FUSE), which refuses symbolic links (errno not yet confirmed on a phone; a refused link is now a [RED] line), so
             // every link failed there and no game saw its DLC (docs/reference/packing.md "DLC links in shared storage"). Their targets stay where they are
