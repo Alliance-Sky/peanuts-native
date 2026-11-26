@@ -239,10 +239,16 @@ static void ub_flush(void) {
     if (!UB.n) return;
     int n = UB.n; UB.n = 0; UB.m_valid = 0;
     uint64_t last_d = 0, last_n = 0;
+    // PEANUTS begin: stage-scoped barriers for inline uniform buffer copies
+    vka_barrier_stages(g_cb, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT);
     vka_rw_pre(g_cb);
     for (int i = 0; i < n; i++) {
         uint64_t dst = UB.e[i].dst, sz = UB.e[i].n; const uint8_t *data = UB.e[i].data;
-        for (int j = 0; j < i; j++) if (UB.e[j].dst < dst + sz && dst < UB.e[j].dst + UB.e[j].n) { vka_barrier(g_cb); break; }
+        for (int j = 0; j < i; j++) if (UB.e[j].dst < dst + sz && dst < UB.e[j].dst + UB.e[j].n) {
+            vka_barrier_stages(g_cb, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT);
+            break;
+        }
         vka_span s; if (!sz || !vka_scratch(sz, 16, &s)) { VRED_ONCE("inline uniform update at %#llx (%llu bytes): no staging memory, the update is lost", (unsigned long long)dst, (unsigned long long)sz); continue; }
         memcpy(s.ptr, data, (size_t)sz);
         for (uint64_t done = 0; done < sz;) {
@@ -252,12 +258,16 @@ static void ub_flush(void) {
         }
         last_d = dst; last_n = sz;
     }
-    vka_barrier(g_cb);
+    vka_barrier_stages(g_cb, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+                       VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT);
+    // PEANUTS end
     if (last_n) vka_rw_point(g_cb, 'u', 0, last_n, last_d);
 }
+void vka_ub_flush(void) { if (!R.on && UB.n) { vka_disp_settle(g_cb); ub_flush(); } }   // PEANUTS: flush outside-pass deferred UBs
 static void inst_close(void);
 int vka_rp_ub_defer(uint64_t dst, uint64_t n, const void *data) {
-    if (!R.on || !n || n > 65536 || !VKA_ENV("DM_VK_UB_DEFER", 1)) return 0;
+    if (!g_cb || !n || n > 65536 || !VKA_ENV("DM_VK_UB_DEFER", 1)) return 0;   // PEANUTS: also allow outside a pass
+    if (!R.on && !VKA_ENV("DM_VK_UB_DEFER_OUTSIDE", 1)) return 0;   // PEANUTS: toggle just outside-pass deferral
     for (uint64_t done = 0; done < n;) {
         VkBuffer b; VkDeviceSize o; uint64_t k = vka_addr_run(dst + done, n - done, &b, &o);
         if (!k) return 0;
@@ -451,7 +461,13 @@ void vka_rp_end(void) {
     g_zlog_pass = 0;
     vka_oq_pass_end();   // an occlusion query active in the pass ends inside it
     if (R.classic) vk.vkCmdEndRenderPass(g_cb); else vk.vkCmdEndRendering(g_cb);
-    vka_barrier(g_cb);   // the pass's writes before whatever reads them next (copies, the present, the next pass's samples)
+    // PEANUTS begin: scope pass-end barrier to the stages that wrote in this pass
+    VkPipelineStageFlags src = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    VkAccessFlags acc = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    if (R.df || R.sf) { src |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT; acc |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT; }
+    if (R.swrite) { src |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT; acc |= VK_ACCESS_SHADER_WRITE_BIT; }
+    vka_barrier_stages(g_cb, src, acc, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT);
+    // PEANUTS end
     vka_xp_ts(g_cb, 1);
     bcrt_flush();        // block-compressed targets drawn through shadows: their blocks back (bcrt_attach)
     ub_flush();          // inline uniform updates deferred during the pass: copied into placed guest RAM
@@ -1794,11 +1810,11 @@ static int push_same(VkPipelineBindPoint bp, VkPipelineLayout layout) {
     }
     int c = bp == VK_PIPELINE_BIND_POINT_COMPUTE;
     if (VKA_ENV("DM_VK_PUSH_DEDUP", 1) && g_pd[c].n == k && !memcmp(g_pd[c].w, buf, k * sizeof *buf)) { g_pd_skip++; g_pd_skip_all++; return 1; }
-    // DM_VK_PUSH_DELTA=1 (live, default 0 until phone-checked): the same layout and the same writes in the same order as the last push, some of them with other descriptors:
+    // DM_VK_PUSH_DELTA=0 (live, default 1 on Turnip and Qualcomm, 0 elsewhere): the same layout and the same writes in the same order as the last push, some of them with other descriptors:
     // only those are pushed. Vulkan lets push descriptors be updated incrementally; the others stay as the last push left them (until the set is disturbed: a new command
     // buffer or part, a set bound in its place, which forget g_pd)
     g_dwn = 0;
-    if (VKA_ENV("DM_VK_PUSH_DELTA", 0) && g_pd[c].n == k && g_pd[c].w[0] == buf[0] && g_pd[c].w[1] == buf[1]) {
+    if (VKA_ENV("DM_VK_PUSH_DELTA", V.driver_id == VK_DRIVER_ID_MESA_TURNIP || V.driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) && g_pd[c].n == k && g_pd[c].w[0] == buf[0] && g_pd[c].w[1] == buf[1]) {
         int ok = 1;
         for (uint32_t i = 0; i < g_w.n && ok; i++) {
             const uint64_t *a = g_pd[c].w + 2 + 4 * (size_t)i, *b = buf + 2 + 4 * (size_t)i;
@@ -1945,6 +1961,7 @@ static int draw_writes(vka_shader *const sh[VKA_NSTAGE], const vka_dstate *d) {
     if (sh[2] && sh[2]->gs_fx > 0) return 1;
     for (int st = 0; st < VKA_NSTAGE; st++) {
         if (!sh[st] || (st == 1 && d->rast_discard)) continue;
+        if (g_wk.n[st] < 0) return 1;   // PEANUTS: failed resource walk may write
         const vka_res *r = g_wk.r[st];
         for (int i = 0; i < g_wk.n[st]; i++) if ((r[i].flags & DMSH_VK_BF_RW) || r[i].what == VKA_R_IMG || r[i].what == VKA_R_GMEM_LOG) return 1;
     }
@@ -3413,7 +3430,9 @@ static uint64_t g_disp_settled, g_disp_saved;   // pending barriers recorded lat
 uint64_t vka_disp_cleared;   // pending barriers a full barrier settled (vka_barrier_at), vka_disp_settle's own included
 void vka_disp_settle(VkCommandBuffer cb) {
     if (!cb || atomic_load_explicit(&vka_disp_pend, memory_order_relaxed) != cb) return;
-    g_disp_settled++; vka_barrier(cb);   // (clears vka_disp_pend)
+    g_disp_settled++;
+    vka_barrier_stages(cb, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_ACCESS_SHADER_WRITE_BIT,   // PEANUTS: scope dispatch settle to compute writes
+                       VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT);   // (clears vka_disp_pend)
 }
 // The census: dispatches by shader key and the game's call site (p_dispatch.caller, a module offset), so a log says whose work a frame's dispatches are
 int vka_mod_off(uint64_t addr, const char **name, uint64_t *off);   // vka_mem.c
