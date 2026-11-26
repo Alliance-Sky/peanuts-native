@@ -33,6 +33,9 @@ import java.util.regex.Pattern;
  * names a game; nothing exists at that path.
  */
 final class Nup {
+    // PEANUTS: #639: the control.nacp record's SupportedLanguageFlag (Nacp.languages, kept here so Nup builds without Nacp); 0 when the record is too short
+    private static int nacpLanguages(byte[] b, int at, int len) { return len < 0x3030 || at < 0 || at + 0x3030 > b.length ? 0 : (b[at + 0x302C] & 0xff) | (b[at + 0x302D] & 0xff) << 8 | (b[at + 0x302E] & 0xff) << 16 | (b[at + 0x302F] & 0xff) << 24; }
+
     static final int BASE = 0, UPDATE = 1, ADDON = 2;
     static final long NONE = 0xFFFFFFFFL;
     static final String EXT = ".nup";
@@ -608,7 +611,7 @@ final class Nup {
                 if (n > b.length - o - 8) break;
                 int at = o + 8, len = (int) n;
                 switch (t) {
-                    case 2: m.languages = Nacp.languages(Arrays.copyOfRange(b, at, at + len)); break;   // PEANUTS: #639
+                    case 2: m.languages = nacpLanguages(b, at, len); break;   // PEANUTS: #639
                     case 3: if (len > 4 && (b[at] & 0xff) == 0xFF && (b[at + 1] & 0xff) == 0xD8 || len > 8 && (b[at] & 0xff) == 0x89 && b[at + 1] == 'P') m.icon = Arrays.copyOfRange(b, at, at + len); break;   // the spec asks to check the image's first bytes rather than trust the type
                     case 4: m.version = text(b, at, len); break;
                     case 5: m.title = text(b, at, len); break;
