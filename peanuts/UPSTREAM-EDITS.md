@@ -161,6 +161,7 @@ not edited (see table above).
 | `dm/games/0100EB100AB42000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be, once it plays: Banana Native has no profile for FINAL FANTASY XII THE ZODIAC AGE (plays on the Android test app on Turnip; the system driver shows the texture issues known from other games) |
 | `dm/games/010088401495E000/` (new: `game.tsv`, `README.md`, and the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for THE HOUSE OF THE DEAD: Remake |
 | `dm/games/01007A3024D10000/` (new: `game.tsv`, `README.md`, and the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for THE HOUSE OF THE DEAD 2: Remake |
+| `dm/tools/patch_nso.py` (`check_before_copy` table-base `adrp`/`add`) + `dm/tools/tests/test_jump_copies.py` | marked (`PEANUTS(upstream-candidate)`); `dm/tools/rewriter_equiv/patch_nso.py.291a52143477` allow-listed in `peanuts/upstream-unmarked.txt` | **yes** — fallback-only jump-table recognition fix (Crash Bandicoot N. Sane Trilogy) |
 
 ## Generic host runtime-profile sites
 
