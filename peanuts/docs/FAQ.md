@@ -43,7 +43,7 @@ It is not an emulator in the usual sense: it does not emulate the console's hard
 
 ### Which devices does it run on?
 
-It is developed and tested on the AYN Thor (dual screen, Snapdragon 8 Gen 2, 16 GB). The stated needs are Android 13 or later, a 64-bit ARM device and a Snapdragon (Adreno) GPU with a Vulkan 1.3 driver. Other devices are untested. On a single-screen device the game still runs, without the companion.
+It is developed and tested on the AYN Thor (dual screen, Snapdragon 8 Gen 2, 16 GB). The stated needs are Android 13 or later, a 64-bit ARM device and a Snapdragon (Adreno) GPU with a Vulkan 1.3 driver. On Android 12 the app installs and opens (experimental): the library, settings, imports and saves work, but games need Android 13, and starting one says so. Other devices are untested. On a single-screen device the game still runs, without the companion.
 
 ### How much RAM do I need?
 
