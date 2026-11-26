@@ -53,7 +53,9 @@ final class GameLanguage {
 
     /** As env, resolved against the game's NACP SupportedLanguageFlag (0: not known, nothing changes; supported) */
     static String env(String choice, String phoneTag, int flags) {
-        String c = supported(choice != null ? choice : code(phoneTag), flags);
+        String want = choice != null ? choice : code(phoneTag);
+        if (want == null && flags != 0) want = "en-US";   // PEANUTS: #639 review: a phone language with no console code gets the host's default, which must fit the game too (an Indonesian phone and Xenoblade Chronicles 3's European release)
+        String c = supported(want, flags);
         return c == null ? null : "DM_LANG=" + c;
     }
 
