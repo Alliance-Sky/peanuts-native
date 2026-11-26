@@ -17,7 +17,7 @@ import dev.peanuts.PeanutsPrefs;
  * How the in-game menus look, picked once by the player: at the first start after the update, and for a new player at the start after the one that ran the
  * first start's setup (one question a start), Home's list shows the layouts as pictures (drawable/pil_layout_*.xml, made by
  * design/peanuts-native/layouts/layouts.py). Two menus (the game menu at the left, the quick menu at the right), One menu at the right, and on a device with
- * a second screen One menu on the bottom screen, which the focus starts on there. Later (or closing it) keeps the two menus and asks once more at the next
+ * a second screen Bottom screen (one menu there), which the focus starts on there. Later (or closing it) keeps the two menus and asks once more at the next
  * start, then no more. The menu's own settings change it later (Layout, dev.nxnative.android.InGamePanel).
  */
 public final class LayoutChoice {
@@ -32,7 +32,7 @@ public final class LayoutChoice {
 
     private static final int[] LAYOUTS = {PeanutsPrefs.LAYOUT_TWO, PeanutsPrefs.LAYOUT_RIGHT, PeanutsPrefs.LAYOUT_BOTTOM};
     private static final String[] PICTURES = {"pil_layout_two", "pil_layout_right", "pil_layout_bottom"};   // Peanuts' res (src/peanuts/res): by name
-    private static final String[] NAMES = {"Two menus", "One menu at the right", "One menu on the bottom screen"};
+    private static final String[] NAMES = {"Two menus", "One menu at the right", "Bottom screen"};   // short: each name fits one line of its card, so the lines under them start level
     private static final String[] LINES = {
             "The game menu at the left, the settings at the right.",
             "Everything in one place over the game.",
