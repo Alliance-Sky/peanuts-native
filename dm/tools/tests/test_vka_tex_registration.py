@@ -16,7 +16,7 @@ PRELUDE = r'''
 #include <string.h>
 #define NVN_TEXTURE_TARGET_BUFFER 11
 #define VLOG(...) ((void)0)
-#define VRED_ONCE(...) ((void)0)
+#define VRED_ONCE(...) ((void)0)   /* PEANUTS(upstream-candidate): treg_add can fail */
 typedef struct { uint64_t serial; void *pool; struct { int target; } d; } tex_t;
 typedef struct { int set_target, target; } view_t;
 typedef struct { tex_t t; view_t v; uint8_t has_v, img; uint64_t pgen; } treg_ent;
@@ -43,7 +43,7 @@ int main(void) {
     treg(id, NULL, NULL, 0);
     assert(!vka_tex_id_is_buffer(id));
     treg_ent cleared = {0};
-    assert(memcmp(treg_lookup(id), &cleared, sizeof cleared) == 0);
+    assert(memcmp(treg_lookup(id), &cleared, sizeof cleared) == 0);   /* PEANUTS(upstream-candidate) */
     assert(atomic_load(&g_tver[id]) == 2 && g_ntd == 1 && g_tdflag[id]);
     // A view overrides a live texture's target, but cannot make a NULL registration live.
     treg(id, &texture, &image_view, 1);
@@ -53,7 +53,7 @@ int main(void) {
     assert(vka_tex_id_is_buffer(id));
     treg(id, NULL, &buffer_view, 1);
     assert(!vka_tex_id_is_buffer(id));
-    assert(memcmp(treg_lookup(id), &cleared, sizeof cleared) == 0);
+    assert(memcmp(treg_lookup(id), &cleared, sizeof cleared) == 0);   /* PEANUTS(upstream-candidate) */
     assert(atomic_load(&g_tver[id]) == 5);
     // Clearing a never-registered ID, and rejecting IDs outside the table.
     treg(id + 1, NULL, NULL, 1);
@@ -86,7 +86,8 @@ class TextureRegistration(unittest.TestCase):
             path = Path(tmp)
             (path / 'registration.c').write_text(PRELUDE + functions + MAIN)
             build = subprocess.run([cc, '-std=c11', '-O1', '-fsanitize=undefined', '-fno-sanitize-recover=all',
-                                    '-pthread', '-I', str(SOURCE.parent), str(path / 'registration.c'), '-o', str(path / 'registration')],
+                                    '-pthread', '-I', str(SOURCE.parent),  # PEANUTS(upstream-candidate): vka_treg.h
+                                    str(path / 'registration.c'), '-o', str(path / 'registration')],
                                    capture_output=True, text=True)
             self.assertEqual(build.returncode, 0, build.stderr)
             run = subprocess.run([str(path / 'registration')], capture_output=True, text=True)

@@ -410,3 +410,5 @@ dm/games/01008FE00E2F6000/shader_facts.tsv	One Piece Pirate Warriors 4 generated
 dm/games/01008FE00E2F6000/shader_map.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
 dm/games/01008FE00E2F6000/shader_map.tsv.conflicts.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
 dm/games/01008FE00E2F6000/shader_pairs.tsv	One Piece Pirate Warriors 4 generated table; preserve bytes for reproducible shader input stamps.
+dm/games/010003F003A34000/README.md	Pokémon: Let's Go, Pikachu!'s note, a whole profile this fork added (Banana Native has no profile for 010003F003A34000; its header says PEANUTS): every line is Peanuts'
+dm/games/0100187003A36000/README.md	Pokémon: Let's Go, Eevee!'s note, a whole profile this fork added (Banana Native has no profile for 0100187003A36000): every line is Peanuts'

@@ -6,7 +6,7 @@ package dev.nxnative.android;
 // MainActivity's Settings, the card Performance and picture: "Game defaults" before Banana Native v0.3.22).
 
 import android.content.Context;
-import android.view.InputDevice;
+import android.view.InputDevice;   // PEANUTS: builtInPad (the Handheld default skips handhelds)
 
 import java.util.Arrays;
 import java.util.HashSet;
