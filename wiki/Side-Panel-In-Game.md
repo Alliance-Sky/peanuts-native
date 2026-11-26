@@ -1,4 +1,5 @@
 # The in-game menus
+<!-- PEANUTS begin: the in-game menus (#678-#680), in place of upstream's one in-game panel -->
 
 Two menus open over a running game, as on a console, and the game goes on behind both:
 
@@ -94,3 +95,4 @@ The app asks once which layout you want (twice if you pick **Later** the first t
 ## Sources
 
 `InGamePanel.java`, `dev/peanuts/ingame/` (`GameMenu`, `Rail`, `GameRows`, `BottomScreen`, `BottomMenu`), `SidePanel.java`, `PadPanel.java`, `TouchControls.java`, `PanelLook.java`, `Overlay.java`, `Lsfg.java`, `GameUpscaler.java`, `peanuts/UPSTREAM-EDITS.md` (In-game menus).
+<!-- PEANUTS end -->
