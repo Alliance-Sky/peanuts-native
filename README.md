@@ -123,6 +123,8 @@ The 0.1.8 release build installed over 0.1.7 on an AYN Thor (Adreno 740, Turnip 
   game still runs, without the companion.
 - Android 13 or later, a Snapdragon GPU with Vulkan 1.3, and 12 GB of RAM or more. A Turnip Vulkan driver is
   recommended; the app can download one.
+- Android 12 (experimental): the app installs and opens, and the library, settings, imports and saves work, but games
+  need Android 13. Starting a game says so. <!-- PEANUTS: Android 12 support (app only) -->
 - Free storage for the game and its build. Plan for the size of the game plus a few GB.
 - Your own `prod.keys`, your own firmware dump (a folder or a `.zip`) and your own game dump (NSP, XCI, either compressed
   as NSZ or XCZ, or a dump folder), with its update. <!-- PEANUTS: .nsz and .xcz (issue #149) -->
