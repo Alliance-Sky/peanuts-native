@@ -34,12 +34,7 @@ run: $(B)/t_language $(B)/t_motion $(B)/t_heap_size $(B)/t_touch $(B)/t_gesture 
 	$(B)/t_audio_spsc
 	$(B)/t_audio_stats
 	$(B)/t_fpslock
-	$(B)/t_oot_wide
-	$(B)/t_dkb_wide
-	$(B)/t_mkw_wide
-	$(B)/t_mtf_size
-	$(B)/t_pkp_aspect
-	$(B)/t_uecvar
+	$(B)/t_uecvar # PEANUTS: t_oot_wide, t_dkb_wide, t_mkw_wide, t_mtf_size and t_pkp_aspect (Switch 2 games' gates) removed: Switch 1 only
 	$(B)/t_ue_heap_alignment # PEANUTS: #236
 	$(B)/t_audren_work
 	$(B)/t_audren_layout
@@ -688,24 +683,7 @@ ifneq ($(wildcard $(COOP_DIR)/coop.h),)
 run: net-coop
 endif
 
-run: $(B)/t_mkw_wide
-$(B)/t_mkw_wide: t_mkw_wide.c ../android/mkw_wide.c ../android/wide_shape.h ../hle.h ../dm.h $(GAME_H) | $(B)
-	$(CLANG) -O1 -g -Wno-unused-function -I.. $(GINC) -o $@ t_mkw_wide.c -lm -pthread
-
-run: $(B)/t_mtf_size
-$(B)/t_mtf_size: t_mtf_size.c ../android/mtf_size.c ../hle.h ../dm.h $(GAME_H) | $(B)
-	$(CLANG) -O1 -g -Wno-unused-function -I.. $(GINC) -o $@ t_mtf_size.c -lm -pthread
-
-run: $(B)/t_oot_wide
-$(B)/t_oot_wide: t_oot_wide.c ../android/oot_wide.c ../android/wide_shape.h ../hle.h ../dm.h $(GAME_H) | $(B)
-	$(CLANG) -O1 -g -Wno-unused-function -I.. $(GINC) -o $@ t_oot_wide.c -lm -pthread
-
-run: $(B)/t_dkb_wide
-$(B)/t_dkb_wide: t_dkb_wide.c ../android/dkb_wide.c ../android/wide_shape.h ../hle.h ../dm.h $(GAME_H) | $(B)
-	$(CLANG) -O1 -g -Wno-unused-function -I.. $(GINC) -o $@ t_dkb_wide.c -lm -pthread
-run: $(B)/t_pkp_aspect
-$(B)/t_pkp_aspect: t_pkp_aspect.c ../android/pkp_aspect.c ../hle.h ../dm.h $(GAME_H) | $(B)
-	$(CLANG) -O1 -g -Wno-unused-function -I.. $(GINC) -o $@ t_pkp_aspect.c -lm -pthread
+# PEANUTS: the Switch 2 games' gate tests (t_mkw_wide, t_mtf_size, t_oot_wide, t_dkb_wide, t_pkp_aspect) are gone with their host files (peanuts/upstream-dropped.txt)
 
 # PEANUTS begin: the host side of the companion runtime, on a Linux PC: make GAME=<id> peanuts-host (in `run` on a Linux host). The host's files are compiled as they
 # are, as if for Android (their declarations; what differs on a PC is replaced in each test). t_peanuts_stopworld: every game thread stopped (hle_thread.c
