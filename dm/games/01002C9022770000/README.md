@@ -18,6 +18,7 @@ Frame rate: the game steps by elapsed time. A two-second walk ends at the same p
 First launch: `vk_prewarm.bin` holds the pipeline keys of a Turnip run. With it a cold start prepares the shader parts of 1,271 programs in about 8 seconds, and the first scenes draw without pipelines made late; the next start takes about 1 second.
 
 System driver: with 1.0.7 the stock Qualcomm driver starts the game and draws the title screen, menus and HUD, but the 3D field stays black, also on a second start. With 1.0.8 on an AYN Odin 2 (Qualcomm 512.676) the title screen and a save load, then the GPU hangs a few seconds into the field, in 2 of 2 runs (`vk: GPU hang: no progress; fence ... not reached in 6.1 s`). Use Turnip.
+<!-- PEANUTS: #783 (update 1.0.8 next to 1.0.7) -->
 
 ## Found on this game
 
