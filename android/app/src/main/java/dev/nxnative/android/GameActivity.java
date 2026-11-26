@@ -1804,7 +1804,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         // through it and the game gets no pad keys. A key the panel took a press of stays the panel's until it comes up
         int k = e.getKeyCode();
         boolean down = e.getAction() == KeyEvent.ACTION_DOWN, up = e.getAction() == KeyEvent.ACTION_UP;
-        if (InGamePanel.backKey(this, e)) return true;   // PEANUTS: the controller's Back pressed opens the game menu, held the quick menu
+        if (InGamePanel.backKey(this, e, prewarmCover != null)) return true;   // PEANUTS: the controller's Back pressed opens the game menu, held the quick menu (not under the cover, in preparation, in the controller applet)
         if (InGamePanel.quickKey(this, e)) return true;   // PEANUTS: the player's own button for the quick menu (dev.peanuts.ui.QuickButton)
         if (gamepad(e.getSource()) || k == KeyEvent.KEYCODE_BUTTON_MODE) {
             int c = InGamePanel.key(this, combo, k, down, e.getRepeatCount(), e.getEventTime());   // PEANUTS: Home held opens the quick menu

@@ -66,11 +66,11 @@ public final class InGamePanel {
 
     /** onCreate, once the panel and its handle are in place: the game menu over the panel, a handle at the left edge, the rows' work */
     static void attach(Activity a, FrameLayout root, SidePanel panel) {
+        reset();
         panelOf = panel;
         float scale = PanelLook.textScale(Prefs.panelText(a));
         int size = Prefs.panelSize(a);
-        int screen = a.getResources().getDisplayMetrics().widthPixels;
-        int w = Math.round(Math.min(Look.dp(a, size == 0 ? 280 : size == 2 ? 340 : 300), screen * 0.48f));
+        int w = menuWidth(a, a.getResources().getDisplayMetrics().widthPixels);
         menu = new GameMenu(a, w, Math.round(PanelLook.rowPx(size, a.getResources().getDisplayMetrics().density) * 0.92f), scale);   // a little under the panel's rows: all six and Stop fit 411 dp (the Thor)
         String id = String.valueOf(a.getIntent().getStringExtra("title_id")), name = a.getIntent().getStringExtra("name");
         menu.game(name, null, dev.peanuts.Companion::startedAt);   // read when the menu opens: Companion.start comes after attach
@@ -95,13 +95,13 @@ public final class InGamePanel {
         menuRows = rows;
         menuStop = stop;
         a.registerActivityLifecycleCallbacks(new android.app.Application.ActivityLifecycleCallbacks() {   // the game leaves the screen: the bottom one is given back
-            @Override public void onActivityPaused(Activity x) { if (x == a) closeBottom(true); }
+            @Override public void onActivityPaused(Activity x) { if (x == a && panelOf == panel) closeBottom(true); }
             @Override public void onActivityCreated(Activity x, android.os.Bundle b) {}
             @Override public void onActivityStarted(Activity x) {}
             @Override public void onActivityResumed(Activity x) {}
             @Override public void onActivityStopped(Activity x) {}
             @Override public void onActivitySaveInstanceState(Activity x, android.os.Bundle b) {}
-            @Override public void onActivityDestroyed(Activity x) { if (x == a) closeBottom(true); }
+            @Override public void onActivityDestroyed(Activity x) { if (x == a && panelOf == panel) closeBottom(true); }   // not after a newer screen attached
         });
         dev.peanuts.ingame.BottomMenu.opener = () -> { if (bottomMode(a)) openBottom(a, true, false); };
         root.addView(menu, root.indexOfChild(panel) + 1, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -131,11 +131,15 @@ public final class InGamePanel {
         left.setDefaultFocusHighlightEnabled(false);
         left.setOnClickListener(v -> openGame(a, false));
         root.addView(left, root.indexOfChild(panel), new FrameLayout.LayoutParams(Math.round(20 * dp), Math.round(140 * dp), android.view.Gravity.START | android.view.Gravity.TOP));
-        root.addOnLayoutChangeListener((v, l, t, r, bo, ol, ot, or, ob) -> left.setTranslationY((bo - t) * 0.3f - 70 * dp));
+        GameMenu made = menu;
+        root.addOnLayoutChangeListener((v, l, t, r, bo, ol, ot, or, ob) -> {
+            left.setTranslationY((bo - t) * 0.3f - 70 * dp);
+            if (r - l != or - ol) { made.width(menuWidth(a, r - l)); layoutMode = -1; }   // the screen's size changed: the menu's width, the layout's display
+        });
         root.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
             View right = rightHandle(root);
             int vis = right != null ? right.getVisibility() : View.VISIBLE;
-            if (rightMode(a)) vis = View.GONE;   // one menu at the right: the left edge is the game's
+            if (cachedRightMode(a)) vis = View.GONE;   // one menu at the right: the left edge is the game's
             if (left.getVisibility() != vis) left.setVisibility(vis);
             // Under gesture navigation the system takes a swipe in from either edge as Back (which opens the game menu): the two strips are kept out of
             // that, so the left one opens the game menu and the right one the quick menu (140 dp each, under Android's 200 dp a side)
@@ -143,6 +147,52 @@ public final class InGamePanel {
             if (right != null) exclude(right);
         });
     }
+
+    /** The game menu's width: the panel's size setting, at most 48 % of the screen's width */
+    private static int menuWidth(Activity a, int screen) {
+        int size = Prefs.panelSize(a);
+        return Math.round(Math.min(Look.dp(a, size == 0 ? 280 : size == 2 ? 340 : 300), screen * 0.48f));
+    }
+
+    /**
+     * A screen made again while the game runs (GameActivity recreated): everything the last one made goes, its bottom screen's window first. A backup still
+     * running (backingUp) is left to end on its own, so a second one cannot start beside it
+     */
+    private static void reset() {
+        closeBottom(true);
+        if (holdRun != null) UI.removeCallbacks(holdRun);
+        if (backRun != null) UI.removeCallbacks(backRun);
+        release();
+        menu = null; panelOf = null; backupRow = null; quickRow = null; menuRows = null; menuStop = null;
+        rightPanel = null; bottomPanel = null; bottomScreen = null; topDim = null; rightRows = null; gameRows = null; cover = null; version = null;
+        fromGame = false; padOpened = false; homeHeld = false; backDown = false; backHeld = false; shownTab = -1; quickKey = -1; layoutMode = -1;
+        stickDir = PadPanel.NONE;
+        taken.clear();
+    }
+
+    // The layout for the left edge's strip (a global layout listener runs about twice a second): read again when the size or the displays change, or the
+    // menu's settings pick another layout
+    private static int layoutMode = -1;   // -1 unknown, 0 not at the right, 1 at the right
+    private static android.hardware.display.DisplayManager.DisplayListener displays;
+
+    private static boolean cachedRightMode(Activity a) {
+        if (displays == null) {
+            android.hardware.display.DisplayManager dm = (android.hardware.display.DisplayManager) a.getApplicationContext().getSystemService(android.content.Context.DISPLAY_SERVICE);
+            if (dm != null) {
+                displays = new android.hardware.display.DisplayManager.DisplayListener() {
+                    @Override public void onDisplayAdded(int id) { layoutMode = -1; }
+                    @Override public void onDisplayRemoved(int id) { layoutMode = -1; }
+                    @Override public void onDisplayChanged(int id) { layoutMode = -1; }   // the game moved to the other screen (Swap screens), or one turned on or off
+                };
+                dm.registerDisplayListener(displays, UI);
+            }
+        }
+        if (layoutMode < 0) layoutMode = rightMode(a) ? 1 : 0;
+        return layoutMode == 1;
+    }
+
+    /** The menu's settings picked another layout: the left edge's strip reads it again */
+    static void layoutChanged() { layoutMode = -1; }
 
     private static void exclude(View v) {
         java.util.List<android.graphics.Rect> was = v.getSystemGestureExclusionRects();
@@ -224,13 +274,17 @@ public final class InGamePanel {
     private static boolean backDown, backHeld;
     private static Runnable backRun;
 
-    /** GameActivity.dispatchKeyEvent: true when it was the controller's Back and taken here */
-    static boolean backKey(Activity a, KeyEvent e) {
+    /**
+     * GameActivity.dispatchKeyEvent: true when it was the controller's Back and taken here. Not while something under the menus has Back
+     * (onBackPressed, as before): the Preparing shaders cover (covered), a shader preparation boot (Back cancels it), the controller applet's join screen
+     * (Back cancels it)
+     */
+    static boolean backKey(Activity a, KeyEvent e, boolean covered) {
         if (!controllerBack(e)) return false;
         if (e.getAction() == KeyEvent.ACTION_DOWN) {
             if (e.getRepeatCount() > 0) return backDown;
             SidePanel p = panel(a);
-            backDown = (p == null || !p.isOpen()) && one() == null;
+            backDown = (p == null || !p.isOpen()) && one() == null && !backBelongsElsewhere(a, covered);
             if (!backDown) return false;
             backHeld = false;
             if (backRun != null) UI.removeCallbacks(backRun);
@@ -244,6 +298,21 @@ public final class InGamePanel {
         if (backHeld || e.isCanceled()) { backHeld = false; return true; }   // a Back another app took while held (a screen swap) comes up cancelled
         toggle(a, true);   // the game menu, with the selection shown; or it closes
         return true;
+    }
+
+    /** Whether Back is the cover's, the preparation's or the controller applet's now (GameActivity.onBackPressed handles it before the menus) */
+    static boolean backBelongsElsewhere(Activity a, boolean covered) {
+        return covered || dev.peanuts.build.ShaderCapture.active(a) || ctrlAppletOpen();
+    }
+
+    /** The controller applet's join screen is up (CtrlScreen's own test: the host's state starts with "open") */
+    private static boolean ctrlAppletOpen() {
+        try {
+            byte[] b = Native.ctrlState();
+            return b != null && new String(b, java.nio.charset.StandardCharsets.UTF_8).startsWith("open");
+        } catch (UnsatisfiedLinkError e) {
+            return false;
+        }
     }
 
     /**
@@ -299,7 +368,7 @@ public final class InGamePanel {
         if (p != null && p.onOpen != null) p.onOpen.run();   // the game's held buttons released (GameActivity.releaseGameInput)
         padOpened = pad;
         menu.open(pad);
-        if (backupRow != null && !"Backing up".equals(backupRow.valueText())) new Thread(() -> { String v = lastBackup(a); UI.post(() -> backupRow.value(v, false)); }, "peanuts-menu-backups").start();
+        if (backupRow != null && !backingUp) new Thread(() -> { String v = lastBackup(a); UI.post(() -> backupRow.value(v, false)); }, "peanuts-menu-backups").start();
     }
 
     /** The quick menu: from the game menu (it slides out to the left while the quick menu comes in), or on its own */
@@ -380,7 +449,6 @@ public final class InGamePanel {
 
     private static void step(int dir) { menu.move(dir == PadPanel.UP, dir == PadPanel.DOWN, dir == PadPanel.LEFT, dir == PadPanel.RIGHT); }
 
-    /** The controller's confirm and back keys: the Switch's A and B in this game, as the panel takes them (PadPanel.confirmBack) */
     /** The quick menu while it is open (the panel's own key handling presses its rows), else null */
     private static SidePanel shownPanel(Activity a) {
         if (one() != null) return one();
@@ -388,6 +456,7 @@ public final class InGamePanel {
         return p != null && p.isOpen() ? p : null;
     }
 
+    /** The controller's confirm and back keys: the Switch's A and B in this game, as the panel takes them (PadPanel.confirmBack) */
     private static int[] keys(Activity a) {
         String id = String.valueOf(a.getIntent().getStringExtra("title_id"));
         return PadPanel.confirmBack(Prefs.padMap(a, id), 0);   // PEANUTS: 0, the Xbox button label swap is removed (owner 2026-11-26), as GameActivity's padButtons
@@ -402,11 +471,15 @@ public final class InGamePanel {
      * only by that swap, and SaveStore checks the save and its markers around the copy, so a Commit in between fails the copy, which is tried again (3 times,
      * as is a copy that failed otherwise: a Commit may have moved a file away under it)
      */
+    private static boolean backingUp;   // UI thread: a backup runs; the row is ignored until it ends (a second one would take the same name and temp folder)
+
     private static void backup(Activity a) {
+        if (backingUp) return;
         File save = GameActivity.runSave();
         if (save == null) { backupRow.value("No save yet", false); return; }
         Game g = game(a);
         File to = SaveUi.target(a, g);
+        backingUp = true;
         backupRow.value("Backing up", false);
         menu.note(null, false);
         new Thread(() -> {
@@ -425,6 +498,7 @@ public final class InGamePanel {
             if (why != null) Native.note("[RED] [peanuts] in-game save backup: " + why);
             else Native.note("save backed up from the game menu: " + done.files + " files, " + done.bytes + " bytes");
             UI.post(() -> {
+                backingUp = false;
                 if (done != null) { backupRow.value("Just now", false); return; }
                 backupRow.value("Not backed up", true);
                 menu.note(why.contains("no save folder") ? "This game has no save yet."
@@ -836,7 +910,7 @@ public final class InGamePanel {
         n.setTextColor(android.graphics.Color.LTGRAY);
         box.addView(n);
         g.setOnCheckedChangeListener((group, id) -> {
-            for (int i = 0; i < ids.length; i++) if (ids[i] == id && id != 0) { dev.peanuts.PeanutsPrefs.menuLayout(a, i); n.setText(notes[i]); }
+            for (int i = 0; i < ids.length; i++) if (ids[i] == id && id != 0) { dev.peanuts.PeanutsPrefs.menuLayout(a, i); n.setText(notes[i]); layoutChanged(); }
         });
     }
 }
