@@ -118,7 +118,7 @@ static timg *img_make(const tb_t *t, int is2d) {   // (g_mu held)
         w = t->elems; h = 1;
         if (w > V.props.limits.maxImageDimension1D) { w = V.props.limits.maxImageDimension1D; VRED_ONCE("buffer texture of %u elements read as a 1D image: only its first %u (the device's 1D images)", t->elems, w); }
     }
-    int mut = t->f.vk != t->f.view;
+    int mut = t->f.vk != t->f.view;   // PEANUTS: #503
     VkFormat fls[2] = {t->f.vk, t->f.view};
     VkImageFormatListCreateInfo fli = {VK_STRUCTURE_TYPE_IMAGE_FORMAT_LIST_CREATE_INFO, .viewFormatCount = 2, .pViewFormats = fls};
     VkImageCreateInfo ci = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO, .pNext = mut && VKA_ENV("DM_VK_UBWC", 1) ? &fli : NULL,

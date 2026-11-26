@@ -245,7 +245,7 @@ static void ub_flush(void) {
     vka_rw_pre(g_cb);
     for (int i = 0; i < n; i++) {
         uint64_t dst = UB.e[i].dst, sz = UB.e[i].n; const uint8_t *data = UB.e[i].data;
-        for (int j = 0; j < i; j++) if (UB.e[j].dst < dst + sz && dst < UB.e[j].dst + UB.e[j].n) {
+        for (int j = 0; j < i; j++) if (UB.e[j].dst < dst + sz && dst < UB.e[j].dst + UB.e[j].n) {   // PEANUTS: #503 #505 #562 #563
             vka_barrier_stages(g_cb, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT);
             break;
         }
@@ -258,7 +258,7 @@ static void ub_flush(void) {
         }
         last_d = dst; last_n = sz;
     }
-    vka_barrier_stages(g_cb, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+    vka_barrier_stages(g_cb, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,   // PEANUTS: #503 #505 #562 #563
                        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT);
     // PEANUTS end
     if (last_n) vka_rw_point(g_cb, 'u', 0, last_n, last_d);
@@ -1810,11 +1810,11 @@ static int push_same(VkPipelineBindPoint bp, VkPipelineLayout layout) {
     }
     int c = bp == VK_PIPELINE_BIND_POINT_COMPUTE;
     if (VKA_ENV("DM_VK_PUSH_DEDUP", 1) && g_pd[c].n == k && !memcmp(g_pd[c].w, buf, k * sizeof *buf)) { g_pd_skip++; g_pd_skip_all++; return 1; }
-    // DM_VK_PUSH_DELTA=0 (live, default 1 on Turnip and Qualcomm, 0 elsewhere): the same layout and the same writes in the same order as the last push, some of them with other descriptors:
+    // DM_VK_PUSH_DELTA=0 (live, default 1 on Turnip and Qualcomm, 0 elsewhere): the same layout and the same writes in the same order as the last push, some of them with other descriptors:   // PEANUTS: #503 #505 #562 #563
     // only those are pushed. Vulkan lets push descriptors be updated incrementally; the others stay as the last push left them (until the set is disturbed: a new command
     // buffer or part, a set bound in its place, which forget g_pd)
     g_dwn = 0;
-    if (VKA_ENV("DM_VK_PUSH_DELTA", V.driver_id == VK_DRIVER_ID_MESA_TURNIP || V.driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) && g_pd[c].n == k && g_pd[c].w[0] == buf[0] && g_pd[c].w[1] == buf[1]) {
+    if (VKA_ENV("DM_VK_PUSH_DELTA", V.driver_id == VK_DRIVER_ID_MESA_TURNIP || V.driver_id == VK_DRIVER_ID_QUALCOMM_PROPRIETARY) && g_pd[c].n == k && g_pd[c].w[0] == buf[0] && g_pd[c].w[1] == buf[1]) {   // PEANUTS: #503 #505 #562 #563
         int ok = 1;
         for (uint32_t i = 0; i < g_w.n && ok; i++) {
             const uint64_t *a = g_pd[c].w + 2 + 4 * (size_t)i, *b = buf + 2 + 4 * (size_t)i;
@@ -3430,7 +3430,7 @@ static uint64_t g_disp_settled, g_disp_saved;   // pending barriers recorded lat
 uint64_t vka_disp_cleared;   // pending barriers a full barrier settled (vka_barrier_at), vka_disp_settle's own included
 void vka_disp_settle(VkCommandBuffer cb) {
     if (!cb || atomic_load_explicit(&vka_disp_pend, memory_order_relaxed) != cb) return;
-    g_disp_settled++;
+    g_disp_settled++;   // PEANUTS: #503 #505 #562 #563
     vka_barrier_stages(cb, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_ACCESS_SHADER_WRITE_BIT,   // PEANUTS: scope dispatch settle to compute writes
                        VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT);   // (clears vka_disp_pend)
 }
