@@ -40,9 +40,7 @@ Each connected gamepad is a player of its own. The quick menu's **Controllers > 
 - **When to toggle:** when your controller's layout differs from the game's expectation.
 - **What to expect:** applies at the next start (the host reads it once). Settings has the default for every game; a game's own mapping wins.
 
-## Xbox button label swap
-- **What it does:** for Xbox-style layouts. **Off**, **Swap labels for X/Y and A/B** (the on-screen prompts are redrawn), or **Swap labels for X/Y, swap buttons A/B** (prompts for X/Y are redrawn and A and B are swapped by label).
-- **Default:** Off. Per game with a **Default** choice that follows Settings.
+<!-- PEANUTS: the Xbox button label swap section is gone, the setting was removed (owner 2026-11-26) -->
 
 ## Motion sensitivity
 - **What it does:** how far the phone's gyro turns the aim. Steps: 10, 20, 30, 40, 50, 60, 75, 100, 125, 150 %. 100 % is the real turn, as on a console. From the next start in Game settings; the quick menu's slider applies at each step. <!-- PEANUTS: in-game menus -->
