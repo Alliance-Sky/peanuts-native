@@ -1,3 +1,4 @@
+// PEANUTS: Home's Sort on the JVM (#557, intermission88); dm/tools/tests/test_android_librarysort.py compiles and runs it
 package dev.peanuts.ui;
 
 import java.util.ArrayList;

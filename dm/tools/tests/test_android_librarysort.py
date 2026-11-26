@@ -1,3 +1,4 @@
+# PEANUTS: Home's Sort (#557, intermission88)
 """Home's Sort (LibrarySort.java with android/app/src/jvmtest's LibrarySortJvmTest): the four orders, ties A-Z, All grouped or as one list with the building
 games first, and the first-seen time behind Recently added. The JVM part is skipped without a JDK."""
 import shutil
