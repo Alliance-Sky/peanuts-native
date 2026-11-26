@@ -28,7 +28,7 @@ public final class BuildConfig {
 
 class OptionTsv(unittest.TestCase):
     def test_switch1_options_in_game_tsv(self):   # PEANUTS begin: the Switch 1 profiles' option rows
-        for game, env, label in (('01005CA01580E000', 'DM_P5R_HD', 'HD resolution'), ('0100DCA0064A6000', 'DM_LM3_FIXED_RES', 'Fixed docked resolution')):
+        for game, env, label in (('0100DCA0064A6000', 'DM_LM3_FIXED_RES', 'Fixed docked resolution'),):   # P5R's HD resolution option removed (owner 2026-11-26)
             rows = [l.split('\t') for l in (REPO / 'dm/games' / game / 'game.tsv').read_text(encoding='utf-8').splitlines() if l.startswith('option\t')]
             self.assertEqual([(r[1].strip(), r[2].strip()) for r in rows], [(env, label)], game)
             self.assertIn('restart', [tok for col in rows[0][4:] for tok in col.split()], game)
