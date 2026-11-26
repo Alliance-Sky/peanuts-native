@@ -3435,3 +3435,11 @@ NCA through the check too), `CMakeLists.txt`, `HOOKS.md`, `tests/nsp_fixture.h` 
 `test_compressed.py` (the damaged cases beside #697's cut-off ones), `test_nup_icon.py` (its build of `nup_meta_test` takes `nx_verify.c`).
 The host's copy of `nx_nca.c` never sets a check (`nx_verify.c` is not in `android/host/CMakeLists.txt`'s `NSP_C`). Upstream candidate: the split's bounds
 checks (general: any FlatBuffers index); the rest is Peanuts' importer.
+## NVN BGR5A1 on Android (2026-11-26)
+
+NVN_FORMAT_BGR5A1 (0x97) had no Vulkan format; NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS samples one such texture. Found while taking over the draft igawa6/peanuts-native#637 (codetz7).
+
+| File | Hunks | What | Marker |
+|---|---|---|---|
+| `dm/gfx/vk_android/vka_tex.c` | 1 | NVN BGR5A1 (0x97) → `VK_FORMAT_A1R5G5B5_UNORM_PACK16` in `fmt_ent_of` | `PEANUTS` |
+| `docs/reference/rendering.md`, `docs/agents/symptoms.md` | 1, 1 | the entry "A material's body invisible or black: NVN_FORMAT_BGR5A1 had no Vulkan format", and its line in the generated index | `PEANUTS` / generated |
