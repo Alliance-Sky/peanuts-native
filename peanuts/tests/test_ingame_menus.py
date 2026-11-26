@@ -234,8 +234,8 @@ class QuickMenuButton(unittest.TestCase):
         for k in ('KEYCODE_BUTTON_A', 'KEYCODE_BUTTON_THUMBL', 'KEYCODE_BUTTON_THUMBR', 'KEYCODE_DPAD_UP', 'KEYCODE_BUTTON_L2'):
             self.assertIn(f'case KeyEvent.{k}:', q[q.index('static boolean games('):], f'{k} warns: games use it')
         self.assertIn('if (k == KeyEvent.KEYCODE_BUTTON_MODE) return', q, "Home stays the game menu's")
-        self.assertIn('PeanutsPrefs.quickKeyNever(a)', q, 'asked at the start until the player says Never')
-        self.assertIn('LayoutChoice.offer(a, () -> QuickButton.offer(a))', (APP / 'main/java/dev/peanuts/ui/Library.java').read_text(encoding='utf-8'), "asked from Home's list, after the layout")
+        self.assertNotIn('static void offer(', q, "the app's start asks nothing about it: its row in Settings › Controls sets it up")
+        self.assertNotIn('QuickButton', (APP / 'main/java/dev/peanuts/ui/Library.java').read_text(encoding='utf-8'), "Home's list asks nothing about it")
         prefs = (APP / 'main/java/dev/peanuts/PeanutsPrefs.java').read_text(encoding='utf-8')
         self.assertIn('getInt("quick_key", 0)', prefs, 'none by default')
         self.assertIn('r("Quick menu button", "controller")', (APP / 'main/java/dev/peanuts/ui/SettingsSections.java').read_text(encoding='utf-8'))

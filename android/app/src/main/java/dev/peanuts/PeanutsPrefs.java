@@ -241,9 +241,6 @@ public final class PeanutsPrefs {
      *  0 none; the launcher writes it, the game's process reads it at its start */
     public static int quickKey(Context c) { return of(c).getInt("quick_key", 0); }
     public static void quickKey(Context c, int keyCode) { of(c).edit().putInt("quick_key", keyCode).apply(); }
-    /** The player said Never to the question at the app's start */
-    public static boolean quickKeyNever(Context c) { return of(c).getBoolean("quick_key_never", false); }
-    public static void quickKeyNever(Context c, boolean never) { of(c).edit().putBoolean("quick_key_never", never).apply(); }
 
     /**
      * The in-game menus' layout: two menus (the game menu at the left, the quick menu at the right), one menu at the right, or one menu on the bottom screen.
