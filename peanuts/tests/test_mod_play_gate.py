@@ -112,17 +112,21 @@ class WiringTest(unittest.TestCase):
         """The game's screen with a player's pack is started in two places only: MainActivity.startWithDriver (after launch) and FrontendLaunch.play"""
         starts = []
         for f in JAVA.rglob('*.java'):
-            for m in re.finditer(r'new Intent\(this, GameActivity\.class\)', f.read_text()):
+            for m in re.finditer(r'new Intent\(this, GameActivity\.class\)|setClassName\([^;\n]*"dev\.nxnative\.android\.GameActivity"', f.read_text()):
                 starts.append(f.name)
-        self.assertEqual(sorted(starts), ['FrontendLaunch.java', 'MainActivity.java'])
+        # ShaderCapture opens the game's screen with its own empty save (ShaderCapture.save), never the player's
+        self.assertEqual(sorted(starts), ['FrontendLaunch.java', 'MainActivity.java', 'ShaderCapture.java'])
 
     def test_game_backs_up_before_the_host_has_the_save(self):
         src = GAME.read_text()
         start = method(src, '    private void start() {')
-        hook = start.index('beforeNewBuild(save, game, saveId, packDir)')
+        hook = start.index('beforeNewBuild(save, game, id, saveId, packDir)')
         self.assertLess(start.index('save = saveDir(files, game, saveId)'), hook)
         self.assertLess(hook, start.index('"DM_SAVE=" + save'))
-        body = method(src, '    private void beforeNewBuild(File save, File game, String saveId, File packDir) {')
+        body = method(src, '    private void beforeNewBuild(File save, File game, String id, String saveId, File packDir) throws IOException {')
+        # a failed copy stops a start of the game's own pack while code mods are on (Play without mods), the start #514 lost saves to
+        self.assertIn('if (!dev.peanuts.build.ModdedBuild.isVariantPack(packDir))\n                throw new IOException(', body)
+        self.assertIn('ModsSection.codeModsOn(this, id, game, packDir)', body)
         self.assertIn('SaveStore.beforeNewBuild(', body)
         self.assertLess(body.index('ModsSection.codeModsOn('), body.index('SaveStore.beforeNewBuild('), 'only games with code mods are backed up')
         self.assertIn('UserSaveDirs.others(save)', body)
