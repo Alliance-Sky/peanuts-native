@@ -156,8 +156,9 @@ After an app update, rebuilding every game is strongly recommended: hold the cov
   folder, and each cheat has a switch that works at once, also from the in-game panel's **Mods** tab. Install a mod
   from a folder or a zip. It is on
   from the game's next start, and each mod has a switch and a delete button. A mod that changes the game's code gets
-  a build with mods, which starts by itself (it waits while another build runs). Until that build is ready, the game
-  starts without that mod. After a failed build, tap **Build with mods** to try again.
+  a build with mods, which starts by itself (it waits while another build runs). Until that build is ready, **Play**
+  says when it will be, so the game never opens your modded save without its mod. After a failed build, tap **Build
+  with mods** to try again. <!-- PEANUTS: issue #514 -->
 - **Saves**: back up, restore, import and **Delete save data** on the game's **Saves** tab.
 
 A game can also be built on a computer and pushed to the device: see [BUILDER.md](peanuts/docs/BUILDER.md). The builder is tested
