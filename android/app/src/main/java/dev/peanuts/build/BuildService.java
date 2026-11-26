@@ -264,10 +264,12 @@ public final class BuildService extends Service {
      */
     private boolean waitTurn(BuildQueue q, BuildQueue.Item first) {
         String was = null;
+        long hotSince = 0;   // when the heat wait began or was last at SEVERE or worse (uptime): it goes on at MODERATE only after PackPolicy.COOL_MS (#803)
         while (!cancelAll && !q.held()) {
             final BuildQueue.Item next = q.next();   // each round: the game it waited for may have been removed meanwhile (its pack import is then not waited for)
             if (next == null) return true;   // the loop finds nothing to run and ends
-            String r = waitFor(was, next);
+            if (!BuildQueue.WAIT_HEAT.equals(was) || thermal >= android.os.PowerManager.THERMAL_STATUS_SEVERE) hotSince = android.os.SystemClock.uptimeMillis();
+            String r = waitFor(was, next, android.os.SystemClock.uptimeMillis() - hotSince);
             if (r == null) {
                 if (was != null) {
                     BuildLogShare.line(this, next.titleId(), "queue: going on after the wait (" + was + "; " + readings() + ")");
@@ -295,8 +297,8 @@ public final class BuildService extends Service {
     }
 
     /** What the queue waits for before next now, null when nothing: was is what it waited for at the last look (the heat wait lasts until MODERATE, PackPolicy) */
-    private String waitFor(String was, BuildQueue.Item next) {
-        String r = policy(BuildQueue.WAIT_HEAT.equals(was) ? "thermal" : BuildQueue.WAIT_BATTERY.equals(was) ? "battery" : null);
+    private String waitFor(String was, BuildQueue.Item next, long hotMs) {
+        String r = policy(BuildQueue.WAIT_HEAT.equals(was) ? "thermal" : BuildQueue.WAIT_BATTERY.equals(was) ? "battery" : null, hotMs);
         if ("battery".equals(r)) return BuildQueue.WAIT_BATTERY;
         if ("thermal".equals(r)) return BuildQueue.WAIT_HEAT;
         if (ModBuildPipeline.running() != 0) return BuildQueue.WAIT_MODS;
@@ -306,11 +308,11 @@ public final class BuildService extends Service {
     }
 
     /** Upstream's PackPolicy.reason (the packer's pause rule) on this service's readings: "battery", "thermal" or null */
-    private String policy(String was) {
+    private String policy(String was, long hotMs) {
         boolean override = heatGoOn || heatGoOnRemembered();
-        try {
-            return (String) Upstream.call(Upstream.k("PackPolicy"), null, "reason", new Class<?>[] {int.class, boolean.class, int.class, String.class, boolean.class},
-                    batteryPct, charging, thermal, was, override);
+        try {   // hotMs: how long the heat wait has lasted, for the pause's cool-down (PackPolicy.COOL_MS, #803)
+            return (String) Upstream.call(Upstream.k("PackPolicy"), null, "reason", new Class<?>[] {int.class, boolean.class, int.class, String.class, boolean.class, long.class},
+                    batteryPct, charging, thermal, was, override, hotMs);
         } catch (ReflectiveOperationException | RuntimeException e) {
             if (!policyBroken) { policyBroken = true; Log.w(TAG, "queue: the packer's pause rule cannot be read (" + e + "): the queue does not wait for heat or the battery"); }
             return null;

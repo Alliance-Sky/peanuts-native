@@ -3064,3 +3064,21 @@ A half turn between the two landscape sides (ROTATION_90 <-> ROTATION_270) chang
 | `android/app/src/main/java/dev/nxnative/android/GameActivity.java` | 6 | the `rotationWatch` field; `hostSetup`, `onResume`, `onConfigurationChanged` go through it instead of `Native.motionRotation(getDisplay().getRotation())`; `onPause` and `onDestroy` unregister it | `PEANUTS` in each line |
 
 Tests: `peanuts/tests/test_motion_rotation.py` (wiring, and `android/app/src/jvmtest/java/dev/peanuts/display/MotionRotationJvmTest.java` on the JVM). Upstream candidate: yes, any Android host with phone motion has the same half-turn gap.
+
+### A heat pause holds the step where it is, and goes on only once the phone has cooled (GitHub #803, 2026-11-26, on dev-0.1.9)
+
+FINAL FANTASY RESONANCE on an AYN Odin 3 on its charger: the build paused at SEVERE, went on about 7 s later at MODERATE, and the code step began again from 0, 74 times in 4 hours. The pause itself was the kill: `PackService.policy` interrupted the tool (exit 130) and `work()` ran the step again from its start, which costs the shaders step and the split seconds (they keep their results) and the rewrite everything. Now a heat pause interrupts only the split and the shaders step; the other steps are held where they are (the hold file, `SIGSTOP`/`SIGCONT` of the rewrite's worker group, or a wait at the next progress line in process) and go on from there. The pause goes on at LIGHT or better, or at MODERATE after 2 minutes. From the second heat pause of a run the card and the notification put Go on anyway first, with a plain note; the Peanuts build card has its own Go on anyway button. Details: `docs/reference/packing.md`, "A heat pause began the code step again from 0".
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/src/ondevice/java/dev/nxnative/android/PackPolicy.java` | 3 | `COOL_MS`, `HOT_AGAIN_AT`, `HOT_AGAIN`, `heatStops`; `reason` with the pause's length (the five-argument one keeps the rule without a cool-down) | `PEANUTS` |
+| `android/app/src/ondevice/java/dev/nxnative/android/PackService.java` | 9 | `held`, `heatSince`, `heatPauses`, `heatRecheck`; `policy` holds or interrupts by `heatStops`, counts the heat pauses, re-checks the cool-down every 15 s; `hold`, `unhold`, `holdFile`; `PN_HOLD_FILE`; no hold left before a tool, after it, or at a stop; `waitWhileAuto` marks the job running after a step that could not be held; the notification puts Go on anyway first from `HOT_AGAIN_AT` | `PEANUTS` |
+| `android/app/src/ondevice/java/dev/nxnative/android/Job.java` | 3 | `heatPauses`, `hotAgain`; `statusText` and `reasonText` ("goes on from where it stopped") | `PEANUTS` |
+| `scripts/pack_android.py` | 3 | `held`, `wait_while_held`; `ProgressTee(hold=True)` for the rewrite in process; `_rewrite_worker_once` stops and continues the worker's process group | `PEANUTS` |
+| `android/app/src/jvmtest/java/dev/nxnative/android/PackPolicyJvmTest.java`, `dm/tools/tests/test_android_packpolicy.py` | 3, 3 | the pause's length as a sixth field, `stops <step>`; the cool-down, the steps a heat pause stops, the service's wiring, the note's words | `PEANUTS` |
+| `docs/reference/packing.md`, `docs/agents/symptoms.md`, `wiki/Heat-and-Battery.md`, `wiki/Troubleshooting.md`, `wiki/First-Start-and-Prepare.md` | 1 each | the entry and its symptom line; the pause rule and Go on anyway on the card | `<!-- PEANUTS -->` |
+| `android/app/src/main/java/dev/peanuts/build/Prepare.java`, `BuildPipeline.java`, `BuildService.java`, `Upstream.java`, `dev/peanuts/ui/Library.java` | | `pausedLine`, `goOn`, `HOT_AGAIN`; `heatPaused`, `goOnOffered`, `goOnAnyway`; the queue's heat wait with the cool-down; `packGoOn`; the build card's Go on anyway | Peanuts' own files |
+
+Tests: `dm/tools/tests/test_android_packpolicy.py`, `peanuts/tests/test_heat_hold.py` (a counting stand-in tool held in a worker and in process: it does not move while held, goes on to the end, and does not start again; a stop ends a held worker).
+
+Upstream candidate: yes, for every game (the Peanuts card and queue parts excepted).

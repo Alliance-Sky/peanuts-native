@@ -152,6 +152,7 @@ public final class Library {
     private final Map<String, Boolean> companions = new HashMap<>();   // title ID → a companion is installed (read once per pass; cleared by a scan and a build's end)
     // the build card's live parts (null when it is not on screen)
     private TextView buildStatus, buildBody, buildPct;
+    private Button buildGoOn;   // the build card's Go on anyway, shown while the packer waits in a heat pause it lifts (BuildPipeline.goOnOffered, GitHub #803)
     private ProgressBar buildBar;
     // the building game's cover marks (null when the Building filter shows the card instead)
     private TextView coverChip;
@@ -1131,7 +1132,7 @@ public final class Library {
         box.removeAllViews();
         tiles.clear(); keyed.clear();
         lostKey = null; restoreKey = null;   // the removal above is not a focus lost to restore at the next rebuild
-        buildStatus = null; buildBody = null; buildPct = null; buildBar = null; coverChip = null; coverStrip = null; firstCover = null;
+        buildStatus = null; buildBody = null; buildPct = null; buildBar = null; buildGoOn = null; coverChip = null; coverStrip = null; firstCover = null;
         if (ondeviceCard != null && ondeviceCard.getParent() instanceof ViewGroup) ((ViewGroup) ondeviceCard.getParent()).removeView(ondeviceCard);
         shown = sig;
         if (setup) PUi.add(box, setupCard(), 0);
@@ -1980,6 +1981,13 @@ public final class Library {
             right = play;
         }
         PUi.add(c, PUi.pair(a, left, right), 14);
+        // a heat pause Go on anyway lifts (#803): the card's own button, first under the bar; the body says why (Prepare.pausedLine)
+        if (!b.failed) {
+            buildGoOn = PUi.button(a, "Go on anyway", PUi.Kind.PRIMARY, v -> { Haptics.play(v, Haptics.Word.HEAVY); BuildPipeline.goOnAnyway(a); v.setVisibility(View.GONE); });
+            buildGoOn.setContentDescription("Go on anyway: build " + name + " without pausing for heat");
+            buildGoOn.setVisibility(View.GONE);
+            PUi.add(c, buildGoOn, 10);
+        }
         // a build that stopped or failed: its build log, or its newest game run when it has one too (BuildLogUi.shareLog asks which)
         if (b.failed) {
             LinearLayout quiet = PUi.row(a);
@@ -2011,6 +2019,7 @@ public final class Library {
         }
         if (buildStatus == null) return;
         PUi.status(buildStatus, stepWords(b), b.failed ? R.color.bn_danger : b.step.equals("done") ? R.color.bn_leaf : R.color.bn_accent);
+        if (buildGoOn != null) buildGoOn.setVisibility(!b.failed && BuildPipeline.goOnOffered(b.titleId) ? View.VISIBLE : View.GONE);   // #803
         if (b.failed) {
             String first = b.error.split("\n")[0].trim();
             LibraryScanner.Title bt = titleFor(b.titleId);

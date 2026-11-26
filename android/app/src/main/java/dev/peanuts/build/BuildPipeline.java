@@ -118,6 +118,24 @@ public final class BuildPipeline {
     /** What the queue waits for before its next game (BuildQueue.WAIT_*), null when it does not wait */
     public static String waitReason() { return waitReason; }
 
+    // The build card's Go on anyway (GitHub #803): the game whose job waits in a heat pause that Go on anyway lifts (Prepare reads it from job.json), null when none
+    private static volatile String heatPaused;
+
+    static void heatPaused(String titleId) {
+        String was = heatPaused;
+        heatPaused = titleId;
+        if (titleId == null ? was != null : !titleId.equals(was)) changed();
+    }
+
+    /** Whether the build card of this game offers Go on anyway now */
+    public static boolean goOnOffered(String titleId) { String t = heatPaused; return t != null && t.equalsIgnoreCase(titleId); }
+
+    /** The build card's Go on anyway: the packer's heat pause is lifted for this job, as the build notification's Go on anyway does (remembered for the device, #93) */
+    public static void goOnAnyway(Context ctx) {
+        try { ctx.startService(Upstream.packGoOn(ctx)); }
+        catch (ClassNotFoundException | RuntimeException e) { Log.w(TAG, "go on anyway: " + e); }
+    }
+
     /** The game the queue waits to start, 0 when it does not wait */
     public static int waitingFor() { return waitingFor; }
 

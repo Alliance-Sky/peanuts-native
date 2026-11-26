@@ -523,10 +523,29 @@ def nso_zbic(path):   # whether the module's segments are ZBIC (NSO flag bit 7, 
     return b[:4] == b'NSO0' and bool(int.from_bytes(b[0xc:0x10], 'little') & 0x80)
 
 
+# PEANUTS begin: the app's heat pause holds the rewrite where it is (PackService.hold, GitHub #803). It ended the tool at each pause, and the code step began
+# again from 0 on the next start: 74 times in 4 hours on an AYN Odin 3 on its charger
+def held():
+    """Whether the app holds the step now: its PN_HOLD_FILE is there"""
+    h = os.environ.get('PN_HOLD_FILE')
+    return bool(h) and os.path.exists(h)
+
+
+def wait_while_held(out=None):
+    """Waits while the app holds the step (held), a stop (the app's interrupt) still ending it; True when it waited"""
+    if not held(): return False
+    if out: print('  held where it is (the phone is too hot): it goes on from here', file=out, flush=True)
+    while held(): time.sleep(0.5)
+    if out: print('  going on from where it was held', file=out, flush=True)
+    return True
+# PEANUTS end
+
+
 class ProgressTee:
     """A tool's output stream in run_in_process: everything to the file f; its "progress <done> <total> ..." lines also to out (this script's own output, the
-    step log Prepare reads), as "progress <n> 1000 code" with the tool's fraction placed in [base, base + width) of the step's 1000"""
-    def __init__(self, f, out, base, width): self.f, self.out, self.base, self.width, self.part = f, out, base, width, ''
+    step log Prepare reads), as "progress <n> 1000 code" with the tool's fraction placed in [base, base + width) of the step's 1000
+    PEANUTS: hold: the tool runs in this thread (run_in_process), so a hold (held) waits here, at its next progress line (#803)"""
+    def __init__(self, f, out, base, width, hold=False): self.f, self.out, self.base, self.width, self.part, self.hold = f, out, base, width, '', hold   # PEANUTS: hold
     def write(self, s):
         self.f.write(s)
         self.part += s
@@ -535,6 +554,7 @@ class ProgressTee:
             w = line.split()
             if len(w) >= 3 and w[0] == 'progress' and w[1].isdigit() and w[2].isdigit() and int(w[2]):
                 print(f'progress {self.base + self.width * min(int(w[1]), int(w[2])) // int(w[2])} 1000 code', file=self.out, flush=True)
+                if self.hold: wait_while_held(self.out)   # PEANUTS: #803
         return len(s)
     def flush(self): self.f.flush()
     def isatty(self): return False
@@ -558,7 +578,7 @@ def _run_in_process_once(script, args, env, log, progress, mode):   # PEANUTS: r
     saved = (sys.argv, list(sys.path), dict(os.environ), set(sys.modules), sys.stdout, sys.stderr, os.getcwd())
     code, rerun = 0, None
     with open(log, mode, buffering=1, encoding='utf-8', errors='backslashreplace') as f:
-        sys.stdout = sys.stderr = ProgressTee(f, saved[4], *progress) if progress else f
+        sys.stdout = sys.stderr = ProgressTee(f, saved[4], *progress, hold=True) if progress else f   # PEANUTS: hold (#803)
         try:
             os.environ.update(env); sys.argv = [str(script)] + [str(a) for a in args]; sys.path.insert(0, str(Path(script).parent))
             runpy.run_path(str(script), run_name='__main__')
@@ -637,7 +657,16 @@ def _rewrite_worker_once(cmd, script, args, env, log, progress, mode):   # pn_re
         reader = threading.Thread(target=pump, name='pn-rewrite-log', daemon=True)
         try:
             reader.start()
-            while reader.is_alive(): reader.join(0.5)
+            stopped = False   # PEANUTS: the worker and its forks stopped for the app's heat pause (held, #803): SIGSTOP, then SIGCONT, so it goes on where it was
+            while reader.is_alive():
+                reader.join(0.5)
+                # PEANUTS begin
+                if held() != stopped:
+                    stopped = not stopped
+                    try: os.killpg(p.pid, signal.SIGSTOP if stopped else signal.SIGCONT)
+                    except OSError: pass
+                    print('  held where it is (the phone is too hot): it goes on from here' if stopped else '  going on from where it was held', flush=True)
+                # PEANUTS end
             if failed: raise failed[0]
             code = p.wait()
             if code != REWRITE_RERUN or not last[0].startswith(RERUN_LINE): return code, None
