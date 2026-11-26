@@ -192,13 +192,17 @@ class Bottom(unittest.TestCase):
 
     def test_the_layout_is_picked_once(self):
         q = (APP / 'main/java/dev/peanuts/ui/LayoutChoice.java').read_text(encoding='utf-8')
-        self.assertIn('PeanutsPrefs.menuLayoutPicked(a)', q, 'asked until one is picked')
-        self.assertIn('later.setOnClickListener(v -> d.dismiss());', q, 'Later picks nothing: asked again at the next start')
+        offer = q[q.index('public static void offer(Activity a) {'):]
+        offer = offer[:offer.index('asked = true;')]
+        self.assertIn('PeanutsPrefs.menuLayoutPicked(a)', offer, 'asked until one is picked')
+        self.assertIn('later.setOnClickListener(v -> d.dismiss());', q, 'Later picks nothing: asked once more at the next start')
+        self.assertIn('static final int TIMES = 2;', q, 'twice at most')
+        self.assertIn('PeanutsPrefs.menuLayoutAsked(a) >= TIMES', offer, 'then no more')
+        self.assertIn('PeanutsPrefs.menuLayoutAsked(a, PeanutsPrefs.menuLayoutAsked(a) + 1);', q, 'each time it shows')
+        self.assertIn('if (!PeanutsPrefs.setupDone(a)) { setupRun = true; return; }', offer, "not in the run of the first start's setup: one question a start")
+        self.assertIn('setupRun ||', offer)
         self.assertIn('View first = made[second ? count - 1 : 0];', q, 'two screens: the focus starts on the bottom screen\'s')
-        self.assertIn('if (open != null && open.isShowing() && open.getOwnerActivity() == a) { if (then != null) waiting.add(then); return; }', q,
-                      "Home's list fills again on each refresh: a later offer's then (the quick button's question) waits until the question closes")
-        self.assertIn('for (Runnable r : after) r.run();', q[q.index('d.setOnDismissListener('):], 'the waiting ones run when it closes')
-        self.assertIn('box.post(() -> LayoutChoice.offer(a, null));', (APP / 'main/java/dev/peanuts/ui/Library.java').read_text(encoding='utf-8'), "Home's list asks")
+        self.assertIn('box.post(() -> LayoutChoice.offer(a));', (APP / 'main/java/dev/peanuts/ui/Library.java').read_text(encoding='utf-8'), "Home's list asks")
         for name in ('two', 'right', 'bottom'):
             x = (RES / f'drawable/pil_layout_{name}.xml').read_text(encoding='utf-8')
             self.assertIn('generated from design/peanuts-native/layouts/layouts.py', x, f'pil_layout_{name}: made by layouts.py')
