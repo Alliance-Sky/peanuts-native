@@ -90,6 +90,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
 
     private dev.peanuts.ui.GameControls.Host controlsHost;   // PEANUTS: this screen's controls (GameControls.clear)
     private android.content.BroadcastReceiver peanutsCtl;   // PEANUTS: the adb control's live game commands (dev.peanuts.ctl.GameLink)
+    private final dev.peanuts.display.RotationWatch rotationWatch = new dev.peanuts.display.RotationWatch(this, ui, Native::motionRotation);   // PEANUTS: the display rotation the host maps the phone's motion sensors with, every turn (#811)
 
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -1280,6 +1281,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         dev.peanuts.ctl.GameLink.unregister(this, peanutsCtl);   // PEANUTS
         peanutsCtl = null;
         runningDisplayMode.clear(this);   // PEANUTS: release this game window's display request
+        rotationWatch.pause();   // PEANUTS: #811 (onPause did it already; a destroy without one keeps no listener)
         dev.peanuts.Companion.stop();   // PEANUTS
         dev.peanuts.launch.PlayTime.flush(this);   // PEANUTS: total play time, what is still in memory
         TextInput.gone(this);
@@ -1435,7 +1437,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         java.util.List<PadOrder.Pad> now = new java.util.ArrayList<>();
         for (int id : inputManager.getInputDeviceIds()) { InputDevice d = InputDevice.getDevice(id); if (gamepadLike(d)) now.add(pad(d)); }
         order.start(now);   // best first: an external controller is player 1 before a phone's own gamepad-like device (PadOrder)
-        Native.motionRotation(getDisplay().getRotation());
+        if (resumedNow) rotationWatch.resume(); else rotationWatch.now();   // PEANUTS: resumed before the start, onResume did not follow the turns (#811)
         if (resumedNow && !paused) { Native.motionStart(); padMotion.resume(); }   // the screen was resumed before the game started (onResume then did nothing): the sensors start here
         audio = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         focus = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
@@ -1696,13 +1698,14 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         resumedNow = true;   // also before the start: start() can come after the first onResume (the readiness check), and hostSetup() then starts the sensors
         if (!started) return;
         Native.lifecycle(3);
-        Native.motionRotation(getDisplay().getRotation());
+        rotationWatch.resume();   // PEANUTS: told again, then every turn while resumed (#811: a half turn between the landscape sides changes no configuration)
         if (!paused) { Native.motionStart(); if (padMotion != null) padMotion.resume(); }   // paused: the sensors stay off (they would wake the host at their rate for a frozen game); unpause starts them
     }
     private boolean resumedNow;
     @Override protected void onPause() {
         runningDisplayMode.clear(this);   // PEANUTS: a background activity keeps no display request
         resumedNow = false;
+        rotationWatch.pause();   // PEANUTS: #811
         if (started) { Native.motionStop(); if (padMotion != null) padMotion.pause(); Native.lifecycle(0); }
         super.onPause();
     }
@@ -1715,7 +1718,7 @@ public final class GameActivity extends Activity implements SurfaceHolder.Callba
         super.onConfigurationChanged(c);
         fitOrientation();   // a fold or an unfold changes the display: the other screen may want the other answer
         dev.peanuts.TvPicture.fit(this);   // PEANUTS: the game moved to a TV or back to the device's screen (#358)
-        if (started) Native.motionRotation(getDisplay().getRotation());
+        if (started) rotationWatch.now();   // PEANUTS: through RotationWatch, which tells the host only a change (#811)
     }
 
     @Override public void surfaceCreated(SurfaceHolder h) { Native.setSurface(h.getSurface()); }

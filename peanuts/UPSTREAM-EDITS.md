@@ -3054,3 +3054,13 @@ Review of the first version (igawa6, 2026-11-24): the thermal cap reached every 
 | `android/app/src/main/java/dev/peanuts/ui/GameControls.java`, `StatsView.java` | 1, 1 | `Host.heldForHeat`; the cap pill's "30 FPS (HOT)" | Peanuts' own files |
 
 Tests: `dm/host/tests/t_fpslock.c` (new `thermal_check`: a limit of 45, 60 or 120 holds 30 while hot, 20 and 30 stay, no limit stays 0, the cap is asked at 30 and at none, a limit raised after cooling is not held, a frame step holds 30) and `t_resolution`, built with the NDK for arm64 Android and run under qemu (the version of `limit_raw` that skipped the check at 30 or less fails `thermal_check`); the Python suite and `env_switches.py --check` with the same results as on 0.1.8 itself. On the Galaxy S24 Ultra (first version), Hogsmeade, the same scripted minute of walking: before, interval 1, 16-37 fps, two 2.8 s freezes at pipeline cache saves of 4.5 s; Game owned, docked, interval 2 at 30 fps with four 1.2-3 s freezes at low-memory-killer bursts; Game owned, handheld, two minutes at 30.0 fps, interval 2 100 %, no frame over 135 ms, thermal status 1-2. Upstream candidate: yes (the thermal state, the limit and the cache saves are upstream's code).
+
+## Gyro rotation follows every turn (GitHub issue #811, 2026-11-26)
+
+A half turn between the two landscape sides (ROTATION_90 <-> ROTATION_270) changes no Configuration, so `onConfigurationChanged` never refreshed `Native.motionRotation` and the phone's gyro ran inverted. `dev.peanuts.display.RotationWatch` (a `DisplayManager.DisplayListener`, registered while the game screen is resumed) and `MotionRotation` (tells the host only a change) are Peanuts' own files.
+
+| File | Hunks | What | Marker |
+|---|---|---|---|
+| `android/app/src/main/java/dev/nxnative/android/GameActivity.java` | 6 | the `rotationWatch` field; `hostSetup`, `onResume`, `onConfigurationChanged` go through it instead of `Native.motionRotation(getDisplay().getRotation())`; `onPause` and `onDestroy` unregister it | `PEANUTS` in each line |
+
+Tests: `peanuts/tests/test_motion_rotation.py` (wiring, and `android/app/src/jvmtest/java/dev/peanuts/display/MotionRotationJvmTest.java` on the JVM). Upstream candidate: yes, any Android host with phone motion has the same half-turn gap.
