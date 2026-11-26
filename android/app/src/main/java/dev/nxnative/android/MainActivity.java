@@ -1699,7 +1699,7 @@ public final class MainActivity extends Activity {
     void error(String msg) { new PadFocus.Builder(this).setMessage(msg).setPositiveButton("OK", null).show(); }
 
     private static String padPanelLabel(int v) {
-        return PadPanel.OPEN_NAMES[v] + ". By touch: swipe in from the right edge, or Back";
+        return PadPanel.OPEN_NAMES[v] + ". By touch: swipe in from the left edge, or the right edge for the quick menu, or Back";   // PEANUTS: the in-game menus (InGamePanel)
     }
     private static String touchLabel(int m) { return m == TouchControls.MODE_AUTO ? "Auto: hidden while a controller is connected" : TouchControls.MODE_NAMES[m]; }
     private static String rotationLabel(boolean auto) { return auto ? "Automatic: the game follows the phone's rotation, portrait too" : "Landscape: the game window stays horizontal on a phone"; }
