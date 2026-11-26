@@ -438,3 +438,8 @@ dm/games/01007A3024D10000/shader_pairs.tsv	THE HOUSE OF THE DEAD 2: Remake's gen
 dm/games/01007A3024D10000/pso_pairs.tsv	THE HOUSE OF THE DEAD 2: Remake's generated table (shader_split.py / dmsh_build.py), new in Peanuts Native (Banana Native has no profile for 01007A3024D10000); a marker comment would change the profile's shader inputs digest and with it every built library's stamp
 dm/games/01007A3024D10000/pso_manifest.tsv	THE HOUSE OF THE DEAD 2: Remake's generated table (shader_split.py / dmsh_build.py), new in Peanuts Native (Banana Native has no profile for 01007A3024D10000); a marker comment would change the generated table's bytes
 dm/games/01007A3024D10000/bf_want.tsv	THE HOUSE OF THE DEAD 2: Remake's generated table (shader_split.py / dmsh_build.py), new in Peanuts Native (Banana Native has no profile for 01007A3024D10000); a marker comment would change the profile's shader inputs digest and with it every built library's stamp
+dm/games/0100F6701FED4000/shader_files.tsv	Generated shader split metadata; preserve the input digest.
+dm/games/0100F6701FED4000/shader_facts.tsv	Generated shader split metadata; preserve the input digest.
+dm/games/0100F6701FED4000/shader_map.tsv	Generated shader split metadata; preserve the input digest.
+dm/games/0100F6701FED4000/shader_pairs.tsv	Generated shader split metadata; preserve the input digest.
+dm/games/0100F6701FED4000/pso_pairs.tsv	Generated shader split metadata; preserve the input digest.
