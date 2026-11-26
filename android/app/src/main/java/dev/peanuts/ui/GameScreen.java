@@ -104,7 +104,8 @@ public final class GameScreen extends Presentation {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);   // the game keeps the controller
         getWindow().setDecorFitsSystemWindows(false);
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(PUi.col(getContext(), R.color.bn_bg)));
-        FrameLayout root = new FrameLayout(getContext());
+        boolean menuHere = dev.peanuts.ingame.BottomMenu.on(getContext());   // a swipe up from the bottom edge opens the in-game menu here (BottomMenu.edgeRoot)
+        FrameLayout root = menuHere ? dev.peanuts.ingame.BottomMenu.edgeRoot(getContext()) : new FrameLayout(getContext());
         root.setBackgroundColor(PUi.col(getContext(), R.color.bn_bg));
         bg = new BananaBackgroundView(getContext());
         root.addView(bg, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -113,10 +114,9 @@ public final class GameScreen extends Presentation {
         stats = new StatsView(getContext());
         stats.setVisibility(android.view.View.GONE);
         root.addView(stats, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        if (dev.peanuts.ingame.BottomMenu.on(getContext())) {   // a swipe up from the bottom edge opens the in-game menu here; the grip shows where (the stats page has its own)
+        if (menuHere) {   // the grip shows where (the stats page has its own)
             grip = dev.peanuts.ingame.BottomMenu.grip(getContext());
             root.addView(grip);
-            root.addView(dev.peanuts.ingame.BottomMenu.edge(getContext()));
         }
         setContentView(root);
     }
