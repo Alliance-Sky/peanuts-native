@@ -108,6 +108,14 @@ class WiringTest(unittest.TestCase):
         self.assertIn('if (notBuilt[0]) { home(new java.io.File(g.gameDir)); return; }', play)
         self.assertLess(play.index('if (notBuilt[0])'), play.index('new Intent(this, GameActivity.class)'))
 
+    def test_a_running_build_with_mods_is_not_played(self):
+        """A variant whose build is still running is not ready: its last module key comes before its shaders, game.tsv and mark (#514, Thor)"""
+        src = (JAVA / 'dev/peanuts/settings/ModsSection.java').read_text()
+        body = src[src.index('    public static String packToPlay('):]
+        body = body[:body.index('\n    }\n') + 6]
+        self.assertIn('boolean running = variantId.equals(buildVariant);', body)
+        self.assertIn('if (!running && variantProblem(c, titleId, p, variantPack) == null) return variantPack.getPath();', body)
+
     def test_every_play_goes_through_launch_or_the_frontend(self):
         """The game's screen with a player's pack is started in two places only: MainActivity.startWithDriver (after launch) and FrontendLaunch.play"""
         starts = []
