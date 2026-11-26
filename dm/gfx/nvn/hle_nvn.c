@@ -13,6 +13,7 @@
 #include "nvn_count.h"
 #include "nvn_tex.h"
 #include "nvn_dpool.h"
+#include "nvn_cmdarena.h"   // PEANUTS: host chunks for empty-pool command memory grants (#807)
 #include "../tex/nvn_deswizzle.h"
 #include "nvn_mtl.h"
 #include "nvn_pace.h"
@@ -1229,8 +1230,10 @@ static void cs_dump(void) {   // Called once per frame (at present)
 static void put_hdr(uint8_t *p, uint32_t op, uint32_t size) { op_hdr h = {op, size}; memcpy(p, &h, sizeof h); if (op) cs_op(op, size); }
 // New segment: if the recording in progress has records, write a JUMP at the end of the old segment to link it. A recording with none yet starts in the new segment
 // (its first record is its handle), and the bytes at the old write position are not its own: after an END that took the last bytes there is no room there at all
+static void cmdarena_leave(cmd_t *o);   // PEANUTS: #807
 static void cmd_new_segment(cmd_t *o, uint8_t *mem, size_t n) {
     uint8_t *start = align8(mem), *end = mem + n;
+    cmdarena_leave(o);   // PEANUTS: #807, a chunk's free bytes start where the command buffer leaves it
     if (o->recording == 1 && o->cur) { if (cs_on() && o->end > o->cur) { pthread_mutex_lock(&g_cs_mu); g_cs.waste += (uint64_t)(o->end - o->cur); pthread_mutex_unlock(&g_cs_mu); } put_hdr(o->cur, OP_JUMP, 16); memcpy(o->cur + 8, &start, 8);
         o->used += 16; }   // the JUMP also occupies guest memory of this recording: count it in used, so the game packing the next recording right behind by used does not overwrite it
     o->cur = start; o->end = end;
@@ -1251,6 +1254,7 @@ static void cmd_new_segment(cmd_t *o, uint8_t *mem, size_t n) {
 // An empty-pool grant outside a recording means the game's own allocator for command memory came back empty. On hardware a null pool cannot be written to, so a game only gets here
 // when the host's records outgrew what it measured for them (Odyssey's "DisplayList" heap: docs/reference/memory.md, "Model heaps sized by the host's command record sizes").
 // Those segments have no guest range to be reclaimed by, so they are not reclaimed; the cap's abort names the state, and the fix belongs in the record sizes
+// PEANUTS: #807, such a small grant now takes its room in a chunk the command buffer owns, after its previous recording (cmdarena_grant), not a HOSTSEG_SMALL segment each
 #define HOSTSEG_SZ (256u << 10)
 #define HOSTSEG_SMALL (4u << 10)
 #define HOSTSEG_CAP (1u << 30)
@@ -1259,7 +1263,7 @@ typedef struct { uint8_t *mem; size_t n; uint64_t frame; int busy; uintptr_t org
 static hostseg_t *g_hostseg; static int g_nhostseg, g_caphostseg; static uint64_t g_hostseg_bytes;
 static pthread_mutex_t g_hostseg_mu = PTHREAD_MUTEX_INITIALIZER;
 static size_t hostseg_size(const cmd_t *o, int empty_pool, size_t want) {
-    if (empty_pool) return want && want <= HOSTSEG_SMALL && !o->recording ? HOSTSEG_SMALL : HOSTSEG_SZ;
+    (void)o; if (empty_pool) return HOSTSEG_SZ;   // PEANUTS: #807, the small grants outside a recording go to cmdarena_grant
     return want + 16 > HOSTSEG_SZ ? (want + 16 + 0xfff) & ~(size_t)0xfff : HOSTSEG_SZ;   // 16: room for the next JUMP (want holds OP_RESERVE already, this is slack for the alignment)
 }
 // Take a segment of n bytes: origin = the current recording's guest bytes [BEGIN, end of JUMP); if the write pointer is already in a host segment (overflowing again), keep that segment's origin
@@ -1282,6 +1286,32 @@ static uint8_t *hostseg_take(const cmd_t *o, size_t n) {
     if (t == 1 || t % 1024 == 0) LOG("[nvn] the game's command memory ran short, the host lends a segment of %zu KB (%u times so far, frame %llu, segment pool %d segments, %llu KB)", n >> 10, t, (unsigned long long)f, ns, (unsigned long long)(bytes >> 10));
     return m;
 }
+// PEANUTS begin: #807. An empty-pool grant of at most HOSTSEG_SMALL outside a recording gets its room in a chunk of HOSTSEG_SZ that the command buffer owns (nvn_cmdarena.h),
+// and its next such grant starts where this recording ended. A 4 KB segment for each grant (the list inside took about 370 bytes) cost Super Mario Odyssey 570 MB in the
+// Wooded Kingdom, and with every segment in g_hostseg, each lend and each AddCommandMemory scanned 140,000 entries: the game's thread at 8 fps (GitHub issue #807).
+// The chunks are not in g_hostseg (they are never reclaimed: the grants have no guest range), and count toward HOSTSEG_CAP
+static nvn_cmdarena g_cmdarena; static atomic_int g_cmdarena_on;
+static void cmdarena_leave(cmd_t *o) {   // at a segment switch and at the end of a recording: the chunk's free bytes start after the write pointer (nvn_cmdarena_seen)
+    if (!atomic_load_explicit(&g_cmdarena_on, memory_order_relaxed) || !o->cur) return;
+    pthread_mutex_lock(&g_hostseg_mu); nvn_cmdarena_seen(&g_cmdarena, o->cur, o->end); pthread_mutex_unlock(&g_hostseg_mu);
+}
+static void cmdarena_grant(cmd_t *o) {
+    static unsigned grants, chunks; uint8_t *end = NULL;
+    pthread_mutex_lock(&g_hostseg_mu);
+    uint8_t *p = nvn_cmdarena_take(&g_cmdarena, o, o->cur, o->end, HOSTSEG_SMALL, &end);
+    unsigned g = ++grants, k = chunks; int fresh = 0;
+    if (!p && g_hostseg_bytes + HOSTSEG_SZ <= HOSTSEG_CAP && (p = malloc(HOSTSEG_SZ))) {
+        end = p + HOSTSEG_SZ; nvn_cmdarena_set(&g_cmdarena, o, p, end); g_hostseg_bytes += HOSTSEG_SZ; k = ++chunks; fresh = 1;
+        atomic_store_explicit(&g_cmdarena_on, 1, memory_order_relaxed);
+    }
+    uint64_t bytes = g_hostseg_bytes;
+    pthread_mutex_unlock(&g_hostseg_mu);
+    if (!p) die("NVN command memory: the game's pool is empty and host-lent segments reached %u MB without being reclaimed by the game's blocks", HOSTSEG_CAP >> 20);
+    if (fresh && (k == 1 || k % 64 == 0)) LOG("[nvn] the game's command memory ran short, the host lends grants from chunks of %u KB (%u grants so far, frame %llu, %u chunks, %llu KB lent in all)",
+        HOSTSEG_SZ >> 10, g, (unsigned long long)dm_nvn_frame_count(), k, (unsigned long long)(bytes >> 10));
+    cmd_new_segment(o, p, (size_t)(end - p));
+}
+// PEANUTS end
 // The game gives out [lo, hi): segments whose recording's guest bytes overlap it are dead, reclaim them
 static void hostseg_release(uintptr_t lo, uintptr_t hi) {
     pthread_mutex_lock(&g_hostseg_mu);
@@ -1290,6 +1320,7 @@ static void hostseg_release(uintptr_t lo, uintptr_t hi) {
 }
 NVN(nvnCommandBufferAddCommandMemory, void, NVNcommandBuffer *c, const NVNmemoryPool *p, ptrdiff_t off, size_t n) {
     const pool_t *pl = (const pool_t *)p;
+    if (!pl && n && n <= HOSTSEG_SMALL && !CB(c)->recording) { if (cs_on()) { pthread_mutex_lock(&g_cs_mu); g_cs.hostseg++; pthread_mutex_unlock(&g_cs_mu); } cmdarena_grant(CB(c)); return; }   // PEANUTS: #807
     if (!pl || n < 64) { if (cs_on()) { pthread_mutex_lock(&g_cs_mu); g_cs.hostseg++; pthread_mutex_unlock(&g_cs_mu); } size_t sz = hostseg_size(CB(c), !pl, n); cmd_new_segment(CB(c), hostseg_take(CB(c), sz), sz); return; }
     if (!pl->mem) { LOG("[RED] AddCommandMemory: pool has no CPU storage"); return; }
     hostseg_release((uintptr_t)(pl->mem + off), (uintptr_t)(pl->mem + off + n));
@@ -1335,6 +1366,7 @@ NVN(nvnCommandBufferEndRecording, NVNcommandHandle, NVNcommandBuffer *c) {
     cmd_t *o = CB(c);
     uint8_t *p = cmd_alloc_keep(o, 8, 0); put_hdr(p, OP_END, 8);   // nothing follows: the END may take the segment's last bytes
     o->recording = 0;
+    cmdarena_leave(o);   // PEANUTS: #807, a recording that ended in a chunk keeps its bytes there
     return (NVNcommandHandle)o->begin;
 }
 NVN(nvnCommandBufferIsRecording, NVNboolean, const NVNcommandBuffer *c) { return ((const cmd_t *)c)->recording != 0; }
