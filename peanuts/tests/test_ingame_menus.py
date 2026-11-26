@@ -299,6 +299,25 @@ class ReviewFixes(unittest.TestCase):
         self.assertLess(offer.index('setOnShowListener'), offer.index('PeanutsPrefs.menuLayoutAsked(a, PeanutsPrefs.menuLayoutAsked(a) + 1)'), 'counted once it shows')
         self.assertIn('uptimeMillis() - shownAt[0] < INPUT_DELAY_MS) return;', offer, 'a button already on its way picks nothing')
 
+    def test_bottom_screen_focus_frame_with_keys(self):
+        # The Thor run: on the bottom screen Android refuses to leave touch mode ("Touch mode switch rejected": its window never has the focus), so the
+        # panel drew no frame after the first opening and its first D-pad press only found a focus. Keys now drive it out of touch mode in SidePanel's eyes
+        side = (LAUNCHER / 'SidePanel.java').read_text(encoding='utf-8')
+        self.assertTrue(marked(side, '@Override public boolean isInTouchMode() { return super.isInTouchMode() && !InGamePanel.keyDriven(this); }'))
+        self.assertIn('static boolean keyDriven(SidePanel p) { return bottomKeys && p != null && p == bottomPanel; }', self.panel)
+        self.assertIn('if (down && o == bottomPanel) bottomKeys = true;', self.body('static boolean menuKey('), 'a key to the bottom menu: keys drive it')
+        ob = self.body('static void openBottom(')
+        self.assertLess(ob.index('bottomKeys = pad;'), ob.index('show(bottomPanel, gameRows, onGame, pad);'), 'opened with the controller: the frame at once')
+        self.assertIn('bottomKeys = false;', self.body('private static void bottomTouched()'))
+        self.assertIn('new dev.peanuts.ingame.BottomScreen(a, d, bottomPanel, InGamePanel::bottomTouched)', self.panel)
+        scr = (INGAME / 'BottomScreen.java').read_text(encoding='utf-8')
+        self.assertIn('if (e.getActionMasked() == android.view.MotionEvent.ACTION_DOWN && touched != null) touched.run();', scr, 'a touch gives it back to touch')
+        self.assertIn('bottomKeys = false;', self.body('private static void reset()'))
+        # SidePanel's own touch-mode checks are the ones the override changes: the frame, the first move, the focus at opening
+        for s in ('if (now == null || !inside(now) || isInTouchMode()) return;', 'if (f == null || isInTouchMode()) { ensureFocus(); return; }',
+                  'post(() -> { if (open && !isInTouchMode()) focusFirst(); });'):
+            self.assertIn(s, side)
+
     def test_panel_polish_needs_no_r(self):
         self.assertNotIn('R.id', (APP / 'main/java/dev/peanuts/ui/PanelPolish.java').read_text(encoding='utf-8'), 'test_android_hud compiles it alone')
         self.assertNotIn('pn_inset', (RES / 'values/peanuts_ingame.xml').read_text(encoding='utf-8'))
