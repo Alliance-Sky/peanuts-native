@@ -20,6 +20,4 @@
         <item name="pnSolidBase">#FFE8EAED</item>
         <item name="pnSolidAccent">#FFFFD54F</item>
     </style>
-    <!-- PanelPolish: a row already moved clear of the focus frame (a view tag) -->
-    <item type="id" name="pn_inset" />
 </resources>
