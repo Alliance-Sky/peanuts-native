@@ -30,7 +30,7 @@
 # unfinished: the launcher refuses it, the next run rewrites it). Libraries of other versions in the pack's shaders/ are kept.
 # --code-only rewrites the modules and stops (pack.tsv, game.tsv and the shaders untouched); --keep-code packs without rewriting (the phone's two steps).
 # Usage: pack_android.py <game folder | .nup file> [--version N] [--out DIR] [-j N] [--shader-cache DIR] [--shader-pkg DIR] [--shader-python PY] [-J N] [--no-shaders] [--code-only | --keep-code] [--in-process]   (exit 1 on error)
-import argparse, hashlib, os, runpy, shutil, signal, struct, subprocess, sys, tempfile, time   # PEANUTS: struct (cross_module), tempfile (shader selection)
+import argparse, errno, hashlib, os, runpy, shutil, signal, struct, subprocess, sys, tempfile, time   # PEANUTS: struct (cross_module), tempfile (shader selection); PEANUTS(upstream-candidate): errno (copy_time, #495)
 from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / 'scripts')); sys.path.insert(0, str(REPO / 'dm/games'))
@@ -65,15 +65,30 @@ def stage(text, every=0.0):
     print(f'stage: {text}', flush=True)
 
 
+# PEANUTS(upstream-candidate) begin: copy_time, a copy's modification time without copystat, kept where the storage refuses it (#495)
+def copy_time(src, dst):
+    """dst takes src's modification time, by which a later pack sees that its copy is current (pack_shaders: the same size and time). Only the time: the
+    permission bits and flags shutil.copystat would also copy mean nothing on shared storage. A microSD card or a USB drive on Android refuses to set a file's
+    time (EPERM from os.utime, even for the app that wrote the file), which stopped the pack at its last step after the whole build (#495): there the copy is
+    kept without it, and the next pack copies the file again"""
+    st = os.stat(src)
+    try: os.utime(dst, ns=(st.st_atime_ns, st.st_mtime_ns))
+    except OSError as e:
+        if e.errno not in (errno.EPERM, errno.EACCES, errno.ENOTSUP, errno.ENOSYS): raise
+        print(f'{dst}: this storage does not keep a copied file\'s time ({errno.errorcode.get(e.errno, e.errno)}); a later pack copies it again', flush=True)
+# PEANUTS(upstream-candidate) end
+
+
 def copy_counted(src, dst, what):
-    """shutil.copy2 in 8 MiB pieces with 'stage: <what>: <n> of <m> MB' at most twice a second: the shader library (700 MB for Ocarina of Time) to shared storage"""
+    """A copy in 8 MiB pieces with 'stage: <what>: <n> of <m> MB' at most twice a second, and src's time where the storage keeps it (copy_time): the shader
+    library (700 MB for Ocarina of Time) to shared storage"""   # PEANUTS(upstream-candidate): src's time by copy_time (#495)
     total = os.path.getsize(src); done = 0
     stage(f'{what}: 0 of {total >> 20:,} MB')
     with open(src, 'rb') as i, open(dst, 'wb') as o:
         while b := i.read(8 << 20):
             o.write(b); done += len(b)
             stage(f'{what}: {done >> 20:,} of {total >> 20:,} MB', 0.5)
-    shutil.copystat(src, dst)
+    copy_time(src, dst)   # PEANUTS(upstream-candidate): not shutil.copystat, which stops on a microSD card (#495)
 
 
 def child_env(**kw):
@@ -854,6 +869,38 @@ def library_current(lib_dir, g):
     return (lib_dir / VK_LIB).is_file() and st.get('game') == g.id and st.get('inputs') == dmsh_chain.inputs(g)
 
 
+# PEANUTS: the split package a library was built from (#670). The library's own stamp (inputs.tsv) names the profile's inputs only, so a package that changed
+# under the same profile (shaders captured from a run added to it, a split of another dump) left a library that was called current and packed without them.
+# The package's digest goes in a file beside the library in the cache (not in the library, whose files are the chain's), and a library is taken only with it.
+PKG_STAMP = '.package'   # <cache>/<library name>.package
+
+
+def package_digest(pkg):
+    """Digest of a split package folder: every file under it, by its path in the folder and its bytes"""
+    h = hashlib.sha256()
+    for f in sorted(p for p in pkg.rglob('*') if p.is_file()):
+        h.update(f.relative_to(pkg).as_posix().encode() + b'\0' + str(f.stat().st_size).encode() + b'\0')
+        with f.open('rb') as fh:
+            for b in iter(lambda: fh.read(1 << 20), b''): h.update(b)
+    return h.hexdigest()[:16]
+
+
+def package_stamp(lib_dir):
+    return lib_dir.with_name(lib_dir.name + PKG_STAMP)
+
+
+def package_current(lib_dir, pkg):
+    """True when the library in lib_dir was built from the package in pkg, as far as can be told. No package folder: there is nothing to compare, the library is
+    what there is. A library from before its package was stamped: current when no file of the package is newer than the library (then stamped with the package)"""
+    if not pkg.is_dir(): return True
+    st, digest = package_stamp(lib_dir), package_digest(pkg)
+    if st.is_file(): return st.read_text(encoding='utf-8').strip() == digest
+    try: built = (lib_dir / VK_LIB).stat().st_mtime_ns
+    except OSError: return False
+    if any(p.is_file() and p.stat().st_mtime_ns > built for p in pkg.rglob('*')): return False
+    write_lf(st, digest + '\n'); return True
+
+
 def map_keys(path):
     """The keys of a shader_map.tsv (column 4 of its package rows)"""
     with open(path) as f: return {c[3] for c in (l.rstrip('\n').split('\t') for l in f) if len(c) > 4 and c[0].endswith('.bin')}
@@ -1027,9 +1074,12 @@ def pack_shaders(a, g, work, out, vdir, parts=None, aoc=()):
     cache = (a.shader_cache or work / 'android-shaders' / 'lib').resolve(); lib = cache / name
     dst = out / 'shaders' / name
     stage('checking the saved shaders')  # PEANUTS: build text in the player's words (0.1.8)
-    if not library_current(lib, g):
+    pkg = (a.shader_pkg or work / 'android-shaders' / 'pkg').resolve()
+    current = library_current(lib, g)
+    if current and not package_current(lib, pkg):   # PEANUTS: the profile's inputs are the same, the package is not (#670)
+        print(f'shaders: {lib} was built from another shader package than {pkg}: building it again', flush=True); current = False
+    if not current:
         if a.in_process: raise Error(f'no current shader library {lib}: --in-process does not build one yet (vk_android_build.py starts the translator and spirv-val as programs); --no-shaders packs without')
-        pkg = (a.shader_pkg or work / 'android-shaders' / 'pkg').resolve()
         if not pkg.is_dir(): split_shaders(a, g, vdir, pkg, parts, aoc, collected_nros(work))   # also into a --shader-pkg folder that is not there yet
         py = shader_python(a.shader_python)
         print(f'shaders: building the Vulkan library {lib} from {pkg} with {py} (J={a.J}; about 10 minutes on DKB)', flush=True)
@@ -1058,6 +1108,7 @@ def pack_shaders(a, g, work, out, vdir, parts=None, aoc=()):
             r = subprocess.run([py, str(VK_BUILD_WIN if WINDOWS or sys.platform.startswith('linux') else VK_BUILD), '--target', 'vulkan', str(pkg), str(cache), *args], env=env)   # PEANUTS: on Linux too, for the translator's start (the repository's apphost is the Mac's; vk_android_win.py starts the dlls with dotnet)
         if r.returncode: raise Error(f'vk_android_build.py exit code {r.returncode} (a package that lacks the profile\'s shaders stops it: delete {pkg} and the split runs again)')
         if not library_current(lib, g): raise Error(f'vk_android_build.py finished but {lib} is not a full library of {g.id} with the current inputs')
+        if pkg.is_dir(): write_lf(package_stamp(lib), package_digest(pkg) + '\n')   # PEANUTS: the package it was built from (#670)
     else: print(f'shaders: {lib} is current (game {g.id}, inputs {dmsh_chain.inputs(g)})')
     dst.mkdir(parents=True, exist_ok=True)
     if not (lib / dmsh_chain.STAMP).is_file():   # a library copied without its stamp: written from its header (library_current took it from there)
@@ -1068,7 +1119,7 @@ def pack_shaders(a, g, work, out, vdir, parts=None, aoc=()):
         if d_.is_file() and d_.stat().st_size == s_.stat().st_size and d_.stat().st_mtime_ns == s_.stat().st_mtime_ns: continue
         tmp = d_.with_name(f + '.partial')
         if f == VK_LIB: copy_counted(s_, tmp, 'copying the shaders into the build')  # PEANUTS: build text in the player's words (0.1.8)
-        else: shutil.copy2(s_, tmp)
+        else: shutil.copyfile(s_, tmp); copy_time(s_, tmp)   # PEANUTS(upstream-candidate): not copy2, whose copystat stops on a microSD card (copy_time, #495)
         os.replace(tmp, d_)   # replace: Windows' rename does not take an existing name
     others = sorted(o.name for o in (out / 'shaders').iterdir() if o.name != name and o.name.startswith(VK_PREFIX) and o.is_dir())
     if others:   # kept: another APK (the test and the play app, an older build) may load one of them from this pack; delete by hand to save the space
