@@ -737,7 +737,7 @@ $(B)/t_peanuts_frametime: t_peanuts_frametime.c ../../peanuts/peanuts_frametime.
 $(B)/t_peanuts_graph: t_peanuts_graph.c ../../peanuts/peanuts_graph.c ../../peanuts/peanuts_graph.h ../../peanuts/peanuts_frametime.c ../../peanuts/peanuts_frametime.h | $(B)
 	$(CLANG) -O1 -g -Wall -Wno-unused-function -o $@ t_peanuts_graph.c -lpthread -lm
 # t_peanuts_audiosync: the sound following the game's pace (peanuts_audiosync.c, included): the stretch's length, pitch and continuity at fixed tempos, its exact
-# output at a tempo of 1, and the automatic mode (within 1 % until two resyncs while the game runs slow, then the game's pace, kept for the next start; none at full pace)
+# output at a tempo of 1, and the automatic mode (within 1 % only, also after two resyncs while the game runs slow and with an audio_follow file from 0.1.8: #600)   # PEANUTS: #600
 $(B)/t_peanuts_audiosync: t_peanuts_audiosync.c ../../peanuts/peanuts_audiosync.c ../../peanuts/peanuts_audiosync.h | $(B)
 	$(CLANG) -O2 -g -Wall -Wno-unused-function -o $@ t_peanuts_audiosync.c -lpthread -lm
 # t_peanuts_syncstress: a hunt for lost wake-ups in hle_thread.c's waits and signals with real threads (single cases, then a storm of SYNC_SECS seconds; with --stops the
