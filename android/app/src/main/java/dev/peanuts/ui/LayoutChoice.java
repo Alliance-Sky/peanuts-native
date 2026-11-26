@@ -27,6 +27,8 @@ public final class LayoutChoice {
     private static boolean setupRun;   // this run showed the first start's setup: its new player is asked at the next start
     /** Shown at most this often: closed without a pick, once more at the next start */
     static final int TIMES = 2;
+    /** Each picture's box: the cards, their names and lines fit a handheld's screen under the title */
+    private static final int PICTURE_DP = 108;
 
     private static final int[] LAYOUTS = {PeanutsPrefs.LAYOUT_TWO, PeanutsPrefs.LAYOUT_RIGHT, PeanutsPrefs.LAYOUT_BOTTOM};
     private static final String[] PICTURES = {"pil_layout_two", "pil_layout_right", "pil_layout_bottom"};   // Peanuts' res (src/peanuts/res): by name
@@ -63,6 +65,7 @@ public final class LayoutChoice {
         box.addView(intro, ip);
         LinearLayout cards = new LinearLayout(a);
         cards.setOrientation(wide ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
+        cards.setBaselineAligned(false);   // side by side, the cards are one size: as tall as the tallest (a name on two lines)
         View[] made = new View[count];
         for (int i = 0; i < count; i++) {
             int layout = LAYOUTS[i];
@@ -71,7 +74,7 @@ public final class LayoutChoice {
                 PeanutsPrefs.menuLayoutPick(a, layout);
                 d.dismiss();
             });
-            LinearLayout.LayoutParams lp = wide ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            LinearLayout.LayoutParams lp = wide ? new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
                     : new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             int gap = Math.round(6 * dp);
             lp.setMargins(gap, Math.round(14 * dp), gap, 0);
@@ -132,11 +135,9 @@ public final class LayoutChoice {
         ImageView pic = new ImageView(a);
         int id = a.getResources().getIdentifier(PICTURES[i], "drawable", a.getPackageName());
         if (id != 0) pic.setImageResource(id);
-        pic.setAdjustViewBounds(true);
-        pic.setMaxHeight(Math.round(108 * dp));   // the cards, their names and lines fit a handheld's screen under the title
         pic.setScaleType(ImageView.ScaleType.FIT_CENTER);
         android.widget.FrameLayout top = new android.widget.FrameLayout(a);   // the picture, with the two screens' badge in its corner
-        top.addView(pic, new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        top.addView(pic, new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         if (twoScreens) {
             TextView tag = PUi.text(a, "For two screens", 12, R.color.bn_on_banana, 600);
             int h = Math.round(8 * dp), v = Math.round(3 * dp);
@@ -145,7 +146,7 @@ public final class LayoutChoice {
             top.addView(tag, new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
                     android.view.Gravity.TOP | android.view.Gravity.START));
         }
-        c.addView(top, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        c.addView(top, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Math.round(PICTURE_DP * dp)));   // one box for every picture, so the names line up
         TextView name = PUi.text(a, NAMES[i], 15, R.color.bn_text, 700);
         name.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         LinearLayout.LayoutParams np = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
