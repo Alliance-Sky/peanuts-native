@@ -88,7 +88,9 @@
     "01001BB01E8E2000",
     "01004BC0166CC000",
     "0100ACD0163D0000",
-    "010057D006492000"
+    "010057D006492000",
+    "0100E95004038000",
+    "010074F013262000"
   ],
   "games": [
     {
@@ -1838,6 +1840,48 @@
       ],
       "profile": "dm/games/0100563010E0C000/game.tsv",
       "note": "dm/games/0100563010E0C000/README.md"
+    },
+    {
+      "title_id": "0100E95004038000",
+      "name": "Xenoblade Chronicles 2",
+      "profile_name": "Xenoblade Chronicles 2",
+      "builds": [
+        {
+          "version": "v983040",
+          "number": 983040,
+          "display": "2.1.0"
+        }
+      ],
+      "readme_update": "2.1.0",
+      "package": "v983040",
+      "companion": false,
+      "since": "0.2.0",
+      "contributors": [
+        "tapionallanaire"
+      ],
+      "profile": "dm/games/0100E95004038000/game.tsv",
+      "note": "dm/games/0100E95004038000/README.md"
+    },
+    {
+      "title_id": "010074F013262000",
+      "name": "Xenoblade Chronicles 3",
+      "profile_name": "Xenoblade Chronicles 3",
+      "builds": [
+        {
+          "version": "v720896",
+          "number": 720896,
+          "display": "2.2.1"
+        }
+      ],
+      "readme_update": "2.2.1",
+      "package": "v720896",
+      "companion": false,
+      "since": "0.2.0",
+      "contributors": [
+        "tapionallanaire"
+      ],
+      "profile": "dm/games/010074F013262000/game.tsv",
+      "note": "dm/games/010074F013262000/README.md"
     },
     {
       "title_id": "0100453019AA8000",

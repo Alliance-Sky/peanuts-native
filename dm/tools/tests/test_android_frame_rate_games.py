@@ -279,6 +279,9 @@ EXPECTED = {
     '01004BC0166CC000': ('CRISIS CORE –FINAL FANTASY VII– REUNION', 'target', '-', 'own,60,30,20,15', 'own,60,30,20,15', 'own,60,30,20,15', '60', '-'),
     '0100ACD0163D0000': ('Batman: Arkham Knight', 'target', '-', 'own,60,30,20,15', 'own,60,30,20,15', 'own,60,30,20,15', '60', '-'),
     '010057D006492000': ('OCTOPATH TRAVELER', 'target', '-', 'own,60,30,20,15', 'own,60,30,20,15', 'own,60,30,20,15', '60', '-'),
+    # PEANUTS: Xenoblade Chronicles 2 and 3 on the 0.2.0 release list (2026-11-27)
+    '0100E95004038000': ('Xenoblade Chronicles 2', 'target', '-', 'own,60,30,20,15', 'own,60,30,20,15', 'own,60,30,20,15', '60', '-'),
+    '010074F013262000': ('Xenoblade Chronicles 3', 'target', '-', 'own,60,30,20,15', 'own,60,30,20,15', 'own,60,30,20,15', '60', '-'),
 }
 
 if __name__ == '__main__':
