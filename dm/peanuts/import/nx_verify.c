@@ -60,7 +60,7 @@ static void block_hash(const uint8_t *p, size_t n, size_t len, uint8_t out[32]) 
 // The blocks of the data level that [off, off + len) touches, each checked once: from buf when the read holds the whole block, else read whole first
 static int v_read(NxCheck *k, NxNca *n, int s, uint64_t off, const uint8_t *buf, size_t len) {
     Verify *v = (Verify *)k; uint64_t end = off + len, dend = v->doff + v->dsize;
-    if (!len || end <= v->doff || off >= dend) return 0;
+    if (!len || !v->dsize || end <= v->doff || off >= dend) return 0;   // an empty data level has no blocks to check (and hi - 1 would wrap below)
     uint64_t lo = off > v->doff ? off : v->doff, hi = end < dend ? end : dend;
     uint8_t *tmp = NULL; int rc = 0;
     for (uint64_t b = (lo - v->doff) / v->bs, last = (hi - 1 - v->doff) / v->bs; b <= last; b++) {

@@ -2480,6 +2480,13 @@ def damaged(where, e):
     red(f'{where}: the game file is damaged: its index points outside it ({e}). Copy or dump the game again, then import it again')
 # PEANUTS end
 
+def fb_text(d, s):   # PEANUTS: a string's bytes inside the file and readable as text, else FbOutside (a garbled descriptor is a damaged file, GitHub issue #561)
+    """FlatBuffers: the string at s (u32 length, then its bytes)"""
+    n = fb_u('<I', d, s)
+    if n > len(d) - s - 4: raise FbOutside(s + 4, n, len(d))
+    try: return bytes(d[s + 4:s + 4 + n]).decode()
+    except UnicodeDecodeError: raise FbOutside(s + 4, n, len(d)) from None
+
 def fb_field(d, t, i):
     """FlatBuffers: absolute offset of field i of the table at t, None when the field is absent"""
     vt = t - fb_u('<i', d, t)   # PEANUTS: offsets checked (fb_u)
@@ -2516,7 +2523,7 @@ def trpfs_jobs(files, parts=64, targeted=False):   # PEANUTS: select Trinity pac
         try:   # PEANUTS: an index that points outside its own file is a damaged game file (damaged), not a struct.error
             fr = fb_root(fd)
             hashes = fb_array('<Q', fd, *fb_vec(fd, fr, 0))
-            names = [fd[s + 4:s + 4 + fb_u('<I', fd, s)].decode() for s in fb_refs(fd, fr, 1)]
+            names = [fb_text(fd, s) for s in fb_refs(fd, fr, 1)]
             pack_of = {h: fb_u('<Q', fd, fb_field(fd, t, 0)) if fb_field(fd, t, 0) is not None else 0 for h, t in zip(hashes, fb_refs(fd, fr, 2))}
             sizes = [fb_u('<Q', fd, fb_field(fd, t, 0)) for t in fb_refs(fd, fr, 3)]
         except FbOutside as e: damaged(f'/{r[:-1]}d', e)
