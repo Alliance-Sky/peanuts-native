@@ -495,6 +495,14 @@ By default the device decides what a connected TV or monitor shows, as for any o
 
 A switch in Settings › Developer. Off, a game that has **Resolution** choices shows just those. On, it also shows the rows made for testing: advanced resolution, **Upscaler** and **Dynamic resolution**. Leave it off unless you are trying things out or were asked to change one of those rows.
 
+### Can a game start without the log lines and notices?
+
+Yes. Turn on Settings › App › **Smooth Experience**. While a game starts you then see its cover and a peanut instead of log lines, and there is no **Preparing graphics** or graphics driver notice over the game. Each part has its own switch under it. Errors still show: a start that stops shows a card with **Share log**, and **Preparing shaders** still shows its progress. The log keeps everything. It is off by default.
+
+### What is Developer view?
+
+A switch in Settings › Developer. On, you also get the messages only testers need, such as a switch nothing reads or a command from another app that was ignored, and the in-game menu uses its technical words. Off, those messages go to the log only and the in-game menu says the same in plain words. Messages about your save, cheats, fonts and errors show either way. It is on if you had the app before 0.1.9 and off on a new install.
+
 ### Where are a game's own settings, such as its language?
 
 Hold its cover. A game's settings override the defaults in Settings. **Reset to defaults** puts them back.
