@@ -103,6 +103,7 @@ One line per symptom in the [subsystem references](../reference/): what you see 
 - every pointer in `.data` / the GOT is a module offset, crashes everywhere. → [Packed relative relocations (DT_RELR)](../reference/rewriter.md#packed-relative-relocations-dt_relr)
 - `regress.py check` stops before gameplay with `CUTS of build ... in both ...`, naming a revision profile and its copied harness profile. → [Regression rewrites register copied profiles twice](../reference/rewriter.md#regression-rewrites-register-copied-profiles-twice)
 - packing spends most of the rewrite step on the x18 scan and the spin-wait search, using one core per module. Cancelling a parallel rewrite can leave its workers running; `DM_REWRITE_J=0` or a negative value can silently omit spin gates, and the NSP script can ignore an explicit worker limit. → [Parallel scans preserve rewrite output](../reference/rewriter.md#parallel-scans-preserve-rewrite-output)
+- with one worker (the phone's rewrite, and every phase but x18 and spin on any machine) a large `main` spent most of its rewrite in two phases: Super Mario Bros. Wonder's 29 MB `main` took 57 s, of which the spin wait search 28 s and the x18 scan 13.5 s; on a phone such a module took 5 to 6 minutes. → [One decode per word in the spin wait search and the x18 scan](../reference/rewriter.md#one-decode-per-word-in-the-spin-wait-search-and-the-x18-scan)
 
 ## Memory and address space
 

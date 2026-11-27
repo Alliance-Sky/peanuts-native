@@ -263,6 +263,7 @@ class Wiring(unittest.TestCase):
         # A later rewriter change of the same output (a rewrite census) keeps the file before it as its own equivalent (CHAIN, oldest first): e13378e6's
         # file is then the first of them without in_forks, and each of them has the current file's in_forks spans, byte for byte
         name = 'patch_nso.py.e13378e630c8'   # dev 0.1.8's file (e13378e6, #481); 0.1.7's, patch_nso.py.54b9ce16465e, is #481's equivalent and stays
+        last = 'patch_nso.py.d98ba837b4c1'   # the file with the forks before dev 0.2.0's speed round (d98ba837)
         equiv = REPO / 'dm/tools/rewriter_equiv' / name
         self.assertTrue(equiv.is_file())
         for before in ('6bc30f06074b', 'eaf706b807d5', '2590f2d24457'):   # the files before #164, before #177 and before #290
@@ -280,8 +281,8 @@ class Wiring(unittest.TestCase):
                          '(git show <its last commit>:dm/tools/patch_nso.py) and add it to CHAIN')
 
     # the files before each later rewriter change of the same output, oldest first: #654 (scheduled offset jump tables through x18), #863 (the table base
-    # between the check and the load in check_before_copy)
-    CHAIN = ('d98ba837b4c1', 'aa0f78aee5ab')
+    # between the check and the load in check_before_copy), #120's Round 65 (the spin wait search and the x18 scan decode each word once)
+    CHAIN = ('d98ba837b4c1', 'aa0f78aee5ab', '8e3599f57768')
 
     def test_the_pack_script_runs_it_in_the_worker(self):
         pack = (REPO / 'scripts/pack_android.py').read_text(encoding='utf-8')

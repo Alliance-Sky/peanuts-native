@@ -3557,3 +3557,29 @@ NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS draws its UI with OpenGL throug
 | `dm/host/hle.h` | 1 | `HLE_FORCE_BIG`'s comment: two stack slots carried over | `PEANUTS` |
 | `dm/host/tests/t_bigstack.c` | 4 | a ten-argument take-over through the switch and on the direct path; the call helpers use `PLAT_ASM_SYM` (ELF too) | `PEANUTS` |
 | `docs/reference/memory.md` | 1 | "Host calls on small guest stacks": the two stack slots | `PEANUTS` |
+
+### Round 65, the spin wait search and the x18 scan decode each word once (2026-11-28)
+
+With one worker (the phone's rewrite) a large `main` spent most of its rewrite in the spin wait search and the x18 scan: Super Mario Bros. Wonder's `main`
+57 s on a PC, of which spin 28 s and x18 13.5 s, and 5 to 6 minutes on a phone. The spin search kept its decoded words for one head only, so each of about
+200,000 heads decoded its neighbours' words again (1.77 million detailed capstone decodes), and the x18 scan decoded every word to find the few that name x18.
+Now:
+
+- What the spin search reads of a word is decoded once per process into two arrays of 16-bit indices (`spin_word`, `spin_rw_at`; two bytes a text word
+  each, no capstone objects kept), most words without details (`spin_word_lite`), the rest with them. `spin_lock` and `spin_rmw` decode their later words only
+  where the bits allow their sequence, `spin_quick` runs once per head from a 13-bit class table (`SPIN_QK`), `prune` walks the edges backward, and a spin
+  job is a run of neighbouring heads.
+- The x18 scan decodes only the words with a register field of 17 or 18 (`X18_F`); the instruction scan (`SCAN_TOPS`) and `acquire_lock_sites` (`LDXR_B`)
+  look only at the words whose bytes can match. `PHASES` has the shares measured again.
+- The output is byte-identical (Wonder's `main` and `sdk`, Animal Crossing's and Mario Kart 8 Deluxe's `main`, one, four and eight workers, SHA-256 of
+  every file but `build_src.sha256`). One worker: Wonder `main` 55 to 29 s, Animal Crossing `main` 94 to 52 s; four: 23 to 14 s and 37 to 22 s. Peak
+  memory the same. docs/reference/rewriter.md "One decode per word in the spin wait search and the x18 scan".
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/tools/patch_nso.py` | 15 | `PHASES`; `LDXR_B`, `acquire_lock_sites`; `X18_F`, `x18_words` (one `PEANUTS begin/end` block); `SCAN_TOPS`, `x18_sorted`, `scan_piece`; `spin_rn`, `spin_rw`; `spin_word` and its helpers (one `PEANUTS begin/end` block); `spin_lock`; `spin_quick_class`, `SPIN_QK`, `spin_quick`; `spin_region` (the quick check once, `spin_dec` kept for the next heads, the instructions of a region's single words); `spin_region1` (`spin_word`'s values, `prune`, `spin_rw_at`); `spin_heads_with_region`, `find_spin_regions` (runs of heads) | `PEANUTS(upstream-candidate)` per hunk |
+| `dm/tools/tests/test_spin_waits.py`, `test_acquire_lock.py` | 5 | the new helpers and tables compiled with the search; `WordValues`: `spin_word_lite`'s values are the detailed decode's | `PEANUTS(upstream-candidate)` |
+| `dm/tools/rewriter_equiv/patch_nso.py.d98ba837b4c1` (new) | file | the rewriter before this round (d98ba837), byte for byte: packs made with it count as up to date | allow-listed in `peanuts/upstream-unmarked.txt` |
+
+The generated index `docs/agents/symptoms.md` (`dm/tools/docs_symptoms.py`) has the new entry. Peanuts' own files, no marker: `peanuts/tests/test_rewrite_forks.py` (`patch_nso.py.e13378e630c8` is now `patch_nso.py.d98ba837b4c1` without `in_forks`;
+both stay until a rewriter change whose output differs), `peanuts/upstream-unmarked.txt`. Upstream candidate: yes, the whole `patch_nso.py` change.
