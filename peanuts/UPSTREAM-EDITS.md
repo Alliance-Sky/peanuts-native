@@ -3335,6 +3335,7 @@ view (Settings › Developer) shows the testers' toasts and the in-game menu's t
 | `android/app/src/main/java/dev/nxnative/android/MainActivity.java` | 1 | the ignored adb command's toast with Developer view only | `// PEANUTS:` |
 | `android/app/src/main/java/dev/nxnative/android/SidePanel.java` | 4 | the two "DM_CTL is off" notes, the cap line and the frame generation state (`DevView.panel`, `DevView.frameGen`) | `// PEANUTS:` |
 | `android/app/src/main/java/dev/nxnative/android/Lsfg.java` | 2 | "Not in this build" and the mode line through `DevView.panel` | `// PEANUTS:` / `/* PEANUTS */` |
+
 ### Round 64, a damaged game file is found at the import, and a split that meets one says so (2026-11-24, GitHub issue #561)
 
 Pokémon Legends: Z-A 2.0.2 on a phone stopped at "Finding the shaders" with `struct.error: unpack_from requires a buffer of at least 8725344222 bytes`
