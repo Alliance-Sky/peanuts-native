@@ -16,10 +16,10 @@ iOS runtime testing, DLC gameplay and later-game allocation peaks remain open.
 The supplied four DLC packs are included; their additional shaders have not been
 integrated into the base/update shader census, so DLC rendering is unvalidated.
 
-<!-- PEANUTS begin: Android results (#639, tapionallanaire), on the 0.2.0 release list -->
+<!-- PEANUTS begin: Android results (#639, tapionallanaire), on the 0.1.10 release list -->
 ## Android (AYN Thor, Turnip v27.0.0-R1, 2026-11-26)
 
-On the release list from 0.2.0 (`peanuts/release-titles.txt`, so in the default APK), with no readiness row.
+On the release list from 0.1.10 (`peanuts/release-titles.txt`, so in the default APK), with no readiness row.
 
 - 2.2.1 (European release), built on the phone by the app: title, New Game and the first battle won, no crash. Present times over 63 s of the battle average 30.10 fps.
 - The European release has British English but not American English. The launcher gives the game a language it has (`[nxlaunch] game language: DM_LANG=en-GB`), from its NACP; before #639 a phone set to US English crashed at boot.

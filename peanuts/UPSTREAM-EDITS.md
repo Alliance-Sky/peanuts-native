@@ -3288,7 +3288,21 @@ the generic profile field, `join_cap` cut from vka_mem.c with the profile at 0 a
 changes: `place_join_mb` is not a build row (`pack_android.py build_rows`), and `vka_mem.c` does not feed `DMSH_VK_CHAIN`. Upstream candidate: the key, if
 upstream wants a per-game join cap.
 
-### 0.2.0 release list: Xenoblade Chronicles 2 and 3 (2026-11-27)
+### 0.1.10 release list: Cult of the Lamb, Super Smash Bros. Ultimate and OCTOPATH TRAVELER II (2026-11-28)
+
+The owner put three more profiles that landed in 0.1.9 on the release list: Cult of the Lamb (#718, bryan-era24) and Super Smash Bros. Ultimate (#719,
+bryan-era24), whose release-list commits were held back when they landed, and OCTOPATH TRAVELER II (#548, zelkibuilds, its Thor results). No readiness
+row is added: the release titles need none. The cycle after 0.1.9 is 0.1.10 (owner, 2026-11-28), so the Xenoblade rows below say 0.1.10 too.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/gradle.properties` | 1 | `nxGames` = the release titles (92) | `# PEANUTS:` comment line above the row |
+| `dm/tools/tests/test_android_frame_rate_games.py` | 1 | the three games' pinned caps, from their `game.tsv` frame rows | `# PEANUTS:` comment line above the rows |
+| `dm/games/01002E7016C46000/README.md` | 1 | Android section: on the release list | `<!-- PEANUTS: ... -->` |
+| `dm/games/01006A800016E000/README.md` | 1 | Android section: on the release list | `<!-- PEANUTS: ... -->` |
+| `dm/games/0100A3501946E000/README.md` | 1 | on the release list | `<!-- PEANUTS: ... -->` |
+
+### 0.1.10 release list: Xenoblade Chronicles 2 and 3 (2026-11-27)
 
 The owner put Xenoblade Chronicles 2 and Xenoblade Chronicles 3 on the release list. Both profiles came with the upstream import; their Android runs on an
 AYN Thor landed in 0.1.9 (#645 for 2, the test record; #639 for 3, the launcher's NACP language) but they were not added to the list then. No readiness

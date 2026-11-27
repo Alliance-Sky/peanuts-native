@@ -90,7 +90,10 @@
     "0100ACD0163D0000",
     "010057D006492000",
     "0100E95004038000",
-    "010074F013262000"
+    "010074F013262000",
+    "01002E7016C46000",
+    "01006A800016E000",
+    "0100A3501946E000"
   ],
   "games": [
     {
@@ -332,6 +335,27 @@
       ],
       "profile": "dm/games/01004BC0166CC000/game.tsv",
       "note": "dm/games/01004BC0166CC000/README.md"
+    },
+    {
+      "title_id": "01002E7016C46000",
+      "name": "Cult of the Lamb",
+      "profile_name": "Cult of the Lamb",
+      "builds": [
+        {
+          "version": "v1966080",
+          "number": 1966080,
+          "display": "1.5.28"
+        }
+      ],
+      "readme_update": "1.5.28",
+      "package": "v1966080",
+      "companion": false,
+      "since": "0.1.10",
+      "contributors": [
+        "bryan-era24"
+      ],
+      "profile": "dm/games/01002E7016C46000/game.tsv",
+      "note": "dm/games/01002E7016C46000/README.md"
     },
     {
       "title_id": "010097F018538000",
@@ -1053,6 +1077,27 @@
       "note": "dm/games/01005270232F2000/README.md"
     },
     {
+      "title_id": "0100A3501946E000",
+      "name": "OCTOPATH TRAVELER II",
+      "profile_name": "OCTOPATH TRAVELER II",
+      "builds": [
+        {
+          "version": "v131072",
+          "number": 131072,
+          "display": "1.1.1"
+        }
+      ],
+      "readme_update": "1.1.1",
+      "package": "v131072",
+      "companion": false,
+      "since": "0.1.10",
+      "contributors": [
+        "zelkibuilds"
+      ],
+      "profile": "dm/games/0100A3501946E000/game.tsv",
+      "note": "dm/games/0100A3501946E000/README.md"
+    },
+    {
       "title_id": "01008FE00E2F6000",
       "name": "One Piece: Pirate Warriors 4",
       "profile_name": "One Piece Pirate Warriors 4",
@@ -1551,6 +1596,27 @@
       "note": "dm/games/0100BC0018138000/README.md"
     },
     {
+      "title_id": "01006A800016E000",
+      "name": "Super Smash Bros. Ultimate",
+      "profile_name": "Super Smash Bros. Ultimate",
+      "builds": [
+        {
+          "version": "v2031616",
+          "number": 2031616,
+          "display": "13.0.5"
+        }
+      ],
+      "readme_update": "13.0.5",
+      "package": "v2031616",
+      "companion": false,
+      "since": "0.1.10",
+      "contributors": [
+        "bryan-era24"
+      ],
+      "profile": "dm/games/01006A800016E000/game.tsv",
+      "note": "dm/games/01006A800016E000/README.md"
+    },
+    {
       "title_id": "0100DE501433A000",
       "name": "Tetris Effect: Connected",
       "profile_name": "Tetris Effect: Connected",
@@ -1855,7 +1921,7 @@
       "readme_update": "2.1.0",
       "package": "v983040",
       "companion": false,
-      "since": "0.2.0",
+      "since": "0.1.10",
       "contributors": [
         "tapionallanaire"
       ],
@@ -1876,7 +1942,7 @@
       "readme_update": "2.2.1",
       "package": "v720896",
       "companion": false,
-      "since": "0.2.0",
+      "since": "0.1.10",
       "contributors": [
         "tapionallanaire"
       ],
