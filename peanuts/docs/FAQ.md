@@ -1,6 +1,6 @@
 # Peanuts Native FAQ
 
-For version 0.1.8. Labels in **bold** are the words the app shows. "Settings" is the gear button on the home screen. "Hold the cover" means a long press on a game's cover (or Y on a controller).
+For version 0.1.9. Labels in **bold** are the words the app shows. "Settings" is the gear button on the home screen. "Hold the cover" means a long press on a game's cover (or Y on a controller).
 
 ## Quick answers
 
@@ -258,7 +258,7 @@ For a game that is already built, tapping the cover shows the dialog **Game file
 
 ### Which games are supported?
 
-The project's README lists all 76 games included in 0.1.8, the updates each supports and which have an Eden Duo catalog entry.
+The project's README lists all 87 games included in 0.1.9, the updates each supports and which have an Eden Duo catalog entry.
 
 The games tested for 0.1.1 were Link's Awakening, Echoes of Wisdom, Fire Emblem: Three Houses, Fire Emblem Engage, Metroid Dread, Super Mario Odyssey, Mario Kart 8 Deluxe, Animal Crossing: New Horizons, Persona 5 Royal, Castlevania: Belmont's Curse, Octopath Traveler 0, Pokémon Brilliant Diamond, Pokémon Sword and Breath of the Wild (new, little tested). Super Mario Bros. Wonder and Dragon Quest III HD-2D Remake are in the app too, but were not tested on a device yet. 0.1.2 adds Pokémon Shining Pearl, Pokémon Shield, Final Fantasy Resonance, Skyward Sword HD, Pokémon Legends: Arceus and Resident Evil 4, all new and little tested, and Kirby's Return to Dream Land Deluxe, which was run by its contributor on their own AYN Thor only. 0.1.4 adds Crash Team Racing Nitro-Fueled, Kirby and the Forgotten Land, Super Mario 3D World + Bowser's Fury, Chained Echoes, My Time at Sandrock, Monster Sanctuary and Yoru, Tomosu, all new and little tested, and Xenoblade Chronicles X: Definitive Edition as an experiment. Super Mario Bros. Wonder was checked on a device for 0.1.4, on its 1.2.1 update, the only one the app builds now.
 
@@ -269,6 +269,8 @@ The games tested for 0.1.1 were Link's Awakening, Echoes of Wisdom, Fire Emblem:
 0.1.7 adds Trails in the Sky 1st Chapter, Yoshi's Crafted World, Tetris Effect: Connected, New Pokémon Snap, Digimon Story Time Stranger, Hogwarts Legacy and Star Ocean The Second Story R. Build New Pokémon Snap on the phone: the PC builder cannot build it yet.
 
 0.1.8 adds Stray, 13 Sentinels: Aegis Rim, Captain Toad: Treasure Tracker, Advance Wars 1+2: Re-Boot Camp, FANTASY LIFE i: The Girl Who Steals Time, Pokémon: Let's Go, Pikachu!, Pokémon: Let's Go, Eevee!, Viewfinder, SPY×ANYA: Operation Memories, Super Mario RPG, WarioWare: Get It Together!, LEGO 2K Drive, LEGO CITY UNDERCOVER, LEGO MARVEL Super Heroes, Minecraft Dungeons II, The Witcher 3: Wild Hunt Complete Edition and Pokémon Mystery Dungeon: Rescue Team DX. Play the two Pokémon: Let's Go games with a Turnip driver: Qualcomm's own driver draws the 3D scene of Let's Go, Pikachu! black, and Let's Go, Eevee! was not tried on it. Build Pokémon Mystery Dungeon: Rescue Team DX from its base game 1.0.0.
+
+0.1.9 adds One Piece: Pirate Warriors 4, FINAL FANTASY XII THE ZODIAC AGE, FINAL FANTASY Pixel Remaster, Battle Brothers, The Hundred Line -Last Defense Academy-, DRAGON QUEST VII Reimagined, Sea of Stars, FANTASIAN Neo Dimension, CRISIS CORE FINAL FANTASY VII REUNION, Batman: Arkham Knight and OCTOPATH TRAVELER. Play The Hundred Line, Sea of Stars, CRISIS CORE and Batman: Arkham Knight with a Turnip driver: on Qualcomm's own driver The Hundred Line draws no 3D world, Sea of Stars draws broken graphics on drivers before 512.800, and CRISIS CORE and Batman: Arkham Knight crash. CRISIS CORE can look washed out white on its first start; start it again. DRAGON QUEST VII Reimagined was not tried on a phone yet. FANTASY LIFE i: The Girl Who Steals Time also supports update 2.2.0, and Trails in the Sky 1st Chapter supports update 1.0.8.
 
 The 0.1.5 verification build was checked on an AYN Thor with Turnip v26.2.0 R5. Demon Slayer 2 reached the playable rooftop fight against Daki at about 30 fps. Tears of the Kingdom reached the opening cave and responded to movement. Kirby and the Forgotten Land prepared all 418 pipeline keys on its first launch, then reused the cache on relaunch. The other six additions have earlier, game-specific device checks.
 
@@ -923,7 +925,7 @@ No. An update keeps the app's storage, and saves are in it. For a game with code
 
 ### How do I tell which version I have?
 
-The build name is under the app's title on the home screen and in Settings › **About**. A release build reads `peanuts-native-0.1.8`. Every log starts with it too.
+The build name is under the app's title on the home screen and in Settings › **About**. A release build reads `peanuts-native-0.1.9`. Every log starts with it too.
 
 ## Credits
 
