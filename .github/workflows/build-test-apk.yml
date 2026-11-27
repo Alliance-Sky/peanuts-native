@@ -8,7 +8,7 @@ on:
       games:
         description: 'Comma-separated Title IDs to include'
         required: true
-        default: '010082400BCC6000'
+        default: '010082400BCC6000,01008C0016544000'
       app_id_suffix:
         description: 'App ID suffix (dev.nxnative.android.<suffix>)'
         required: true
@@ -59,7 +59,7 @@ jobs:
       - name: Build side-by-side Peanuts test APK with in-app builder
         working-directory: android/app
         env:
-          GAMES: ${{ github.event.inputs.games || '010082400BCC6000' }}
+          GAMES: ${{ github.event.inputs.games || '010082400BCC6000,01008C0016544000' }}
           APP_SUFFIX: ${{ github.event.inputs.app_id_suffix || 'peanutstest' }}
         run: |
           ./gradlew apk \
@@ -72,5 +72,5 @@ jobs:
       - name: Upload test APK
         uses: actions/upload-artifact@v4
         with:
-          name: peanuts-test-apk-${{ github.event.inputs.games || '010082400BCC6000' }}
+          name: peanuts-test-apk-goose-sos
           path: android/app/out/nxnative-android-peanuts.apk
