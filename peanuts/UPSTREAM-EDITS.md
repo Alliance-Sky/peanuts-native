@@ -3488,6 +3488,17 @@ view (Settings › Developer) shows the testers' toasts and the in-game menu's t
 | `android/app/src/main/java/dev/nxnative/android/SidePanel.java` | 4 | the two "DM_CTL is off" notes, the cap line and the frame generation state (`DevView.panel`, `DevView.frameGen`) | `// PEANUTS:` |
 | `android/app/src/main/java/dev/nxnative/android/Lsfg.java` | 2 | "Not in this build" and the mode line through `DevView.panel` | `// PEANUTS:` / `/* PEANUTS */` |
 
+### Round 65, the rewrite beside the split and the shaders (2026-11-28, issue #120)
+
+The shaders step needs the split only; the pack step is the first that needs the rewritten code. On a phone with the memory for both (14 GB and more), the
+rewrite step now runs in a process of its own while the split and the shaders run, and the pack step waits for it ([INCREMENTAL-BUILD.md](docs/INCREMENTAL-BUILD.md#the-rewrite-beside-the-split-and-the-shaders)).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/src/ondevice/java/dev/nxnative/android/PackService.java` | 5 | the job loop: `nextStep` (past a rewrite that runs beside, never to the pack), `joinBeside` before the pack, `fail == BESIDE` goes on; `step()`: the rewrite started beside when `RewriteBesidePlan.allowed`; `stopBeside` in `work()`'s `finally`; `stopLeftover` before the loop; the fields and helpers | `// PEANUTS:` and `PEANUTS begin` / `end` |
+| `android/app/src/ondevice/java/dev/nxnative/android/RewriteBeside.java`, `RewriteBesidePlan.java` (new) | - | the process (start, wait, stop, a leftover's end) and the decision and command (pure Java) | Peanuts' own files |
+| `android/app/src/jvmtest/java/dev/nxnative/android/RewriteBesidePlanJvmTest.java`, `dm/tools/tests/test_android_rewrite_beside.py` (new) | - | the decision, the command and PackService's wiring | Peanuts' own files |
+
 ### Round 64, a damaged game file is found at the import, and a split that meets one says so (2026-11-24, GitHub issue #561)
 
 Pokémon Legends: Z-A 2.0.2 on a phone stopped at "Finding the shaders" with `struct.error: unpack_from requires a buffer of at least 8725344222 bytes`
