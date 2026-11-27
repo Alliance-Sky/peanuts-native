@@ -1,6 +1,8 @@
 # The Legend of Heroes: Trails through Daybreak II (`0100F6701FED4000`)
 
 <!-- PEANUTS: Android bring-up -->
+On the release list from 0.1.10 (`peanuts/release-titles.txt`, so in the default APK). Its `readiness.tsv` stays: `status bring-up` and the feature rows tell a player what the phone lacks. <!-- PEANUTS: on the 0.1.10 release list -->
+
 **Bring-up, base 1.0.0 only.** The base NACP reports 1.0.0 (`v0`); no updates are registered. The 64-bit executable uses NVN and Nintendo SDK 17.5.6. For a single-title Android test build, use `-PnxGames=0100F6701FED4000`. The profile is not a release compatibility claim.
 
 The executable imports the movie module `subsdk0`; the host supplies `rtld`. The allocator reserves ten `0x4be00000`-byte virtual ranges, separately from its heap. The profile leaves 16 GiB for those ranges; this is address space, not physical memory use.

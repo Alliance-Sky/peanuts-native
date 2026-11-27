@@ -3290,6 +3290,20 @@ the generic profile field, `join_cap` cut from vka_mem.c with the profile at 0 a
 changes: `place_join_mb` is not a build row (`pack_android.py build_rows`), and `vka_mem.c` does not feed `DMSH_VK_CHAIN`. Upstream candidate: the key, if
 upstream wants a per-game join cap.
 
+### 0.1.10 release list: THE HOUSE OF THE DEAD: Remake and 2: Remake, and Trails through Daybreak II (2026-11-28)
+
+The owner put three profiles that landed for 0.1.10 on the release list: THE HOUSE OF THE DEAD: Remake (#790) and THE HOUSE OF THE DEAD 2: Remake (#792),
+Sed-El, and Trails through Daybreak II (#581, tapionallanaire). No readiness row is added; Trails through Daybreak II keeps the `readiness.tsv` it came with
+(`status bring-up` and its feature rows).
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `android/app/gradle.properties` | 1 | `nxGames` = the release titles (95) | `# PEANUTS:` comment line above the row |
+| `dm/tools/tests/test_android_frame_rate_games.py` | 1 | the three games' pinned caps, from their `game.tsv` frame rows | `# PEANUTS:` comment line above the rows |
+| `dm/games/010088401495E000/README.md` | 1 | on the release list | `<!-- PEANUTS: ... -->` |
+| `dm/games/01007A3024D10000/README.md` | 1 | on the release list | `<!-- PEANUTS: ... -->` |
+| `dm/games/0100F6701FED4000/README.md` | 1 | on the release list, the readiness rows kept | `<!-- PEANUTS: ... -->` |
+
 ### 0.1.10 release list: Cult of the Lamb, Super Smash Bros. Ultimate and OCTOPATH TRAVELER II (2026-11-28)
 
 The owner put three more profiles that landed in 0.1.9 on the release list: Cult of the Lamb (#718, bryan-era24) and Super Smash Bros. Ultimate (#719,

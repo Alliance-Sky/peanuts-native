@@ -5,6 +5,8 @@ Update 1.0.2 (`v131072`) over the base game (`v0`, 1.0.0). SDK 19.3.5, Unity 202
 
 ## Status
 
+On the release list from 0.1.10 (`peanuts/release-titles.txt`, so in the default APK), with no readiness row. <!-- PEANUTS: on the 0.1.10 release list -->
+
 Plays on Samsung Galaxy Tab S8+ (`SM-X800`, Snapdragon 8 Gen 1 / Adreno 730) with Mesa Turnip T30 (`driver=18`) at 55.4 FPS median (59.7 FPS median with low-end graphics patches; 1080p, FMOD audio, 0 missing shaders, 0 crashes).
 
 ## Prewarm

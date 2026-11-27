@@ -28,7 +28,7 @@ too.
 
 <!-- PEANUTS begin: the Supported games table, written by peanuts/scripts/games_catalog.py from peanuts/games.tsv, peanuts/release-titles.txt and the profiles. Edit peanuts/games.tsv, not this table -->
 
-Peanuts Native 0.1.9 includes 87 games, and 5 more are coming in 0.1.10 (marked in the table). The Companion column shows whether a game appears in the Eden Duo Companions catalog, and the Contributor column the community members who brought a game to Peanuts Native. Updates are shown as version numbers or numeric update IDs.
+Peanuts Native 0.1.9 includes 87 games, and 8 more are coming in 0.1.10 (marked in the table). The Companion column shows whether a game appears in the Eden Duo Companions catalog, and the Contributor column the community members who brought a game to Peanuts Native. Updates are shown as version numbers or numeric update IDs.
 
 | Game | Title ID | Game update | Companion | Contributor |
 |---|---|---|---|---|
@@ -124,6 +124,9 @@ Peanuts Native 0.1.9 includes 87 games, and 5 more are coming in 0.1.10 (marked 
 | Cult of the Lamb (coming in 0.1.10) | `01002E7016C46000` | 1.5.28 | No | ⭐<br><a href="https://github.com/bryan-era24"><img src="https://img.shields.io/badge/bryan--era24-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="bryan-era24"></a> |
 | Super Smash Bros. Ultimate (coming in 0.1.10) | `01006A800016E000` | 13.0.5 | No | ⭐<br><a href="https://github.com/bryan-era24"><img src="https://img.shields.io/badge/bryan--era24-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="bryan-era24"></a> |
 | OCTOPATH TRAVELER II (coming in 0.1.10) | `0100A3501946E000` | 1.1.1 | No | ⭐<br><a href="https://github.com/zelkibuilds"><img src="https://img.shields.io/badge/zelkibuilds-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="zelkibuilds"></a> |
+| THE HOUSE OF THE DEAD: Remake (coming in 0.1.10) | `010088401495E000` | 1.0.0, 1.1.0 | No | ⭐<br><a href="https://github.com/Sed-El"><img src="https://img.shields.io/badge/Sed--El-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="Sed-El"></a> |
+| THE HOUSE OF THE DEAD 2: Remake (coming in 0.1.10) | `01007A3024D10000` | 1.0.0, 1.0.2 | No | ⭐<br><a href="https://github.com/Sed-El"><img src="https://img.shields.io/badge/Sed--El-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="Sed-El"></a> |
+| The Legend of Heroes: Trails through Daybreak II (coming in 0.1.10) | `0100F6701FED4000` | 1.0.0 | No | ⭐<br><a href="https://github.com/tapionallanaire"><img src="https://img.shields.io/badge/tapionallanaire-181717?style=flat-square&logo=github&logoColor=white" style="vertical-align: middle;" alt="tapionallanaire"></a> |
 
 <!-- PEANUTS end: the Supported games table -->
 

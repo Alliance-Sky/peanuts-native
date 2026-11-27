@@ -93,7 +93,10 @@
     "010074F013262000",
     "01002E7016C46000",
     "01006A800016E000",
-    "0100A3501946E000"
+    "0100A3501946E000",
+    "010088401495E000",
+    "01007A3024D10000",
+    "0100F6701FED4000"
   ],
   "games": [
     {
@@ -1638,6 +1641,58 @@
       "note": "dm/games/0100DE501433A000/README.md"
     },
     {
+      "title_id": "01007A3024D10000",
+      "name": "THE HOUSE OF THE DEAD 2: Remake",
+      "profile_name": "THE HOUSE OF THE DEAD 2: Remake",
+      "builds": [
+        {
+          "version": "v131072",
+          "number": 131072,
+          "display": "1.0.2"
+        },
+        {
+          "version": "v0",
+          "number": 0,
+          "display": "1.0.0"
+        }
+      ],
+      "readme_update": "1.0.0, 1.0.2",
+      "package": "v131072",
+      "companion": false,
+      "since": "0.1.10",
+      "contributors": [
+        "Sed-El"
+      ],
+      "profile": "dm/games/01007A3024D10000/game.tsv",
+      "note": "dm/games/01007A3024D10000/README.md"
+    },
+    {
+      "title_id": "010088401495E000",
+      "name": "THE HOUSE OF THE DEAD: Remake",
+      "profile_name": "THE HOUSE OF THE DEAD: Remake",
+      "builds": [
+        {
+          "version": "v131072",
+          "number": 131072,
+          "display": "1.1.0"
+        },
+        {
+          "version": "v0",
+          "number": 0,
+          "display": "1.0.0"
+        }
+      ],
+      "readme_update": "1.0.0, 1.1.0",
+      "package": "v131072",
+      "companion": false,
+      "since": "0.1.10",
+      "contributors": [
+        "Sed-El"
+      ],
+      "profile": "dm/games/010088401495E000/game.tsv",
+      "note": "dm/games/010088401495E000/README.md"
+    },
+    {
       "title_id": "010093C0215B4000",
       "name": "The Hundred Line -Last Defense Academy-",
       "profile_name": "The Hundred Line -Last Defense Academy-",
@@ -1657,6 +1712,27 @@
       ],
       "profile": "dm/games/010093C0215B4000/game.tsv",
       "note": "dm/games/010093C0215B4000/README.md"
+    },
+    {
+      "title_id": "0100F6701FED4000",
+      "name": "The Legend of Heroes: Trails through Daybreak II",
+      "profile_name": "The Legend of Heroes: Trails through Daybreak II",
+      "builds": [
+        {
+          "version": "v0",
+          "number": 0,
+          "display": "1.0.0"
+        }
+      ],
+      "readme_update": "1.0.0",
+      "package": "v0",
+      "companion": false,
+      "since": "0.1.10",
+      "contributors": [
+        "tapionallanaire"
+      ],
+      "profile": "dm/games/0100F6701FED4000/game.tsv",
+      "note": "dm/games/0100F6701FED4000/README.md"
     },
     {
       "title_id": "01007EF00011E000",

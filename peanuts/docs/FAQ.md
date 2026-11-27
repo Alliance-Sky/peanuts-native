@@ -276,6 +276,8 @@ The games tested for 0.1.1 were Link's Awakening, Echoes of Wisdom, Fire Emblem:
 
 0.1.10 also adds Cult of the Lamb, Super Smash Bros. Ultimate and OCTOPATH TRAVELER II, each checked on an AYN Thor with a Turnip driver at 60 fps. Cult of the Lamb's inventory menu draws wrong on one older Turnip build; Turnip 27.0.0-R2 and the system driver draw it right. Super Smash Bros. Ultimate crashed once on its first launch, after about 4 minutes, and not again. OCTOPATH TRAVELER II needs Turnip: on Qualcomm's own driver the game stops after New Game, and on a first launch Hikari's opening can draw bright green and white until the game's shaders are ready.
 
+0.1.10 also adds THE HOUSE OF THE DEAD: Remake and THE HOUSE OF THE DEAD 2: Remake, each checked on a Samsung Galaxy Tab S8+ with a Turnip driver at about 60 fps; Qualcomm's own driver was not tried. And Trails through Daybreak II, base game 1.0.0, an early version: it was checked on an AYN Odin 2 with Turnip from New Game through the opening and the first field tutorials, and it needs Turnip, because on Qualcomm's own driver it stops before the title screen. Its water is not drawn yet, and saves, battles and later areas were not checked.
+
 The 0.1.5 verification build was checked on an AYN Thor with Turnip v26.2.0 R5. Demon Slayer 2 reached the playable rooftop fight against Daki at about 30 fps. Tears of the Kingdom reached the opening cave and responded to movement. Kirby and the Forgotten Land prepared all 418 pipeline keys on its first launch, then reused the cache on relaunch. The other six additions have earlier, game-specific device checks.
 
 Settings › **About** › **Games** lists the games of the app you have installed, each with the version it builds.
