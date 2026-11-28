@@ -662,6 +662,13 @@ static int dpool_id(nvn_dpool_tab *t, const void *pool, int id) {
 static int dpool_base(nvn_dpool_tab *t, const void *pool) { return dpool_id(t, pool, NVN_DPOOL_RESERVED) - NVN_DPOOL_RESERVED; }   // what a bound pool's IDs are added to
 static void dpool_release(nvn_dpool_tab *t, const void *pool) { pthread_mutex_lock(&g_dpool_mu); nvn_dpool_release(t, pool); pthread_mutex_unlock(&g_dpool_mu); }
 int nvn_dpool_base(const void *pool, int tex) { return dpool_base(tex ? &g_tpt : &g_spt, pool); }   // the replay's bound pools (nvn_mtl.m state_op)
+// PEANUTS(upstream-candidate): the lowest of a pool's IDs that has host entries: 256 for a small pool (nvn_dpool.h), whose reserved IDs below it would land in the previous
+// pool's range through base + ID; 0 for any other. The Android replay reads a handle's ID below it as no descriptor (vka_draw.c, vka_bind.c ubo_tex_id / ubo_samp_id)
+int nvn_dpool_first_id(const void *pool, int tex) {
+    nvn_dpool_tab *t = tex ? &g_tpt : &g_spt;
+    pthread_mutex_lock(&g_dpool_mu); int i = nvn_dpool_slot(t, pool), r = i >= 0 && t->e[i].small ? NVN_DPOOL_RESERVED : 0; pthread_mutex_unlock(&g_dpool_mu);
+    return r;
+}
 // The Android frame replayer (dm/gfx/vk_android/vka_replay.c), which runs in the host library without the game: a captured descriptor pool's bases, as its Initialize gave them
 void nvn_dpool_base_set(const void *pool, int tex_base, int samp_base) {
     pthread_mutex_lock(&g_dpool_mu);

@@ -77,13 +77,15 @@ void vka_dstate_reset(vka_dstate *d) {   // NVN's defaults (nvn_mtl.m state_rese
 static _Atomic uint64_t g_stamp;
 uint64_t vka_stamp(void) { return atomic_fetch_add_explicit(&g_stamp, 1, memory_order_relaxed) + 1; }
 int nvn_dpool_base(const void *pool, int tex);   // hle_nvn.c: where a descriptor pool's IDs start in the host table
+int nvn_dpool_first_id(const void *pool, int tex);   // PEANUTS(upstream-candidate): hle_nvn.c: 256 for a small pool, whose reserved IDs have no host entries
 int vka_state_op(vka_dstate *d, uint32_t op, const void *a) {
     if (!d->inited) vka_dstate_reset(d);
     if (op != OP_BIND_UBO && op != OP_BIND_UBO_SMALL) { d->bind_gen++; }
     switch (op) {
     case OP_SET_TEX_POOL: case OP_SET_SAMP_POOL: { int tex = op == OP_SET_TEX_POOL, b = nvn_dpool_base(((const p_set_pool *)a)->pool, tex);
         if (b != (tex ? d->b.tex_base : d->b.samp_base) && VKA_ENV("DM_VK_SAMP_LOG", 0)) { static _Atomic int n_; if (atomic_fetch_add(&n_, 1) < 40) VLOG("%s pool bound at replay: base %d (was %d)", tex ? "texture" : "sampler", b, tex ? d->b.tex_base : d->b.samp_base); }   // PEANUTS: DM_VK_SAMP_LOG: the first 40 changes of the bound pools
-        if (tex) d->b.tex_base = b; else d->b.samp_base = b; break; }
+        int lo = nvn_dpool_first_id(((const p_set_pool *)a)->pool, tex);   // PEANUTS(upstream-candidate)
+        if (tex) d->b.tex_base = b, d->b.tex_first = lo; else d->b.samp_base = b, d->b.samp_first = lo; break; }
     case OP_BIND_PROGRAM: { const p_bind_program *b = a;
         if (b->stages & 0x20) d->cprog = b->prog;
         for (int st = 0; st < VKA_NSTAGE; st++) if (st != 5 && (b->stages >> st & 1)) d->bst[st] = b->prog;   // NVN binds per stage (nvn_mtl.m bind_stages); 6 / 7: NVN2's task and mesh

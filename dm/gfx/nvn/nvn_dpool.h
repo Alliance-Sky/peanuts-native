@@ -8,6 +8,9 @@
 // scene art in the dialogue box, the HUD drawn from the font page).
 // - A small pool (NVN_DPOOL_SMALL entries or fewer) gets a range for its IDs past the reserved ones only (NVN_DPOOL_RESERVED: nvnDeviceGetInteger 0x11 / 0x12):
 //   16 host entries for a 272-entry pool instead of 512. Applications never register into the reserved IDs (Fire Emblem: Three Houses' pools fill from 256 up)
+//   Registrations into them are skipped (hle_nvn.c dpool_id), and the Android replay reads a bound handle's ID below 256 of a small pool as no descriptor
+//   (nvn_dpool_first_id: vka_bind.c ubo_tex_id / ubo_samp_id) instead of base + ID, which is in the previous pool's range.
+//   TODO: macOS (nvn_mtl.m ubo_tex_id / pool_gpu, hle_nvn.c bind_handles / DrawTexture / BindTexture at recording) still adds base + ID there
 // - limit: the IDs the host table can address (textures NVN_DPOOL_TEX_IDS, the registry vka_treg.h holds; the sampler table holds 16,384); 0 for none.
 //   Only small pools are held to it: a large pool always gets a range at the table's end, as before the small pools, and its IDs past the table are dropped where
 //   they are registered (vka_tex.c mtl_reg_samp, vka_treg.h treg). Trails through Daybreak II keeps three 1,048,576-entry texture pools live: bases 0, 1 M and 2 M
