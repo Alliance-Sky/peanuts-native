@@ -519,7 +519,8 @@ static int pstate_fill(pstate *P, vka_shader *const sh[VKA_NSTAGE], const vka_la
         uint8_t m[8]; int written = 0;
         for (int i = 0; i < k->ncolor && i < 8; i++) { m[i] = k->att[i].mask; written |= m[i]; }
         if (!written) {   // (the format query only for a pipeline that writes no colour, and only for the targets the rule could take)
-            uint32_t bl = 0, fo = sh[1]->e->fout_mask;
+            const dmsh_vk_entry *fe = sh[1]->e;   // the outputs it writes, of the float class only (vka_zonly_float_outs: the draw masks the others to 0)
+            uint32_t bl = 0, fo = fe->fout_mask & vka_zonly_float_outs(fe->fout_types, k->fs_variant == DMSH_VK_MOD_UINT_MIXED ? fe->uint_mask : 0, k->fs_variant == DMSH_VK_MOD_UINT);
             for (int i = 0; i < k->ncolor && i < 8; i++) {
                 if (!k->cfmt[i] || !(fo >> i & 1) || !vka_zonly_fixed(k->cfmt[i])) continue;
                 VkFormatProperties fp = {0}; vk.vkGetPhysicalDeviceFormatProperties(V.pd, (VkFormat)k->cfmt[i], &fp);
