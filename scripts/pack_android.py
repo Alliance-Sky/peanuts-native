@@ -106,8 +106,8 @@ def child_env(**kw):
 # already in the environment wins (as the phone's ondevice/env.txt does). The phone's worker settings (DM_SPLIT_WORKER, DMSH_VK_WORKER) are left out: they stand in
 # for the process pools a computer's Python already has
 def peanuts_env(step):
-    """step 'split': DM_SPLIT_DIRECT=1 (the targeted split reads a file's recorded containers only); 'shaders': DMSH_VK_ZSTD_LEVEL=6 (the phone's level)"""
-    kw = dict(DM_SPLIT_DIRECT='1') if step == 'split' else dict(DMSH_VK_ZSTD_LEVEL='6')
+    """step 'split': DM_SPLIT_DIRECT=1 (the targeted split reads a file's recorded containers only); 'shaders': DMSH_VK_ZSTD_LEVEL=3 (the phone's level)"""
+    kw = dict(DM_SPLIT_DIRECT='1') if step == 'split' else dict(DMSH_VK_ZSTD_LEVEL='3')
     # PEANUTS: a desktop checkout can build the locked translator. The phone has its own native one.
     helper = REPO / 'peanuts/scripts'
     if step == 'shaders' and 'XLATE' not in os.environ and (helper / 'prepare_pc_translator.py').is_file():
@@ -1118,7 +1118,7 @@ def pack_shaders(a, g, work, out, vdir, parts=None, aoc=()):
         print(f'shaders: building the Vulkan library {lib} from {pkg} with {py} (J={a.J}; about 10 minutes on DKB)', flush=True)
         swork = shader_work(a, work); swork.mkdir(parents=True, exist_ok=True)   # PEANUTS(upstream-candidate): beside a --shader-cache folder (shader_work)
         env = child_env(DM_GAME=g.id, J=str(a.J), WORK=str(swork))
-        env.update(peanuts_env('shaders'))   # PEANUTS: as the phone's shaders step (PackService): zstd 6
+        env.update(peanuts_env('shaders'))   # PEANUTS: as the phone's shaders step (PackService): zstd 3
         env.update(windows_shader_workers(py, a.J))   # PEANUTS(upstream-candidate): Windows, the shaders in worker processes
         keys = selected_keys(g.dir)   # a profile with a selected set (shader_seen.tsv): only its shaders, as the phone builds them (PackService, ShaderLibs.selection)
         if keys is not None:

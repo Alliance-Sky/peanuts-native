@@ -844,7 +844,7 @@ public final class PackService extends Service {
                 if (dir != null) dir.mkdirs();
                 Files.write(log.toPath(), new byte[0]);   // a new log for each upgrade; the tool appends to it
                 // the build's settings that make its bytes (the zstd level of a rewritten module: the result must be a full build's byte for byte) and its threads
-                PackEngine.setenv("DMSH_VK_ZSTD_LEVEL", "6");   // as the shaders step (step below)
+                PackEngine.setenv("DMSH_VK_ZSTD_LEVEL", "3");   // as the shaders step (step below)
                 PackEngine.setenv("J", String.valueOf(Math.max(1, Math.min(8, Runtime.getRuntime().availableProcessors()))));
                 PackEngine.setenv("XLATE", "libdmsh_xlate.so");
                 PackEngine.setenv("SPIRV_VAL", "libSPIRV-Tools-shared.so");
@@ -1192,7 +1192,7 @@ public final class PackService extends Service {
         PackEngine.setenv("SPIRV_VAL", "libSPIRV-Tools-shared.so");
         // a library without every shader is a failed step, never a finished one; with Try anyway (the player's choice, warned that parts may not show) it is written
         PackEngine.setenv("DMSH_VK_REQUIRE_ALL", j.tryAnyway() ? "0" : "1");
-        PackEngine.setenv("DMSH_VK_ZSTD_LEVEL", "6");   // PEANUTS: the library's modules at zstd 6, not 19: 23x faster for a library 19 % larger (vk_android_build.py ZSTD_LEVEL); level 19 was half of the shaders step
+        PackEngine.setenv("DMSH_VK_ZSTD_LEVEL", "3");   // PEANUTS: the library's modules at zstd 3 (level 19 was half of the shaders step; level 6 was still 24 % of the shader workers' CPU on an AYN Thor, 2026-11-28 profile: the phone's _zstd is far slower than a PC's); about 3x faster than 6 for a library about 5 % larger, the same SPIR-V (vk_android_build.py ZSTD_LEVEL)
         PackEngine.setenv("DMSH_VK_XLATE_J", String.valueOf(Math.min(mem.xlate, 4)));   // PEANUTS: BuildMemory (was 2, then Prepare's env.txt line 4)
         //       // two translator calls at once: more threads of one process add little on the phone (android/ONDEVICE.md, The translator on the phone); the env file below can change it
         // worker interpreters (sub-interpreters of this process, each with its own GIL: the Python half no longer runs on one core), one a big or mid core, at most 4
