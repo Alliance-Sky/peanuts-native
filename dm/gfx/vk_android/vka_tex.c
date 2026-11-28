@@ -1799,8 +1799,8 @@ void vka_tex_soft_copy(vka_img *im, int dst_level, VkCommandBuffer cb) {
 // The content a new image of t starts with (storage_mode), decided before the image is made (vka_tex_get: a zero-shared image is made only for ST_ZERO)
 
 static vka_img *g_bc_sync[64];
-static _Atomic int g_nbc_sync;
-static int treg_dead(int id, const treg_ent *e);
+static _Atomic int g_nbc_sync;   // PEANUTS: atomic: draws test it without g_tmu (vka_tex_bc_sync_any_pending)
+static int treg_dead(int id, const treg_ent *e);   // PEANUTS
 static void bc_cancel_locked(vka_img *im) {   // PEANUTS: caller holds g_tmu: the forced free in vka_tex_drop_pool drops the queue's reference
     for (int i = 0; i < g_nbc_sync; i++) if (g_bc_sync[i] == im) g_bc_sync[i] = NULL;   // PEANUTS
 }
@@ -1811,6 +1811,7 @@ static int bc_alias_match(const vka_img *src, const vka_img *dst) {
     uint32_t bw = (dst->w + dst->f.bw - 1) / dst->f.bw, bh = (dst->h + dst->f.bh - 1) / dst->f.bh;
     return src->w == bw && src->h == bh;
 }
+// PEANUTS begin: which queued BC alias writes a draw or dispatch reads (PR #824)
 static int bc_sync_src_matches_read_locked(vka_img *src, int id) {
     const treg_ent *te = treg_lookup(id);
     if (id <= 0 || !te->t.serial || te->t.mem != src->mem || treg_dead(id, te)) return 0;
@@ -1828,6 +1829,7 @@ static int bc_sync_kept_locked(const vka_img *src, vka_img *const *keep, int nke
     return 0;
 }
 int vka_tex_bc_sync_any_pending(void) { return atomic_load_explicit(&g_nbc_sync, memory_order_relaxed) != 0; }
+// PEANUTS end
 static void bc_sync_queue_locked(vka_img *src) {
     if (!src || compressed(&src->f) || !src->mem) return;
     if (g_nbc_sync >= 64) { static _Atomic int full; if (!atomic_exchange(&full, 1)) VRED("bc alias sync: more than 64 images wait for a copy into their block-compressed alias; the rest are skipped until the queue drains"); return; }   // PEANUTS
@@ -1839,6 +1841,7 @@ static void bc_sync_queue_locked(vka_img *src) {
     src->refs++;
     g_bc_sync[g_nbc_sync++] = src;
 }
+// PEANUTS begin: the queued BC alias writes copied, all at submission start or those a read needs (PR #824)
 static void bc_sync_flush_locked(VkCommandBuffer cb, const int *ids, int nids, vka_img *const *keep, int nkeep, const char *where) {
     if (!g_nbc_sync || !cb) return;
     int any_bc = 0, nk = 0;
@@ -1890,6 +1893,7 @@ void vka_tex_bc_sync_flush_reads(VkCommandBuffer cb, const int *ids, int n, vka_
     pthread_mutex_unlock(&g_tmu);
     nvn_pool_use(0);
 }
+// PEANUTS end
 static int first_mode(const tex_t *t, const vka_fmt *f, int cpu) {
     int samples = t->d.samples > 1 ? t->d.samples : 1, vpool = t->pool && pool_sparse(t->pool);
     uint64_t seen; uint8_t *c = samples == 1 && t->mem && !vpool ? gw_content(t->mem, t->L.size, &seen) : NULL;   // the content the mode's "holds data" checks look at
@@ -4147,7 +4151,7 @@ void vka_tex_prepare(VkCommandBuffer cb, uint64_t fence) {   // PEANUTS: image r
     g_recorded_fence = vto_retire_fence(g_recorded_fence, fence);   // PEANUTS: before draining writes or releasing the table lock; never move back on another queue
     pfb_consume_locked();   // the texture IDs read through the pool in submissions done: their images stamped used, null slots written again with their images ("Texture pool reads")
     vka_tex_prune_locked();   // (the limit measured again every 60 frames; nothing to do under it)
-    // Fallback for reads the draw/dispatch hook cannot see: a bindless texture-pool handle is read with
+    // PEANUTS: fallback for reads the draw/dispatch hook cannot see: a bindless texture-pool handle is read with
     // r[i].tid == 0, so no sampled ID names its BC alias. Drain only what is still queued from earlier
     // submissions, before this submission's commands are recorded; intra-submission ordering is unchanged.
     bc_sync_flush_locked(cb, NULL, 0, NULL, 0, "submit (previous)");

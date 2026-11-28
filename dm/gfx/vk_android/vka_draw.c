@@ -1948,6 +1948,7 @@ static int make_images(const vka_dstate *d, vka_shader *const sh[VKA_NSTAGE], in
     return any;
 }
 
+// PEANUTS begin: BC alias writes copied before the draw or dispatch that reads them (PR #824)
 // Make sampled images before storage images so a pending BC alias copy is ordered ahead of
 // any write this draw or dispatch is about to issue.
 static int make_sampled_images(vka_shader *const sh[VKA_NSTAGE], int dry) {
@@ -1993,6 +1994,7 @@ static void bc_sync_reads(vka_shader *const sh[VKA_NSTAGE], int keep_pass, const
     if (R.on) vka_rp_end();   // finish writes to an alias before copying it for this compressed read
     vka_tex_bc_sync_flush_reads(g_cb, g_bc_sampled_ids, n, NULL, 0, where);
 }
+// PEANUTS end
 
 // The draw writes memory: a storage buffer or image it writes, raw global stores (their write log), a geometry shader's claimed writes (from the walk, walk_all)
 static int draw_writes(vka_shader *const sh[VKA_NSTAGE], const vka_dstate *d) {
@@ -2860,6 +2862,7 @@ static void draw_body(vka_dstate *d, const p_set_rt *rt, int has_rt, const p_sci
     // Choosing its class after make_images can bind a stale CPU image instead of the compute pass's GPU-written rows.
     tex_masks(sh, k.tex_u, k.tex_s);
     vktb_memo_reset(&g_tig);   // PEANUTS: this draw's answers (tbuf_img_gpu)
+    // PEANUTS begin: BC alias writes a sampled texture needs are copied before the draw (PR #824)
     int images_pending = make_images(d, sh, 1);
     if (images_pending || vka_tex_bc_sync_any_pending()) {
         if (images_pending && make_sampled_images(sh, 1)) {   // (none without images_pending: make_images' test covers these bindings)
@@ -2869,6 +2872,7 @@ static void draw_body(vka_dstate *d, const p_set_rt *rt, int has_rt, const p_sci
         bc_sync_reads(sh, rp_keeps(rt, has_rt, sc, has_sc, d), "draw sampled texture");
     }
     if (images_pending) { vka_rp_end(); make_images(d, sh, 0); }
+    // PEANUTS end
     if (vka_rs_on()) rs_fetch_fix(sh, d);   // PEANUTS: DM_RES_SCALE: a shader that fetches by pixel sees its 2D textures at one scale
     if (R.on && R.bar_pending && bar_hazard(sh, d)) { g_bar_late++; vka_rp_end(); }   // the game barrier taken inside the pass is needed here: the pass ends (its full barrier) first
     if (R.on && UB.q.n && ub_hazard(d, sh, mesh, dw, di, mdi_n, mdi_st)) vka_rp_end();   // PEANUTS: bounded draw ranges
@@ -3653,7 +3657,7 @@ void vka_dispatch(vka_dstate *d, const p_dispatch *dp) {
     }
     c0_at c0 = {0};
     walk_all(d, sh);
-    if (vka_tex_bc_sync_any_pending() || make_sampled_images(sh, 1)) {
+    if (vka_tex_bc_sync_any_pending() || make_sampled_images(sh, 1)) {   // PEANUTS: sampled images and their BC alias writes before the dispatch's writes (PR #824)
         make_sampled_images(sh, 0);
         bc_sync_reads(sh, 0, "dispatch sampled texture");   // (no pass is open: vka_rp_end above)
     }
