@@ -3,7 +3,6 @@
 # Each check runs at HEAD and at the merge-base of HEAD and <base ref>: a check that already fails at the merge-base is reported, not held against
 # the pull request (the base fails some tool tests for reasons of its own). Exit 1 when HEAD adds a failure.
 #   usage: sh peanuts/scripts/pr_checks.sh <base ref>        e.g. origin/dev
-#   PR_CHECKS_UPSTREAM=<git url> fetches Banana Native's android branch for the hunk-marker check (default the public repository); empty skips it.
 set -u
 cd "$(git rev-parse --show-toplevel)"
 base=$(git merge-base HEAD "${1:?usage: pr_checks.sh <base ref>}") || { echo "no merge-base with $1"; exit 2; }
@@ -12,7 +11,6 @@ mkdir -p "$out"
 git worktree add -q --detach "$out/base" "$base" || exit 2
 trap 'git worktree remove --force "$out/base" >/dev/null 2>&1; rm -rf "$out"' EXIT INT TERM
 head=$(pwd)
-upstream_url=${PR_CHECKS_UPSTREAM-https://git.eden-emu.dev/moceure/BananaNative.git}
 new=0
 echo "pull request checks: HEAD $(git rev-parse --short HEAD) against the merge-base $(git rev-parse --short "$base")"
 
@@ -43,18 +41,12 @@ check "advanced settings (advanced_switches.py --check)" python3 dm/tools/advanc
 check "runtime profiles (gen_runtime_profile.py check-all)" python3 dm/peanuts/profile/gen_runtime_profile.py check-all
 check "profiles (check-profiles.sh)" sh peanuts/scripts/check-profiles.sh
 
-# 3. Hunk markers in upstream files (upstream-update.sh --check): the flagged hunks, HEAD's new ones held against it
-if [ -n "$upstream_url" ] && git fetch -q --no-tags "$upstream_url" android 2>/dev/null; then   # never --depth: that makes the whole clone shallow, and GitHub refuses pushes from one
-    up=$(git rev-parse FETCH_HEAD)
-    markers() { (cd "$1" && sh peanuts/scripts/upstream-update.sh --check "$up" 2>&1) | grep -vE '^(checking|ok|done)' | sort -u; }
-    markers "$out/base" > "$out/m.base"
-    markers "$head" > "$out/m.head"
-    madded=$(comm -13 "$out/m.base" "$out/m.head")
-    if [ -n "$madded" ]; then new=1; echo "NEW unmarked upstream hunks (upstream-update.sh --check):"; echo "$madded" | sed 's/^/  /'
-    else echo "ok    hunk markers (upstream-update.sh --check): nothing new"
-    fi
+# 3. Hunk markers in upstream files (upstream-update.sh --check <merge-base>): the hunks this pull request adds to upstream files without a
+#    PEANUTS marker (the check reads only base..HEAD, so what the base already carries is not counted)
+if (cd "$head" && sh peanuts/scripts/upstream-update.sh --check "$base" > "$out/m.head" 2>&1); then
+    echo "ok    hunk markers (upstream-update.sh --check): every upstream hunk this pull request adds is marked"
 else
-    echo "skip  hunk markers: Banana Native's android branch could not be fetched"
+    new=1; echo "NEW   hunk markers (upstream-update.sh --check):"; tail -n 20 "$out/m.head" | sed 's/^/  /'
 fi
 
 # 4. New-game rules (peanuts/docs/CONTRIBUTING.md, "A new-game pull request"): a vk_prewarm.bin the pull request adds fails it (we build seeds
