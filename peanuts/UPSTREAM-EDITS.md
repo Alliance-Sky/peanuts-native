@@ -3739,3 +3739,15 @@ Qualcomm's own driver gives a draw that writes no colour channel wrong pixel sha
 | `docs/reference/rendering.md`, `docs/agents/symptoms.md` | 1, 1 | the entry "Effects in 32x32 cells on Qualcomm's driver: a draw that writes no colour gets wrong pixel shader inputs", and its line in the generated index | `PEANUTS` / generated |
 
 Taken from #850 without #845 (`DM_VK_DYN_PASS`, not landed: `ds_forget` and `DM_VK_DYN_FILTER=0` on Qualcomm before 512.800 cover it). The rule is on only before 512.800 (only 512.676 was measured). The prewarm list's keys (`vka_gkey`, `vka_pwlist.h`) are unchanged, so existing lists and seeds still match. Held for a Thor A/B before landing.
+
+## NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS, EU and US profiles for 1.70 (2026-11-28, #853)
+
+Two profiles of the game that the OpenGL UI and no-colour draw sections above were made for: the EU release (`01005A20190A6000`, tapionallanaire's #853) and the US release (`0100D2D0190A4000`). The US 1.70 `main` has the EU 1.70's build ID, so the US folder is the EU profile with its own title ID, as for the other releases with a profile of their own (13 Sentinels, Unicorn Overlord, NieR:Automata): `game.tsv` and the generated tables copied, no table shared by reference. Neither profile is on the release list.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/01005A20190A6000/game.tsv`, `README.md` | new | the EU profile and its note (Odin 2, Turnip and Qualcomm's driver) | `PEANUTS` in the first lines |
+| `dm/games/0100D2D0190A4000/game.tsv`, `README.md` | new | the US profile and its note (AYN Thor, Turnip) | `PEANUTS` in the first lines |
+| `dm/games/01005A20190A6000/shader_map.tsv`, `shader_facts.tsv`, `shader_pairs.tsv`, `shader_files.tsv`, and the same four in `dm/games/0100D2D0190A4000/` | new | the generated tables (the US ones copies of the EU ones) | allow-listed in `peanuts/upstream-unmarked.txt` |
+| `dm/games/README.md` | 2 | the two table rows | `<!-- PEANUTS: ... -->` in the row's last cell |
+| `docs/reference/rendering.md` | 3 | the Found on lines of the BGR5A1, no-colour draw and OpenGL UI entries link the EU profile | `<!-- PEANUTS -->` at the line's end |
