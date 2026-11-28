@@ -3,6 +3,7 @@ import ast
 import os
 from pathlib import Path
 import re
+import shutil  # PEANUTS(upstream-candidate): ScheduledOffsetsRewrite
 import struct
 import subprocess
 import sys
@@ -540,6 +541,51 @@ class ScheduledOffsets(unittest.TestCase):
             with self.subTest(target=target):
                 struct.pack_into('<i', self.image, self.table, target - self.table)
                 self.assertIsNone(self.resolve())
+
+
+class ScheduledOffsetsRewrite(unittest.TestCase):
+    """The scheduled resolver through the rewriter itself: analyse_fn's eighth result (its dispatches) merged from the workers, the summary line, and the
+    check after the merge that no direct branch of another function enters a dispatch past its guard"""
+    F, TABLE = 0x100, 0x2040
+
+    def words(self):
+        f = self.F
+        return [0x51000000 | 7 << 10 | 3 << 5 | 10, 0x7100001f | 2 << 10 | 10 << 5, NOP, NOP, bhi(f + 16, f + 96),   # sub w10,w3,#7; cmp w10,#2; …; b.hi
+                ADRP(7, f + 20, self.TABLE), ADDI(7, 7, self.TABLE & 0xfff), 0xb8a07800 | 10 << 16 | 7 << 5 | 18, ADDR(18, 18, 7)] + [NOP] * 14 + [BR(18), RET, RET, RET]
+
+    def rewrite(self, other, jobs):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from test_nso_match import image
+        raw = image({self.F: self.words(), 0x400: other})
+        for i in range(3): struct.pack_into('<i', raw, self.TABLE + 4 * i, self.F + 96 + 4 * i - self.TABLE)
+        # The NRO header of ZeroExtendedIndex's rewrite: text 0x0-0x1000, read-only 0x1000-0x3000.
+        raw[0x1100:0x111c] = raw[0x20:0x3c]; struct.pack_into('<I', raw, 4, 0x1100)
+        struct.pack_into('<ii', raw, 0x1110, 0x3000 - 0x1100, 0x3014 - 0x1100)
+        raw[0x10:0x14] = b'NRO0'; struct.pack_into('<I', raw, 0x18, len(raw))
+        struct.pack_into('<6I', raw, 0x20, 0, 0x1000, 0x1000, 0x2000, 0x3000, 0x1000); struct.pack_into('<I', raw, 0x38, 0)
+        tmp = tempfile.mkdtemp(); self.addCleanup(shutil.rmtree, tmp)
+        src = Path(tmp) / 'input.nro'; src.write_bytes(raw)
+        run = subprocess.run([sys.executable, str(TOOLS / 'patch_nso.py'), str(src), tmp, 'nro0'],
+                             env=os.environ | {'DM_GAME': '010015100B514000', 'DM_REWRITE_J': str(jobs)}, capture_output=True, text=True)
+        return run, Path(tmp)
+
+    def test_the_rewriter_resolves_it_in_its_workers(self):
+        for jobs in (1, 2):
+            with self.subTest(jobs=jobs):
+                run, tmp = self.rewrite([0xb4000040, NOP, RET], jobs)   # cbz x0, +8: a branch of its own function only
+                self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+                self.assertIn(f'scheduled offset jump tables: {self.F + 92:x}', run.stdout)
+                rows = [line.split('\t') for line in (tmp / 'nro0.sites.tsv').read_text().splitlines()]
+                self.assertEqual([[int(t, 0) for t in row[2].split()] for row in rows if row[1] == 'T'], [[self.F + 96, self.F + 100, self.F + 104]])
+
+    def test_a_branch_of_another_function_into_the_dispatch_stops_the_rewrite(self):
+        for at in (self.F + 4, self.F + 36, self.F + 92):   # after the guard's start: the cmp, the add of the table base, the br
+            with self.subTest(at=hex(at)):
+                run, _ = self.rewrite([0xb4000000 | ((at - 0x400) >> 2 & 0x7ffff) << 5, RET], 2)   # cbz x0, <at>
+                self.assertNotEqual(run.returncode, 0)
+                self.assertIn(f'branch 400 enters scheduled dispatch at {at:x}', run.stderr)
+        run, _ = self.rewrite([0xb4000000 | ((self.F - 0x400) >> 2 & 0x7ffff) << 5, RET], 2)   # the dispatch's first instruction: its setup runs whole
+        self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
 
 
 if __name__ == '__main__': unittest.main()

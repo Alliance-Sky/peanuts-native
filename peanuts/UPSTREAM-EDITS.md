@@ -3362,6 +3362,26 @@ yielded one at a time, so `mtarc_shaders` adds them to its list without a second
 
 No rewrite key or shader input changes (`shader_split.py` is not hashed into a library's stamp). Upstream candidate: yes.
 
+### Scheduled offset jump tables through x18 (2026-11-28, #654, aldotms89)
+
+Resident Evil 6's `main+0x7a352c` stopped the rewrite (`AssertionError: jump table 7a352c`): the compiler scheduled other instructions between the unsigned
+guard (`cmp; …; b.hi`), the signed offset load and `br x18`, beyond the older resolvers' lookback. `jump_scheduled_offsets`, the last resolver, follows the
+reaching definitions back from `br x18`, proves the index, the table (read-only, in bounds) and every destination (inside the unwind function), and
+refuses a dispatch any branch enters past its setup; `analyse_fn` returns its dispatches as an eighth result, and after the workers' results are merged no
+resolved table and no direct branch anywhere may enter one.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/tools/patch_nso.py` | 5 | `jump_scheduled_offsets`; `scheduled_bounds` (FDE ranges, read once); the resolver called last in `analyse_fn`, its dispatches returned and merged; the check after the merge and the summary line (only when a dispatch is found) | `PEANUTS(upstream-candidate)` on each hunk |
+| `dm/tools/tests/test_jump_copies.py` | 4 | `ScheduledOffsets` (the resolver); `ScheduledOffsetsRewrite` (the rewriter on a synthetic NRO with 1 and 2 workers; a branch of another function into the dispatch stops it) | `PEANUTS(upstream-candidate)` |
+| `dm/tools/rewriter_equiv/patch_nso.py.d98ba837b4c1` | file | dev 0.1.10's rewriter (d98ba837), byte for byte | allow-listed in `peanuts/upstream-unmarked.txt` |
+| `peanuts/tests/test_rewrite_forks.py` | 1 | `Wiring`: e13378e6's file is the first file of `CHAIN` (the files before later rewriter changes of the same output) without in_forks, and each has the current in_forks | Peanuts-owned test |
+| `docs/reference/rewriter.md` | 1 | Offset jump tables with a distant unsigned guard | `<!-- PEANUTS(upstream-candidate) -->` |
+| `docs/agents/symptoms.md` | generated | `dm/tools/docs_symptoms.py` | (generated) |
+
+Rewrite key: `patch_nso.py` changes, and the file before it is kept as `rewriter_equiv/patch_nso.py.d98ba837b4c1` after a rewrite census (11 games, 13
+builds, 39 modules byte-identical; the commit lists them), so existing packs stay up to date. Upstream candidate: yes.
+
 ### 0.1.10 release list: THE HOUSE OF THE DEAD: Remake and 2: Remake, and Trails through Daybreak II (2026-11-28)
 
 The owner put three profiles that landed for 0.1.10 on the release list: THE HOUSE OF THE DEAD: Remake (#790) and THE HOUSE OF THE DEAD 2: Remake (#792),
