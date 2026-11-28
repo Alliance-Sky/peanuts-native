@@ -2687,10 +2687,10 @@ def oodle_ask(comp, n):
         # PEANUTS begin: on the phone there is no host executable: the title's host library in a worker process, as for an Unreal game's shader archives (ue_ondevice.py DeviceOodle;
         # PackService sets DM_UE_HOST, DM_UE_HOST_LIB and DM_UE_MODULES for the split step). Pokemon Legends: Arceus's 678 GFPAK archives stopped the build there without it
         dev, lib, dmods = os.environ.get('DM_UE_HOST', ''), os.environ.get('DM_UE_HOST_LIB', ''), os.environ.get('DM_UE_MODULES', '')
-        # PEANUTS: DM_OODLE_OOZ=<helper> (opt-in, for a PC that has neither the Mac host nor the phone's library): a worker built from the open-source ooz decoder answers the
-        # same requests instead of the game's own decoder. It is not the game's code, so its output counts only once the split's tables are the profile's (every key hashes its shader's bytes)
-        ooz = os.environ.get('DM_OODLE_OOZ', '')
-        if ooz: argv = [ooz]
+        # PEANUTS: the ooz worker (DM_OODLE_OOZ, the PC builder's; DM_OODLE_OOZ_LIB, the phone's: ooz_split.py) answers the same requests instead of the game's own
+        # decoder, without waiting for the rewrite. It is not the game's code, so its output counts only once the split's tables are the profile's (main, ooz_check)
+        import ooz_split
+        if ooz := ooz_split.argv(): argv = ooz; ooz_split.mark()
         elif (not host or not mods) and dev and lib and dmods:
             import shlex, ue_ondevice, rewrite_wait
             rewrite_wait.wait()   # PEANUTS: the rewrite beside the split must have written the modules (#120)
@@ -2714,7 +2714,8 @@ def oodle_said():   # what the host wrote so far
     return _OODLE[1].read().decode(errors='replace')
 
 def oodle_red(comp, n) -> NoReturn:
-    who = 'the ooz worker (DM_OODLE_OOZ; not the game\'s own decoder)' if os.environ.get('DM_OODLE_OOZ') else 'the game\'s own decoder (run by the app\'s host)'   # PEANUTS: the message names the decoder that failed; the host runs on a phone as on a Mac
+    import ooz_split
+    who = f'the ooz worker ({ooz_split.name()}; not the game\'s own decoder)' if ooz_split.argv() else 'the game\'s own decoder (run by the app\'s host)'   # PEANUTS: the message names the decoder that failed; the host runs on a phone as on a Mac
     red(f'{who} failed on a {len(comp)} → {n} byte stream; ---- host output ----\n' + oodle_said()[-3000:])   # PEANUTS: who
 
 def oodle(comp, n):
@@ -4305,7 +4306,7 @@ def scan_digest(argv, jobs, sources=None):
     """ScanCache's digest: the split's arguments and environment (with DM_PACKER_COMMIT, the app's commit on the phone), every job (with its file's size and
     modification time) and the content of the tools and the profile (digest_sources)"""
     h = hashlib.sha256()
-    h.update(repr((argv, [os.environ.get(k) for k in ('DM_GAME', 'DM_GLSLC_CAPTURE', 'DM_UE_SHADERS', 'DM_PACKER_COMMIT', 'DM_NRO_DIR')])).encode())
+    h.update(repr((argv, [os.environ.get(k) for k in ('DM_GAME', 'DM_GLSLC_CAPTURE', 'DM_UE_SHADERS', 'DM_PACKER_COMMIT', 'DM_NRO_DIR', 'DM_SPLIT_DECODER')])).encode())   # PEANUTS: DM_SPLIT_DECODER (ooz_split.py): ooz's results apart
     for j in jobs:
         try: st = os.stat(j[0]); t = (st.st_size, st.st_mtime_ns)
         except OSError: t = None
@@ -4370,7 +4371,56 @@ def path_list(arg):
 # PEANUTS end
 
 
+# PEANUTS begin: the split with the ooz Oodle decoder first, when one is given (ooz_split.py), and with the game's own decoder again when ooz's output is not
+# the profile's: its tables differ from the profile's, or the split stopped while ooz was in use. ooz's output is written only once its tables are the profile's
 def main():
+    import ooz_split
+    prof, mains = GAME.table('shader_map.tsv'), path_list(sys.argv[2])
+    try:
+        if not ooz_split.begin(prof, mains, os.environ.get('DM_SPLIT_RESUME')): return save(*split_once())
+        try:
+            out, paths = split_once()
+            why = ooz_check(out, paths, mains) if ooz_split.fallback() else None   # without a game decoder (the PC builder) pack_android.py checks the keys, as before
+        except (Exception, SystemExit) as e:   # red() is a SystemExit; an interrupt (KeyboardInterrupt: the app's stop) is not caught
+            if not ooz_split.fallback(): raise
+            why = str(e) if isinstance(e, OozDiffers) else 'the split stopped: ' + (str(e).removeprefix('[RED] ') if isinstance(e, SystemExit) else f'{type(e).__name__}: {e}')[:500]
+        if why is None: return save(out, paths)
+        oodle_close()
+        ooz_split.off(why, prof, mains)
+        save(*split_once())
+    finally:
+        oodle_close(); ooz_split.end()
+
+def ooz_check(out, paths, mains):
+    """None when the tables of a split whose Oodle streams the ooz worker decoded are the profile's (profile_differs: byte for byte, but for the keys
+    shader_optional.tsv or the other listed versions give to another build), else why not"""
+    if not os.path.isfile(GAME.table('shader_map.tsv')): return 'the profile has no shader_map.tsv'
+    why = profile_differs(out, paths[3], paths[4], single_shader_version(mains))
+    if why: return f'it {why}'
+    print('split: decoded with the ooz worker; its tables are the profile\'s', flush=True)
+    return None
+
+def oodle_close():
+    """The Oodle worker of this process goes (oodle_ask starts the next one from the environment as it is then)"""
+    global _OODLE
+    if _OODLE:
+        p, err = _OODLE; _OODLE = None
+        try: p.stdin.close(); p.wait(10)
+        except Exception: p.kill()
+        err.close()
+
+def save(out, paths):
+    pkg, mapout, factsout, pairsout, psopairsout = paths
+    stage('saving the shaders found')
+    write_outputs(out, pkg, mapout, factsout, pairsout, psopairsout)
+    if d := os.environ.get('DM_SPLIT_DIFF_DIR'):   # PEANUTS: the tables written, kept as final.<name> (a profile regenerated from a device's full scan: the build deletes its own copies)
+        import shutil
+        os.makedirs(d, exist_ok=True)
+        for p in (mapout, factsout, pairsout, psopairsout):
+            if p and os.path.isfile(p): shutil.copyfile(p, os.path.join(d, 'final.' + os.path.basename(p)))
+# PEANUTS end
+
+def split_once():   # PEANUTS: was main(); its outputs are written by save
     romfs_l, main_l, pkg, mapout, factsout = sys.argv[1:6]
     pairsout = sys.argv[6] if len(sys.argv) > 6 else None
     psopairsout = sys.argv[7] if len(sys.argv) > 7 else None   # pso_pairs.tsv: supplemental BAHS program variations and legacy Unity pass-input covers
@@ -4470,6 +4520,7 @@ def main():
                 out = None; why = f'the {mode} scan ' + why
                 if failed:
                     with open(failed, 'w') as f: f.write(mdg + '\n')
+                if mode == modes[-1][0] and ooz_fallback(): raise OozDiffers(why)   # PEANUTS: not a full scan with ooz: main runs the split again with the game's own decoder
                 if mode != modes[-1][0]: print(f'{mode} split: not taken, {why}: the whole files are scanned', flush=True)
         if out is None: print(f'targeted split: not taken, {why}: every file is scanned', flush=True)
     if out is None:
@@ -4479,15 +4530,13 @@ def main():
         stage(f'reading all {len(files):,} of the game\'s files')
         cd = (os.path.join(rd, 'full') if targeted else rd) if rd else None
         out = split_tables(list(results), big, todo, dumps, J, common, zdicts, ScanCache(cd, scan_digest(inputs, big + todo + mains)) if cd else None)
-    stage('saving the shaders found')
-    write_outputs(out, pkg, mapout, factsout, pairsout, psopairsout)
-    if d := os.environ.get('DM_SPLIT_DIFF_DIR'):   # PEANUTS: the tables written, kept as final.<name> (a profile regenerated from a device's full scan: the build deletes its own copies)
-        import shutil
-        os.makedirs(d, exist_ok=True)
-        for p in (mapout, factsout, pairsout, psopairsout):
-            if p and os.path.isfile(p): shutil.copyfile(p, os.path.join(d, 'final.' + os.path.basename(p)))
+    return out, (pkg, mapout, factsout, pairsout, psopairsout)   # PEANUTS: written by save (main)
 
 class Fallback(Exception): pass   # the targeted scan cannot give the full scan's outputs (split_tables)
+class OozDiffers(Exception): pass   # PEANUTS: the targeted scan's tables differ from the profile's, and the ooz worker decoded some of its streams (main)
+def ooz_fallback():   # PEANUTS: ooz_split.py
+    import ooz_split
+    return ooz_split.fallback()
 
 def build_id(path):
     """An NSO's build ID as game.tsv's build rows write it: the first 16 of the 32 bytes at header +0x40, in hex; None when it is not an NSO"""

@@ -1164,6 +1164,13 @@ public final class PackService extends Service {
         }
         PackEngine.setenv("DM_UE_MODULES", pack.getPath());
         PackEngine.setenv("PN_REWRITE_BESIDE_DONE", beside != null ? RewriteBeside.doneFile(besidePid(j)).getPath() : "");   // PEANUTS: the split waits on it before the game's own decoder needs the rewritten modules (rewrite_wait.py, #120)
+        // PEANUTS begin: the split decodes Oodle streams with the open-source ooz decoder (libunoodle.so from dm/third_party/ooz, GPL-3.0-or-later, in a worker process of
+        // DM_UE_HOST's command, as the game's decoder is), which needs no rewritten modules, so it does not wait for the rewrite beside it. Its output counts only when the
+        // split's tables are the profile's; otherwise the split runs again with the game's own decoder, waiting for the rewrite as before (dm/gfx/tools/ooz_split.py, #120).
+        // Empty without the library in the APK or without the worker; env.txt DM_OODLE_OOZ_LIB= (empty) forces the game's own decoder
+        String ooz = pyLib == null ? null : ((dalvik.system.BaseDexClassLoader) getClassLoader()).findLibrary("unoodle");
+        PackEngine.setenv("DM_OODLE_OOZ_LIB", ooz == null ? "" : "libunoodle.so");
+        // PEANUTS end
         PackEngine.setenv("DM_SPLIT_DIRECT", "1");   // a targeted file whose map sources name their containers (#BNSH@ / #BAHS@ / #IDRK@ offsets) is read at those containers only, not whole // PEANUTS
         PackEngine.setenv("DM_PACKER_COMMIT", BuildConfig.NX_COMMIT);   // pack.tsv's packer: no repository on the phone to ask
         PackEngine.setenv("NX_PACK_WORK", od.getPath());

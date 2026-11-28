@@ -500,6 +500,7 @@ tasks.register('apk', Copy) {
 //   lib/arm64-v8a/libcra.so       the unscramble of Camelot's archive (dm/gfx/tools/cra_unscramble.c), which cra.py loads through ctypes in the shader split
 //   lib/arm64-v8a/libdmsh_spvn.so PEANUTS: the shaders step's SPIR-V post-passes (dm/gfx/tools/vk_android_spv_native/spvn.c), which vk_android_spvn.py loads through ctypes
 //   lib/arm64-v8a/libdmsh_rwspin.so PEANUTS: the rewriter's spin wait search (dm/tools/rwspin_native/rwspin.c), which patch_nso.py loads through ctypes
+//   lib/arm64-v8a/libunoodle.so   PEANUTS: the split's Oodle decoder (dm/third_party/ooz, GPL-3.0-or-later), loaded by ctypes in a worker process (ooz_split.py)
 //   assets/pack/python.zip   the Python home (lib/python3.14 with lib-dynload, capstone, lz4), unpacked to filesDir by PackNative
 //   assets/pack/tools.zip    the repository's tools the job runs (scripts, dm/tools, dm/games/<game>, dm/gfx/tools without the Mac binaries, and the other sources DMSH_CHAIN
 //                            hashes), likewise
@@ -512,6 +513,7 @@ if (nxPackEngine == 'native') {
     def need = ['lib/libpython3.14.so', 'lib/libnxpack.so', 'lib/libzbicdec.so', 'lib/libcra.so', 'lib/libdmsh_xlate.so', 'lib/libSPIRV-Tools-shared.so', 'python/lib/python3.14/os.py']
     need += ['lib/libdmsh_spvn.so']   // PEANUTS: the SPIR-V post-passes in C (android/ondevice/build.sh <work dir> zbic makes it); the phone's Python would run them many times slower
     need += ['lib/libdmsh_rwspin.so']   // PEANUTS: the rewriter's spin wait search in C (zbic makes it too); in Python it was most of the phone's rewrite
+    need += ['lib/libunoodle.so']   // PEANUTS: the split's Oodle decoder (zbic makes it too); without it the split waits for the rewrite beside it at its first Oodle stream
     // PEANUTS: HAL's .cmp containers need lz4.frame; an older stage silently lost Kirby's 9,693 particle shaders (issue #78).
     need += ['python/lib/python3.14/site-packages/lz4/frame/__init__.py', 'python/lib/python3.14/site-packages/lz4/frame/_frame.cpython-314-aarch64-linux-android.so']
     // PEANUTS: shader_split.py's Yaz0 in C (dm/peanuts/pack_worker/nxyaz0.c); a stage without it splits in Python, many times slower (peanuts/scripts/ondevice-stage.sh <work dir> zbic adds it)
@@ -555,10 +557,25 @@ if (nxPackEngine == 'native') {
         }
     }
     // PEANUTS end
+    // PEANUTS begin: likewise libunoodle.so and this tree's dm/third_party/ooz: it carries the SHA-256 of its sources read in build.sh's order (unoodle_source=...).
+    // A library of other sources would decode with another decoder than the one checked (dm/third_party/ooz/README.md)
+    def unoodleCheck = tasks.register('nxPackUnoodleCheck') {
+        def lib = new File(stage, 'lib/libunoodle.so'), ooz = new File(repo, 'dm/third_party/ooz')
+        def srcs = ['kraken.cpp', 'stdafx.h', 'unoodle.cpp', 'ooz-port.patch', 'ooz-guards.patch', 'ooz-arm64.patch', 'ooz_neon.h', 'build.sh'].collect { new File(ooz, it) }
+        inputs.files(lib, srcs)
+        doLast {
+            def md = java.security.MessageDigest.getInstance('SHA-256')
+            srcs.each { md.update(it.bytes) }
+            def sha = md.digest().encodeHex().toString()
+            if (!new String(lib.bytes, 'ISO-8859-1').contains('unoodle_source=' + sha))
+                throw new GradleException("$lib was not built from this tree's dm/third_party/ooz (sources SHA-256 $sha): run android/ondevice/build.sh <work dir> zbic (Linux: peanuts/scripts/ondevice-stage.sh <work dir> zbic)")
+        }
+    }
+    // PEANUTS end
     def jni = tasks.register('nxPackJni', Sync) {
-        dependsOn xlateCheck, spvnCheck, rwspinCheck   // PEANUTS: spvnCheck, rwspinCheck
+        dependsOn xlateCheck, spvnCheck, rwspinCheck, unoodleCheck   // PEANUTS: spvnCheck, rwspinCheck, unoodleCheck
         from(new File(stage, 'lib')) { include 'libpython3.14.so', 'libnxpack.so', 'libzbicdec.so', 'libcra.so', 'libdmsh_xlate.so', 'libSPIRV-Tools-shared.so' }
-        from(new File(stage, 'lib')) { include 'libdmsh_spvn.so', 'libdmsh_rwspin.so' }   // PEANUTS
+        from(new File(stage, 'lib')) { include 'libdmsh_spvn.so', 'libdmsh_rwspin.so', 'libunoodle.so' }   // PEANUTS
         into nxPack.map { it.dir('jni/arm64-v8a') }
     }
     def pyZip = tasks.register('nxPackPython', Zip) {

@@ -294,6 +294,8 @@ DM_OODLE_HOST	internal	Diagnostics			text			both						Mac or iOS only
 DM_OODLE_JOB	developer	Diagnostics			text			both						
 DM_OODLE_MODULES	internal	Diagnostics			text			both						Mac or iOS only
 DM_OODLE_OOZ	internal	Diagnostics			text			both						Mac or iOS only
+DM_OODLE_OOZ_LIB	developer	Diagnostics			text			both						
+DM_OODLE_OOZ_USED	internal	Diagnostics			text			both						set by the shader split for its own workers
 DM_OODLE_SERVE	developer	Game			text			both						
 DM_OOT_FPS_UNLOCK	developer	Performance			text			both						
 DM_OOT_MAX_RESOLUTION	developer	Game			text			both						
@@ -411,6 +413,8 @@ DM_SLOWFRAME	developer	Diagnostics			text			both
 DM_SPIN	developer	Performance			text			both						
 DM_SPIN_LIST	developer	Diagnostics			text			both						
 DM_SPIN_POLL	developer	Performance			text			both						
+DM_SPLIT_DECODER	internal	Diagnostics			text			both						set by the shader split for its own workers
+DM_SPLIT_DECODER_OFF	internal	Diagnostics			text			both						set by the shader split for its own rerun
 DM_SPLIT_DIFF_DIR	developer	Diagnostics			text			both						
 DM_SPLIT_DIRECT	developer	Packing			text			both						
 DM_SPLIT_FILES	developer	Diagnostics			text			both						

@@ -3640,3 +3640,35 @@ The generated index `docs/agents/symptoms.md` has the new entry. Peanuts' own fi
 `dm/tools/tests/test_rwspin.py` (new: the decoder against capstone on generated words, `spin_rmw` / `spin_lock` on generated lock sequences, the same heads
 with a region on generated loops, `RWSPIN_SHA`), `peanuts/tests/test_rewrite_forks.py` (the third equivalent), `peanuts/upstream-unmarked.txt`. Upstream
 candidate: yes, with the library's build in upstream's stage script.
+
+### Round 69, the phone's split decodes Oodle with ooz and no longer waits for the rewrite (2026-11-28, issue #120)
+
+Since Round 65 the rewrite runs beside the split, and the split waits for it where the game's own Oodle decoder needs the rewritten modules: FINAL FANTASY
+RESONANCE on an AYN Thor waited 264 s of its 291 s. The APK now carries the PC builder's ooz worker as a library, `libunoodle.so` (dm/third_party/ooz, `build.sh
+<output>.so`), which the split loads in a worker process of `DM_UE_HOST`'s command (`nxpack_worker` under the linker: no file of the app's storage is executed)
+and asks over the same pipe protocol, for Trinity packs, GFPAK entries and Unreal archives alike. Its output is written only when the split's tables are the
+profile's; otherwise, or when the split stops while ooz was in use, the split runs again with the game's own decoder (which waits for the rewrite as before)
+and remembers that for the title (`PN_REUSE_DIR/ooz.refused`). New `dm/gfx/tools/ooz_split.py` holds the choice, the markers and the memory. The PC builder,
+which has no game decoder to fall back to, writes the split as before and `pack_android.py ooz_split_checked` still decides. dm/third_party/ooz/README.md "On
+the phone"; peanuts/docs/INCREMENTAL-BUILD.md.
+
+- Checked on x86-64 Linux, OCTOPATH TRAVELER 0 1.0.5 from its `.nsp` files: the recorded job's 10,596 Mermaid streams decode byte for byte to the game
+  decoder's output with the program and with the library; the targeted split with either has the profile's tables (their rows byte for byte) and the same
+  package. A stand-in ooz that changes one byte in every 50th stream: the split falls back to a stand-in game decoder and its tables are the profile's again;
+  the next split goes to the game decoder at once. The arm64 library is built (NDK 28.2) but not yet run on a phone.
+- `build.sh` gains `-fno-strict-overflow` (the same line as PR #889: Leviathan on clang) and the library form; both forms carry `unoodle_source=<SHA-256 of
+  the sources>`, which `nxPackUnoodleCheck` checks.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/gfx/tools/shader_split.py` | 7 | `oodle_ask` takes `ooz_split.argv()` (and marks its use), `oodle_red` names the worker, `scan_digest` keys `DM_SPLIT_DECODER`; `main` split into `main` (the ooz split, `ooz_check`, the rerun), `oodle_close`, `save` and `split_once` (the former body); the targeted scan raises `OozDiffers` instead of a full scan with ooz | `PEANUTS begin/end`, `# PEANUTS` per hunk |
+| `android/app/src/ondevice/java/dev/nxnative/android/PackService.java` | 1 | `DM_OODLE_OOZ_LIB=libunoodle.so` when the APK has it | `// PEANUTS begin`/`end` |
+| `android/app/build.gradle` | 4 | `lib/libunoodle.so` into jniLibs (`need`, `nxPackJni`), `nxPackUnoodleCheck` | `// PEANUTS` per hunk |
+| `android/ondevice/build.sh` | 2 | `zbic` builds `libunoodle.so` with the NDK's clang++ | `# PEANUTS begin`/`end`, `# PEANUTS:` |
+| `android/NOTICE.md` | 1 | the library's licence | `<!-- PEANUTS -->` |
+| `docs/env_switches.tsv`, `docs/advanced_settings.tsv` | 8 | `DM_OODLE_OOZ_LIB`, `DM_OODLE_OOZ_USED`, `DM_SPLIT_DECODER`, `DM_SPLIT_DECODER_OFF` | `[PEANUTS]` |
+
+Peanuts' own files, no marker: `dm/gfx/tools/ooz_split.py` (new), `dm/gfx/tools/ue_ondevice.py` (`OozWorker` takes the command; the decoded archives' stamp
+names ooz), `dm/third_party/ooz/` (`build.sh`, `unoodle.cpp`, `README.md`), `dm/third_party/README.md`, `dm/tools/tests/test_ooz_split.py` (new: the worker's
+command, no wait on the ooz path, the markers, the fallback and its memory, the PC path, the phone's wiring), `peanuts/tests/test_unoodle.py` (the library form
+through the same tests, the source digest), `peanuts/docs/INCREMENTAL-BUILD.md`. Upstream candidate: no (upstream has no ooz).
