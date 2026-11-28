@@ -94,7 +94,7 @@ Checks (paste the result lines)
 
 Device evidence
 - To land as a profile: a named phone (model, chip, RAM, Android version), the driver and its exact version, a log attached (Settings > Share log), and what you played.
-- To be considered for the release list: an Adreno phone with 12 GB or more. A run on Qualcomm's own driver and on a named Turnip build (not 27.0.0-R3). At least 10 minutes of play past the first scene, with logs from both drivers. The median and slowest frame times and the game speed at each cap the profile offers (10 game seconds should take 10 s). The memory peak. Runs on Mali, Xclipse or PowerVR phones, or only in menus, do not count.
+- To be considered for the release list: an Adreno phone with 12 GB or more, and a run on a named Turnip build (not 27.0.0-R3). At least 10 minutes of play past the first scene, with its log. The median and slowest frame times and the game speed at each cap the profile offers (10 game seconds should take 10 s). The memory peak. A run on Qualcomm's own driver as well, with its log, counts as a bonus. Runs on Mali, Xclipse or PowerVR phones, or only in menus, do not count.
 - Say what you did not check.
 
 ## Adding a supported game
