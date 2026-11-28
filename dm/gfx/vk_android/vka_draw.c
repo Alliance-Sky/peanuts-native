@@ -1980,13 +1980,18 @@ static int bc_sync_sampled_ids(vka_shader *const sh[VKA_NSTAGE], int *ids) {
     }
     return n;
 }
-static int bc_sync_sampled_pending(vka_shader *const sh[VKA_NSTAGE]) {
-    int n = bc_sync_sampled_ids(sh, g_bc_sampled_ids);
-    return vka_tex_bc_sync_reads_pending(g_bc_sampled_ids, n);
+// The open pass goes on for this draw: rp_begin's test for keeping it (same targets, area fits)
+static int rp_keeps(const p_set_rt *rt, int has_rt, const p_scissor *sc, int has_sc, const vka_dstate *d) {
+    return R.on && (!g_pass_keep || (rt_same(rt, has_rt, &R.rt, R.has_rt) && rp_area_fits(sc, has_sc, d, rt, has_rt)));
 }
-static void bc_sync_sampled_flush(vka_shader *const sh[VKA_NSTAGE], const char *where) {
+// Pending BC alias copies this draw or dispatch reads, made before it. While the pass stays open for the draw, its own colour targets stay queued until it ends
+// (bc_sync_kept_locked): sampling one of them through its compressed view does not end the pass. Any other match ends it and is copied (with the targets, as the pass is then over).
+static void bc_sync_reads(vka_shader *const sh[VKA_NSTAGE], int keep_pass, const char *where) {
+    if (!vka_tex_bc_sync_any_pending()) return;
     int n = bc_sync_sampled_ids(sh, g_bc_sampled_ids);
-    vka_tex_bc_sync_flush_reads(g_cb, g_bc_sampled_ids, n, where);
+    if (!vka_tex_bc_sync_reads_pending(g_bc_sampled_ids, n, R.cim, keep_pass && R.on ? R.nci : 0)) return;
+    if (R.on) vka_rp_end();   // finish writes to an alias before copying it for this compressed read
+    vka_tex_bc_sync_flush_reads(g_cb, g_bc_sampled_ids, n, NULL, 0, where);
 }
 
 // The draw writes memory: a storage buffer or image it writes, raw global stores (their write log), a geometry shader's claimed writes (from the walk, walk_all)
@@ -2857,11 +2862,11 @@ static void draw_body(vka_dstate *d, const p_set_rt *rt, int has_rt, const p_sci
     vktb_memo_reset(&g_tig);   // PEANUTS: this draw's answers (tbuf_img_gpu)
     int images_pending = make_images(d, sh, 1);
     if (images_pending || vka_tex_bc_sync_any_pending()) {
-        if (make_sampled_images(sh, 1) && R.on) vka_rp_end();   // sampled images that need first-use work are prepared outside the pass
-        make_sampled_images(sh, 0);
-        int bc_read_pending = bc_sync_sampled_pending(sh);
-        if (bc_read_pending && R.on) vka_rp_end();   // finish writes to an alias before copying it for this compressed read
-        if (bc_read_pending) bc_sync_sampled_flush(sh, "draw sampled texture");
+        if (images_pending && make_sampled_images(sh, 1)) {   // (none without images_pending: make_images' test covers these bindings)
+            if (R.on) vka_rp_end();   // sampled images that need first-use work are prepared outside the pass
+            make_sampled_images(sh, 0);
+        }
+        bc_sync_reads(sh, rp_keeps(rt, has_rt, sc, has_sc, d), "draw sampled texture");
     }
     if (images_pending) { vka_rp_end(); make_images(d, sh, 0); }
     if (vka_rs_on()) rs_fetch_fix(sh, d);   // PEANUTS: DM_RES_SCALE: a shader that fetches by pixel sees its 2D textures at one scale
@@ -3650,7 +3655,7 @@ void vka_dispatch(vka_dstate *d, const p_dispatch *dp) {
     walk_all(d, sh);
     if (vka_tex_bc_sync_any_pending() || make_sampled_images(sh, 1)) {
         make_sampled_images(sh, 0);
-        if (bc_sync_sampled_pending(sh)) bc_sync_sampled_flush(sh, "dispatch sampled texture");
+        bc_sync_reads(sh, 0, "dispatch sampled texture");   // (no pass is open: vka_rp_end above)
     }
     if (vka_rs_on()) rs_fetch_fix(sh, d);   // PEANUTS: DM_RES_SCALE: a shader that fetches by pixel sees its 2D textures at one scale
     if (g_do_nk || g_do_all) dobj_note(sh[5]->key, g_wk.r[5], g_wk.n[5]);   // DM_VK_DISP_OBJ (g_do_nk -1: not read yet)

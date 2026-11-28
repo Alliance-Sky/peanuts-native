@@ -1821,6 +1821,12 @@ static int bc_sync_src_matches_reads_locked(vka_img *src, const int *ids, int n)
     for (int i = 0; i < n; i++) if (bc_sync_src_matches_read_locked(src, ids[i])) return 1;
     return 0;
 }
+// A queued image that is one of the open render pass's colour targets (keep: R.cim, compared by the image that holds the memory) stays queued until the pass ends:
+// a draw that samples its block-compressed view would otherwise end the pass, the target be queued again when the pass begins again, and the next draw end it again
+static int bc_sync_kept_locked(const vka_img *src, vka_img *const *keep, int nkeep) {
+    for (int i = 0; i < nkeep; i++) { const vka_img *k = keep[i]; while (k && k->par) k = k->par; if (k == src) return 1; }
+    return 0;
+}
 int vka_tex_bc_sync_any_pending(void) { return atomic_load_explicit(&g_nbc_sync, memory_order_relaxed) != 0; }
 static void bc_sync_queue_locked(vka_img *src) {
     if (!src || compressed(&src->f) || !src->mem) return;
@@ -1833,13 +1839,13 @@ static void bc_sync_queue_locked(vka_img *src) {
     src->refs++;
     g_bc_sync[g_nbc_sync++] = src;
 }
-static void bc_sync_flush_locked(VkCommandBuffer cb, const int *ids, int nids, const char *where) {
+static void bc_sync_flush_locked(VkCommandBuffer cb, const int *ids, int nids, vka_img *const *keep, int nkeep, const char *where) {
     if (!g_nbc_sync || !cb) return;
-    int any_bc = 0, keep = 0;
+    int any_bc = 0, nk = 0;
     for (int i = 0; i < g_nbc_sync; i++) {
         vka_img *src = g_bc_sync[i];
         if (!src) continue;   // cancelled by bc_cancel_locked (its pool was dropped)
-        if (nids && !bc_sync_src_matches_reads_locked(src, ids, nids)) { g_bc_sync[keep++] = src; continue; }
+        if (nids && (bc_sync_kept_locked(src, keep, nkeep) || !bc_sync_src_matches_reads_locked(src, ids, nids))) { g_bc_sync[nk++] = src; continue; }
         if (src->inited && !img_pool_dead(src) && src->mem) {
             int lk_bc; for (vka_img *dst = live_first(src->mem, &lk_bc); dst; dst = live_next(dst, src->mem, &lk_bc)) {
                 if (!dst->inited || img_pool_dead(dst) || !bc_alias_match(src, dst)) continue;
@@ -1863,24 +1869,24 @@ static void bc_sync_flush_locked(VkCommandBuffer cb, const int *ids, int nids, c
         unref_locked(src);   // copied, or its alias is gone
     }
     if (any_bc) vka_barrier(cb);
-    g_nbc_sync = keep;
+    g_nbc_sync = nk;
 }
-int vka_tex_bc_sync_reads_pending(const int *ids, int n) {
+int vka_tex_bc_sync_reads_pending(const int *ids, int n, vka_img *const *keep, int nkeep) {
     if (!vka_tex_bc_sync_any_pending() || !ids || n <= 0) return 0;
     nvn_pool_use(1);
     pthread_mutex_lock(&g_tmu);
     int pending = 0;
-    for (int i = 0; i < g_nbc_sync && !pending; i++)
-        pending = g_bc_sync[i] && bc_sync_src_matches_reads_locked(g_bc_sync[i], ids, n);
+    for (int i = 0; i < g_nbc_sync && !pending; i++)   // (the pass's own targets first: a pointer compare, no registry lookups for them)
+        pending = g_bc_sync[i] && !bc_sync_kept_locked(g_bc_sync[i], keep, nkeep) && bc_sync_src_matches_reads_locked(g_bc_sync[i], ids, n);
     pthread_mutex_unlock(&g_tmu);
     nvn_pool_use(0);
     return pending;
 }
-void vka_tex_bc_sync_flush_reads(VkCommandBuffer cb, const int *ids, int n, const char *where) {
+void vka_tex_bc_sync_flush_reads(VkCommandBuffer cb, const int *ids, int n, vka_img *const *keep, int nkeep, const char *where) {
     if (!cb || !ids || n <= 0 || !vka_tex_bc_sync_any_pending()) return;
     nvn_pool_use(1);
     pthread_mutex_lock(&g_tmu);
-    bc_sync_flush_locked(cb, ids, n, where);
+    bc_sync_flush_locked(cb, ids, n, keep, nkeep, where);
     pthread_mutex_unlock(&g_tmu);
     nvn_pool_use(0);
 }
@@ -4144,7 +4150,7 @@ void vka_tex_prepare(VkCommandBuffer cb, uint64_t fence) {   // PEANUTS: image r
     // Fallback for reads the draw/dispatch hook cannot see: a bindless texture-pool handle is read with
     // r[i].tid == 0, so no sampled ID names its BC alias. Drain only what is still queued from earlier
     // submissions, before this submission's commands are recorded; intra-submission ordering is unchanged.
-    bc_sync_flush_locked(cb, NULL, 0, "submit (previous)");
+    bc_sync_flush_locked(cb, NULL, 0, NULL, 0, "submit (previous)");
     int n_up = 0;
     for (int i = 0; i < g_nredo; i++) {   // CPU writes to textures that already have an image (WriteTexels): from now on they follow their storage
         vka_img *im = g_redo[i];   // PEANUTS(upstream-candidate): (NULL: freed while queued, redo_forget_locked)
