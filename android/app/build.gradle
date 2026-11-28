@@ -230,10 +230,11 @@ def optionsOf = { String game ->
                 else if (tok.startsWith('group=')) group = tok.substring('group='.length()).trim()   // PEANUTS: option groups
             }
         }
-        [env, label, desc, mode, implies, needs, patches, group].collect { it.replaceAll(/[\t\n\\"]/, ' ').replaceAll(/[;|]/, ',').trim() }.join('|')   // PEANUTS: group, the last field
+        // PEANUTS: fields from the 8th on are <key>=<value> tokens, written only when set (Profile.parseOptions ignores keys it does not know): group=<name>
+        ([env, label, desc, mode, implies, needs, patches] + (group ? ['group=' + group] : [])).collect { it.replaceAll(/[\t\n\\"]/, ' ').replaceAll(/[;|]/, ',').trim() }.join('|')
     }.join(';')
 }
-// PEANUTS: option groups (game.tsv option_group rows: "<name>|<label>|<description>", ';' between them: Profile.optionGroups, the profile's last column)
+// PEANUTS: option groups (game.tsv option_group rows: "<name>|<label>|<description>", ';' between them: Profile.optionGroups, column 44, after thermal_cap)
 def optionGroupsOf = { String game -> tsvRows(game, 'option_group').findAll { it.size() > 3 }.collect { c -> c[1..3].collect { it.trim().replaceAll(/[\t\n\\"]/, ' ').replaceAll(/[;|]/, ',') }.join('|') }.join(';') }
 // The 3D scene choices for Advanced (or 3D scene): the overlays (game.tsv scene_scale rows, only with a scene_scale_palette row: dm/tools/scene_res.py), "<name>|<label>|<scale>|<mode>",
 // then the game arguments (scene_arg rows: dm/games/game.py scene_args checks them), "<name>|<label>|<scale or ->|arg|<arguments with {s} replaced>"; ';' between them (Profile.scenes, SceneRes)

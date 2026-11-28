@@ -3290,6 +3290,34 @@ the generic profile field, `join_cap` cut from vka_mem.c with the profile at 0 a
 changes: `place_join_mb` is not a build row (`pack_android.py build_rows`), and `vka_mem.c` does not feed `DMSH_VK_CHAIN`. Upstream candidate: the key, if
 upstream wants a per-game join cap.
 
+### Texture pool range and option groups (2026-11-28, #859, buinghia98)
+
+Two of #859's seven commits; its ResolveDepthBuffer, fps-variant and log-panel commits land on their own, and its even frame pacing and `audio_follow`
+are not taken. `tex_pool_range` (`DM_NVN_TEXPOOL_RANGE`): each texture pool takes at most that many IDs of the host's texture table, so the three
+1,048,576-entry pools Ys X: Nordics uses in turn fit below the 2^20 IDs Vulkan's set 1 addresses (16384 there). Without the key nothing changes: a
+registration takes base + ID with no line (the pick dropped every ID past 2^20 and added red lines for every game with large pools, which would have
+undone dev's direct binds, 387973248). With it the limit is the pool's own, also in a reused finalized range, and the frame replayer's pools
+(`nvn_dpool_base_set`) have none. `option_group <name> <label> <description>` with `group=<name>` on restart options: Game settings shows them as one
+single-choice row, the in-game panel as radio buttons; a start takes one member at most. The profile line's column 44 (after `thermal_cap`); in the
+options field `group=` is a `<key>=<value>` token from the 8th field on, written only when set, so options without a group keep their seven fields.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/gfx/nvn/hle_nvn.c` | 3 | `texpool_range`, `texpool_init`, `texpool_reg_id` and the per-slot limits; `nvnTexturePoolInitialize` / `RegisterTexture` / `RegisterImage` through them; `bind_handles` (macOS): a red line for a bound ID past 20 bits, with the key only | `PEANUTS` |
+| `dm/games/game.py` | 4 | `tex_pool_range` (0 or a multiple of 256 up to 1048576, `DM_GAME_TEX_POOL_RANGE`); `option_group` rows and `group=`: two to 15 restart members without `implies=`, 16 groups at most, shared option words within a group | `PEANUTS` |
+| `dm/games/README.md` | 3 | the `tex_pool_range`, `option` and `option_group` rows, the options encoding | `PEANUTS:` (allow-listed table) |
+| `docs/env_switches.tsv`, `docs/advanced_settings.tsv` | 1 each | `DM_NVN_TEXPOOL_RANGE` | `[PEANUTS]` (allow-listed) |
+| `dm/tools/docs_patches.py` | 1 | the `tex_pool_range` binding entry (`game` → `host`) | `PEANUTS` |
+| `android/app/build.gradle` | 3 | `optionsOf` writes `group=`; `optionGroupsOf`; column 44 | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/Profile.java` | 6 | `Option.group`, `OptionGroup`, `parseOptionGroups`, `groupMembers`, `groupChoice`, `shownGroups`; `parseOptions` reads `<key>=<value>` tokens; `buildOptionsEnv` one member at most; column 44 | `PEANUTS` |
+| `android/app/src/main/java/dev/nxnative/android/GameSettings.java`, `Prefs.java`, `SidePanel.java` | 2, 1, 4 | the group row and its dialog, `Prefs.gameOptionGroup`, the panel's radio buttons (`ID_OPT_GROUP` 6000) | `PEANUTS` |
+| `android/app/src/jvmtest/.../ProfileOptionsJvmTest.java`, `dm/tools/tests/test_game_profile.py`, `test_android_profile_options.py` | 1, 1, 2 | group cases, columns 43 and 44, unknown tokens ignored | `PEANUTS` |
+
+New: `dm/tools/tests/test_nvn_texpool_range.py`. Peanuts' own files: `dm/peanuts/profile/` (`TEX_POOL_RANGE` scalar, `tex_pool_range` u64 as the
+layout's last field: the runtime profile schema changes, 0x5783cffc / 12208 bytes to 0x673dc538 / 12216, so every title's profile.bin is regenerated
+with the APK, as for any new key). No rewrite key or shader input changes. Upstream candidate: option groups; the texture pool range only until the host
+numbers pools by the IDs they use. Merging hold-895 (`nvn_dpool.h` small pools) meets this in `hle_nvn.c`'s texture pool Initialize / Register lines.
+
 ### Xenoblade Chronicles: Definitive Edition: `core_preempt lock`, `fps_limit 30` (2026-11-28, #641, #642, tapionallanaire)
 
 About one boot in four crashed 1-4 s into `nnMain` on a corrupt heap: the game takes two threads of one core never to run at the same moment, as on Horizon.

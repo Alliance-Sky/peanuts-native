@@ -64,7 +64,7 @@ final class SidePanel extends FrameLayout {
     }
 
     // The ids of the choices a rebuild gives the focus back to (restyle)
-    private static final int ID_SIZE = 5000, ID_TEXT = 5100, ID_FIT = 5200, ID_MAP = 5300, ID_ONE = 5400, ID_RES = 5500, ID_RES_PRESET = 5590, ID_CONSOLE = 5600 /* PEANUTS: the two buttons of Console mode */, ID_OPT_GROUP = 5700 /* PEANUTS: option groups, 16 ids each */;
+    private static final int ID_SIZE = 5000, ID_TEXT = 5100, ID_FIT = 5200, ID_MAP = 5300, ID_ONE = 5400, ID_RES = 5500, ID_RES_PRESET = 5590, ID_CONSOLE = 5600 /* PEANUTS: the two buttons of Console mode */, ID_OPT_GROUP = 6000 /* PEANUTS: option groups, 16 ids each, 16 groups at most (6000-6255; 5700 is #715's ID_WORDS) */;
 
     SidePanel(Activity a, Rows rows) {
         super(a);
@@ -785,7 +785,7 @@ final class SidePanel extends FrameLayout {
         int n = 0;
         for (Profile.OptionGroup grp : prof.optionGroups) {
             java.util.List<Profile.Option> members = Profile.groupMembers(prof.options, grp.name);
-            if (members.isEmpty()) continue;
+            if (members.isEmpty() || n == 16) continue;   // 16 groups at most: their ids stay in ID_OPT_GROUP's range
             Profile.Option cur = Profile.groupChoice(prof.options, grp.name, env -> Prefs.gameOption(act, game(), env));
             int base = ID_OPT_GROUP + 16 * n++;
             head(grp.label);

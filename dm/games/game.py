@@ -404,6 +404,8 @@ def header(g):
         if imp and option_group.get(imp): sys.exit(f'{g.id}: option {r[0]} implies {imp}, a member of group {option_group[imp]}')
     for name in groups:
         if sum(1 for v in option_group.values() if v == name) < 2: sys.exit(f'{g.id}: option_group {name} needs at least two options')
+        if sum(1 for v in option_group.values() if v == name) > 15: sys.exit(f'{g.id}: option_group {name}: at most 15 options (the in-game panel\'s radio buttons, SidePanel ID_OPT_GROUP)')
+    if len(groups) > 16: sys.exit(f'{g.id}: at most 16 option_group rows (SidePanel ID_OPT_GROUP)')
     option_words = {}
     # PEANUTS end
     option_sites = set()

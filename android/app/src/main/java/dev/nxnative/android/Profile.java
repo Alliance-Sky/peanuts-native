@@ -263,7 +263,8 @@ final class Profile {
     }
     // PEANUTS end
 
-    /** Parse option rows encoded as "<env>|<label>|<description>|<restart|live>[|<implies>[|<needs>[|<patches>[|<group>]]]]", ';' between them */
+    /** Parse option rows encoded as "<env>|<label>|<description>|<restart|live>[|<implies>[|<needs>[|<patches>[|<key>=<value>...]]]]", ';' between them.
+     *  PEANUTS: from the 8th field on, <key>=<value> tokens written only when set, in any order, unknown keys ignored: group=<name> (option_group) */
     static List<Option> parseOptions(String text) {
         if (text == null || text.trim().isEmpty()) return Collections.emptyList();
         List<Option> out = new ArrayList<>();
@@ -276,7 +277,12 @@ final class Profile {
                 String implies = f.length > 4 ? f[4].trim() : "";
                 String needs = f.length > 5 ? f[5].trim() : "";
                 String patches = f.length > 6 ? f[6].trim() : "";
-                String group = f.length > 7 ? f[7].trim() : "";   // PEANUTS: option groups
+                String group = "";   // PEANUTS begin: fields from the 8th on are <key>=<value> tokens in any order (build.gradle optionsOf); a key this build does not know is ignored
+                for (int k = 7; k < f.length; k++) {
+                    String tok = f[k].trim();
+                    if (tok.startsWith("group=")) group = tok.substring("group=".length()).trim();
+                }
+                // PEANUTS end
                 out.add(new Option(f[0].trim(), f[1].trim(), f[2].trim(), live, implies, needs, patches, group));
             }
         }
