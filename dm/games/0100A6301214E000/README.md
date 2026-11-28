@@ -95,3 +95,5 @@ General host changes first needed here; each applies to every game:
 Engage uses the reviewed Warehouse pointer/direct vsync fields and hub timing field. A checked pre-seal instruction restores the legacy force-60 cut in mapped memory. Its 60 Hz integer controller supports 20, 30 and 60; 40, 90 and 120 stay unavailable.
 
 The launcher defaults to 60 and offers Game owned as a separate choice. Switching to or from Game owned requires restarting. Code plans require the exact main build and expected instruction words, validate every replacement before writing, and leave pack files unchanged. Other platform patch preparation retains its existing method. See the Thor continuation report for bounded Turnip validation.
+
+- <!-- PEANUTS --> The [targeted shader split](../../../android/SHADERS.md#targeted-split) uses [182 observed RomFS files](shader_files.tsv) out of 206,874 on 2.0.0. A full split took 76.5 s and the targeted one 5.5 s on a PC; the targeted tables match the full scan's and the profile's byte for byte.
