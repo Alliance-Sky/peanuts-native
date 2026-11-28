@@ -3558,7 +3558,7 @@ NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS draws its UI with OpenGL throug
 | `dm/host/tests/t_bigstack.c` | 4 | a ten-argument take-over through the switch and on the direct path; the call helpers use `PLAT_ASM_SYM` (ELF too) | `PEANUTS` |
 | `docs/reference/memory.md` | 1 | "Host calls on small guest stacks": the two stack slots | `PEANUTS` |
 
-### Round 65, the spin wait search and the x18 scan decode each word once (2026-11-28)
+### Round 66, the spin wait search and the x18 scan decode each word once (2026-11-28)
 
 With one worker (the phone's rewrite) a large `main` spent most of its rewrite in the spin wait search and the x18 scan: Super Mario Bros. Wonder's `main`
 57 s on a PC, of which spin 28 s and x18 13.5 s, and 5 to 6 minutes on a phone. The spin search kept its decoded words for one head only, so each of about
@@ -3583,7 +3583,7 @@ Now:
 
 The generated index `docs/agents/symptoms.md` (`dm/tools/docs_symptoms.py`) has the new entry. Peanuts' own files, no marker: `peanuts/tests/test_rewrite_forks.py` (`patch_nso.py.e13378e630c8` is now `patch_nso.py.d98ba837b4c1` without `in_forks`;
 both stay until a rewriter change whose output differs), `peanuts/upstream-unmarked.txt`. Upstream candidate: yes, the whole `patch_nso.py` change.
-### Round 65, the shaders step's SPIR-V post-passes in C, the same libraries (2026-11-28)
+### Round 67, the shaders step's SPIR-V post-passes in C, the same libraries (2026-11-28)
 
 `vk_android_build.py` `finish` ran `vk_android_spv.py`'s ~50 passes in Python on every translated module: parsing it into lists, about nine re-indexes a
 shader, `promote_locals`, `value_uses`, `retype_outputs` and the words packed back through a generator. On a PC that was most of the shaders step that holds
