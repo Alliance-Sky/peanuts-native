@@ -683,8 +683,8 @@ void nvn_dpool_base_set(const void *pool, int tex_base, int samp_base) {
 // replay resolved handles against the executing pool and kept IDs from 2^20 on for direct binds). DM_NVN_TEXPOOL_RANGE=<entries> (restart; the profile's tex_pool_range when
 // not set, 0 off) gives each texture pool at most that many IDs (a multiple of 256), so several large pools fit below 2^20; its IDs from there (or from its own size,
 // rounded up to 256) are dropped with a red line. A reused finalized range may be larger than the pool: the limit is the pool's own (texpool_lim), not its range's cap.
-// Without the key nothing here runs: registrations take the descriptor pools' host ID (dpool_id) as before, with no new lines; with it, the limit applies on top of that ID.
-// Ys X: Nordics: 16384 (its IDs stay below 500)
+// Without the key nothing here runs: registrations take the descriptor pools' host ID (PEANUTS(upstream-candidate) dpool_id) as before, with no new lines; with it, the limit applies on top of that ID.
+// Ys X: Nordics: 16384 (its IDs stay below 500). PEANUTS
 #define TEXPOOL_TABLE (1 << 20)
 #ifndef DM_GAME_TEX_POOL_RANGE   // a hand-written test profile
 #define DM_GAME_TEX_POOL_RANGE 0
@@ -708,9 +708,9 @@ static void texpool_init(const NVNtexturePool *tp, int n, int r) {   // tex_pool
     if (i >= 0) LOG("[nvn] texture pool #%d: %d entries, IDs 0-%d from host ID %d (tex_pool_range)%s", i + 1, n, lim - 1, base, base + lim > TEXPOOL_TABLE ? ": past the 2^20 IDs Vulkan's set 1 addresses" : "");
 }
 static int texpool_reg_id(const NVNtexturePool *tp, int id) {   // the host table ID of a registration, -1: dropped
-    int h = dpool_id(&g_tpt, tp, id);   // the descriptor pools' own answer (dpool_lookup): -1 skips a reserved ID of a small pool or a pool given up
-    if (!texpool_range() || h < 0) return h;   // without the key: that answer, with no line of tex_pool_range's
-    pthread_mutex_lock(&g_dpool_mu); int i = texpool_slot(tp), base = i >= 0 ? g_tpt.e[i].base : 0, lim = i >= 0 && i < NVN_NDPOOL ? g_texpool_lim[i] : 0; pthread_mutex_unlock(&g_dpool_mu);
+    int h = dpool_id(&g_tpt, tp, id);   // PEANUTS(upstream-candidate): the descriptor pools' own answer (dpool_lookup): -1 skips a reserved ID of a small pool or a pool given up
+    if (!texpool_range() || h < 0) return h;   // PEANUTS: without the key that answer, with no line of tex_pool_range's
+    pthread_mutex_lock(&g_dpool_mu); int i = texpool_slot(tp), base = i >= 0 ? g_tpt.e[i].base : 0, lim = i >= 0 && i < NVN_NDPOOL ? g_texpool_lim[i] : 0; pthread_mutex_unlock(&g_dpool_mu);   // PEANUTS
     if (i >= 0) {   // usage (diagnostic, with the key only): a line at each power of two of a pool's registrations from 64, with its highest ID so far
         int m = atomic_load(&g_texpool_maxid[i]); while (id > m && !atomic_compare_exchange_weak(&g_texpool_maxid[i], &m, id)) {}
         uint64_t k = atomic_fetch_add(&g_texpool_nreg[i], 1) + 1;
@@ -720,7 +720,7 @@ static int texpool_reg_id(const NVNtexturePool *tp, int id) {   // the host tabl
         static _Atomic int n; if (atomic_fetch_add(&n, 1) < 8) LOG("[RED] texture pool #%d: ID %d is past its host range of %d (tex_pool_range / DM_NVN_TEXPOOL_RANGE): the registration is dropped", i + 1, id, lim);
         return -1;
     }
-    return h;
+    return h;   // PEANUTS: the pool table's host ID, within the limit
 }
 NVN(nvnTexturePoolInitialize, NVNboolean, NVNtexturePool *tp, const NVNmemoryPool *p, ptrdiff_t off, int n) {
     *(dpool_t *)tp = (dpool_t){(const pool_t *)p, off, n}; OLOG("TexturePool n=%d", n);
