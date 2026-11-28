@@ -87,8 +87,25 @@ The profile
 - A `recommend` row needs a comment above it naming the note section or `docs/reference` page where the fact was measured.
 - The note from the template: Status, Tested on, Builds, Open. Status says only what you ran, Open lists what you did not, and they must not disagree. Memory values you did not measure are marked as the survey's guess.
 
+Frame rate
+- Give the game the frame rates it can hold, with the method that fits its engine. The methods, cheapest first, with their profile rows and an example game each, are in `FPS-METHODS.md` (`sh peanuts/scripts/fps-survey.sh` lists every profile's rows by method). In short: test whether the game steps by elapsed time (at caps of 30 and 60, a 3-second walk lands in the same place). If it does, display pacing is enough. If movement halves at 30, it counts frames, and you need an engine limiter found by name, an FPSLocker Warehouse row for the exact build, a community timing plan, or a frame step. If nothing works safely, leave the game's own pacing (Game owned) and say why in the note.
+- Measure every cap the profile offers: the median and slowest frame times, and the game speed (10 game seconds take 10 s, from an idle animation or a clock in the game). Put the numbers in the note's Status, per cap. A cap you did not measure is not offered, or is marked experimental (`fps_limit_present 1`) and named in Open.
+- The default cap (`fps_limit` or `fps_target`) is one you measured.
+- Do not edit `dm/tools/tests/test_android_frame_rate_games.py`: we pin the caps when the game goes on the release list.
+
+Prewarm seed (first launch without stutter)
+- The app writes the pipeline keys a run made to `/sdcard/Android/data/<app package>/files/temp/<title ID>/vk_pipelines.keys` (the test app: `dev.nxnative.android.peanutstest`), beside that driver's pipeline cache. It is one file per game, rewritten by each run, so copy it out (`adb pull`) after each driver's run and name it after the driver.
+- Start from a fresh cache: delete that `temp/<title ID>` folder before the run, then play the startup, the menus and the gameplay you tested. Attach the keys files to the pull request, with the driver each came from.
+- Do not commit `vk_prewarm.bin`. We build the seed from your keys when the game lands (`python3 dm/tools/vk_prewarm.py seed <title ID> <keys files>`; every file must come from the same host build), and check that a cold first launch draws right with it.
+
+Fast Prepare (targeted shader split)
+- So that a phone's Prepare reads only the game files that hold shaders, add `shader_files.tsv`: run one full split with `DM_SPLIT_FILES=dm/games/<title ID>/shader_files.tsv` (`android/SHADERS.md`). Then run a targeted split (`DM_SPLIT_TARGETED=1`) of the same build into a separate output folder, and check that its `shader_map.tsv`, `shader_facts.tsv`, `shader_pairs.tsv` and `pso_pairs.tsv` match the full split's. Give both times in the pull request.
+- If the shader map is far larger than what play reaches (tens of MB), open an issue first. A `shader_seen.tsv` of the keys real play uses may be the answer, and we decide that together.
+- A game with several builds lists the pairs a build may lack in `pso_pairs_optional.tsv`, so a targeted split of each build still matches.
+
 Checks (paste the result lines)
 - `python3 dm/tools/docs_patches.py`, and commit its output.
+- For a profile with `shader_files.tsv`: the full and targeted split times, and that their tables match.
 - `python3 -m unittest discover -s dm/tools/tests`: give the failure count at your head and at its merge-base. A pull request adds none.
 - `check-profiles.sh <title ID>`, `gen_runtime_profile.py check-all`.
 
