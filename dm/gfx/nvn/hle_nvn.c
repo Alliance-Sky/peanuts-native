@@ -617,8 +617,9 @@ NVN(nvnMemoryPoolGetBufferAddress, NVNbufferAddress, const NVNmemoryPool *p) {
 // default 8×8 white texture overwrote the UI's textures, and the title menu's labels, the name entry and other menus drew as plain bars or not at all. The scene also registers each draw's
 // textures into fresh IDs of a ring in its large pool (8,729 and up a few seconds in); with the table's capacity taken from the last pool alone, those all read as empty slots and the screen was black
 // The ranges: nvn_dpool.h
-// PEANUTS(upstream-candidate): small pools, table limits and least-recently-used slots (nvn_dpool.h). The tables' limits: the texture IDs Vulkan's set 1 addresses (vka_treg.h TREG_GPU), the sampler IDs the sampler table holds (vka_tex.c mtl_reg_samp)
-static nvn_dpool_tab g_tpt = {.limit = 1 << 20}, g_spt = {.limit = 4096 * 4};
+// PEANUTS(upstream-candidate): small pools, table limits and least-recently-used slots (nvn_dpool.h). The tables' limits, which hold for small pools only: the texture IDs
+// the host's texture registry holds (NVN_DPOOL_TEX_IDS = vka_treg.h TREG_PAGES * TREG_PAGE), the sampler IDs the sampler table holds (vka_tex.c mtl_reg_samp)
+static nvn_dpool_tab g_tpt = {.limit = NVN_DPOOL_TEX_IDS}, g_spt = {.limit = 4096 * 4};
 static pthread_mutex_t g_dpool_mu = PTHREAD_MUTEX_INITIALIZER;
 static int pow10_hit(int k) { int p = 1; while (p < k && p < 1000000000 / 10) p *= 10; return k == p; }   // said at 1, 10, 100, ... times: a line per call buries the log
 static const void *dpool_store(const NVNmemoryPool *p, ptrdiff_t off) { const pool_t *o = (const pool_t *)p; return o && o->mem ? (const void *)(o->mem + off) : 0; }

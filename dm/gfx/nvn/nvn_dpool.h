@@ -8,9 +8,15 @@
 // scene art in the dialogue box, the HUD drawn from the font page).
 // - A small pool (NVN_DPOOL_SMALL entries or fewer) gets a range for its IDs past the reserved ones only (NVN_DPOOL_RESERVED: nvnDeviceGetInteger 0x11 / 0x12):
 //   16 host entries for a 272-entry pool instead of 512. Applications never register into the reserved IDs (Fire Emblem: Three Houses' pools fill from 256 up)
-// - limit: the IDs the host table can address (the sampler table holds 16,384); 0 for none
-// - When every slot or the table is taken, the pool least recently initialized, registered into or bound gives its slot up (evicted counts them)
+// - limit: the IDs the host table can address (textures NVN_DPOOL_TEX_IDS, the registry vka_treg.h holds; the sampler table holds 16,384); 0 for none.
+//   Only small pools are held to it: a large pool always gets a range at the table's end, as before the small pools, and its IDs past the table are dropped where
+//   they are registered (vka_tex.c mtl_reg_samp, vka_treg.h treg). Trails through Daybreak II keeps three 1,048,576-entry texture pools live: bases 0, 1 M and 2 M
+// - When every slot or the table is taken, the small pool least recently initialized, registered into or bound gives its slot up to a new small pool (evicted
+//   counts them). Only small pools take part: a large pool is never given up and never takes a range given up, so the first pool and the scenes' pools keep
+//   their numbering. A command buffer recorded against a small pool that is given up later reads, when it is replayed, the newer pool's descriptors in that
+//   range (vka_draw.c resolves the bound pool's base at replay; macOS bind_handles adds CB(c)->tex_base / samp_base at recording)
 #define NVN_NDPOOL 1024
+#define NVN_DPOOL_TEX_IDS (16 << 20)
 #define NVN_DPOOL_RESERVED 256
 #define NVN_DPOOL_SMALL 512
 #define NVN_DPOOL_GRAIN 16
@@ -29,14 +35,32 @@ static inline int nvn_dpool_range_live(const nvn_dpool_tab *t, int skip, int lo)
     for (int i = 0; i < t->n; i++) if (i != skip && t->e[i].pool && t->e[i].lo == lo) return 1;
     return 0;
 }
-// A new range of `size` host entries at the table's end, -1 past the limit
-static inline int nvn_dpool_grow(nvn_dpool_tab *t, int size) {
-    if (t->limit && t->next + size > t->limit) return -1;
+// A new range of `size` host entries at the table's end; -1 past the limit, which holds only for a small pool
+static inline int nvn_dpool_grow(nvn_dpool_tab *t, int size, int small) {
+    if (small && t->limit && t->next + size > t->limit) return -1;
     int lo = t->next; t->next += size; return lo;
 }
 
+// The least recently used live small pool that can give its slot up: with need > 0, one whose range holds `need` entries and no other live object shares; with need 0,
+// any (an alias's slot, or a range nobody else uses). -1: none. A pool whose range another live object shares is passed over (a few tries: the scan stays linear)
+static inline int nvn_dpool_lru_small(const nvn_dpool_tab *t, int need) {
+    int skip[8], ns = 0;
+    for (;;) {
+        int v = -1;
+        for (int i = 0; i < t->n; i++) {
+            const nvn_dpool_ent *e = &t->e[i];
+            if (!e->pool || !e->small || (need ? e->cap < need : 0) || (v >= 0 && (int)(e->use - t->e[v].use) >= 0)) continue;
+            int sk = 0; for (int k = 0; k < ns; k++) sk |= skip[k] == i;
+            if (!sk) v = i;
+        }
+        if (v < 0) return -1;
+        if (!(need ? 0 : !t->e[v].cap) && nvn_dpool_range_live(t, v, t->e[v].lo)) { if (ns == 8) return -1; skip[ns++] = v; continue; }
+        return v;
+    }
+}
+
 // The pool's base: its own if it has one; the base of a pool over the same storage (store); else the smallest finalized range that holds it, else a new range at the
-// table's end, else the least recently used pool's slot. -1: no slot at all (the caller numbers it from 0, sharing the first pool's IDs). A pool that takes a
+// table's end, else (a small pool only) the least recently used small pool's slot. -1: no slot at all (the caller numbers it from 0, sharing the first pool's IDs). A pool that takes a
 // finalized range finds the old pool's registrations there until it registers its own, as an NVN pool's new descriptors are whatever its memory held
 static inline int nvn_dpool_add2(nvn_dpool_tab *t, const void *pool, int n, const void *store) {
     int small = t->n > 0 && n > NVN_DPOOL_RESERVED && n <= NVN_DPOOL_SMALL;   // the first pool keeps base 0 and its whole range
@@ -58,23 +82,20 @@ static inline int nvn_dpool_add2(nvn_dpool_tab *t, const void *pool, int n, cons
     for (int i = 0; i < t->n; i++)
         if (!t->e[i].pool && t->e[i].cap >= need && !nvn_dpool_range_live(t, i, t->e[i].lo) && (fit < 0 || t->e[i].cap < t->e[fit].cap)) fit = i;
     if (fit >= 0) lo = t->e[fit].lo, need = t->e[fit].cap;
-    else if (t->n < NVN_NDPOOL && (lo = nvn_dpool_grow(t, need)) >= 0) fit = t->n++;
-    else {   // every slot or the whole table is taken by live pools: the least recently used gives its slot up
-        for (int i = 0; i < t->n; i++) if (fit < 0 || (int)(t->e[i].use - t->e[fit].use) < 0) fit = i;
-        if (fit < 0) return -1;
-        nvn_dpool_ent *v = &t->e[fit];
-        t->evicted++;
-        if (v->cap >= need && !nvn_dpool_range_live(t, fit, v->lo)) lo = v->lo, need = v->cap;
-        else {   // its range is too small or shared: the smallest free-standing range of a live pool that is big enough, else a new one
-            int alt = -1;
-            for (int i = 0; i < t->n; i++) if (i != fit && t->e[i].cap >= need && !nvn_dpool_range_live(t, i, t->e[i].lo) && !t->e[i].pool && (alt < 0 || t->e[i].cap < t->e[alt].cap)) alt = i;
-            if (alt >= 0) { lo = t->e[alt].lo; need = t->e[alt].cap; t->e[alt].cap = 0; }
-            else if ((lo = nvn_dpool_grow(t, need)) < 0) return -1;
+    else if (t->n < NVN_NDPOOL && (lo = nvn_dpool_grow(t, need, small)) >= 0) fit = t->n++;
+    else if (small) {   // every slot or the table is taken: the least recently used small pool gives its slot up. Large pools are never given up
+        int v = t->n == NVN_NDPOOL ? nvn_dpool_lru_small(t, 0) : -1;   // the slots ran out: the least recently used small pool's slot
+        if (v >= 0 && t->e[v].cap >= need && !nvn_dpool_range_live(t, v, t->e[v].lo)) lo = t->e[v].lo, need = t->e[v].cap;   // with its range
+        else if (v < 0 || (lo = nvn_dpool_grow(t, need, small)) < 0) {   // or with a new range (its own is too small, or shared by its other object)
+            v = nvn_dpool_lru_small(t, need);   // the table is full: the least recently used small pool whose range holds the new one
+            if (v < 0) return -1;
+            lo = t->e[v].lo, need = t->e[v].cap;
         }
-    }
+        fit = v; t->evicted++;
+    } else return -1;   // a large pool with every slot taken: it shares the first pool's numbering
     if (small && lo < NVN_DPOOL_RESERVED) {   // the first pool's range (from 0): a small pool there would number its IDs below 0, so it takes it whole, or a new range
         if (need >= n) small = 0;
-        else { int g = nvn_dpool_grow(t, need); if (g < 0) return -1; lo = g; }
+        else { int g = nvn_dpool_grow(t, need, small); if (g < 0) return -1; lo = g; }
     }
     t->e[fit] = (nvn_dpool_ent){pool, small ? lo - NVN_DPOOL_RESERVED : lo, lo, need, small, store, t->clock};
     t->hint = fit;
