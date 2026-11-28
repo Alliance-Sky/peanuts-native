@@ -15,6 +15,7 @@ Tested on OnePlus 13R (`CPH2691`, Snapdragon 8 Gen 3, Adreno 750, 12 GB / 11.0 G
 - **Qualcomm system driver (`512.762.41`):** playable with the host `DM_VK_PUSH_DESC=0` auto rule for Qualcomm `< 512.800` (~2.8 min / 9,900 frames, 58.1-60.2 fps; 60.0-60.1 fps in most windows, ~58-59 fps under 1.4 GHz thermal cap at 850-1,065 draws; 20-32 render passes/frame, recording 3.4-6.5 ms/frame, GPU p50 4.7-6.8 ms, 107 graphics / 0 compute pipelines, 0 failed, 0 `[VRED]`, 0 audio underruns across 44k callbacks).
 - **Turnip Mr. Purple T30 (`26.3.0-T30-1.4.359`):** playable with push descriptors active (177-341/frame; ~2.1 min / 7,500 frames, 59.7-60.1 fps, 20-32 render passes/frame, recording 1.5-2.4 ms/frame, GPU p50 2.6-3.4 ms, 114 graphics / 50 compute pipelines, 0 failed, GPL active, 0 `[VRED]`, 0 audio underruns across 34k callbacks).
 - **Qualcomm `< 512.800` rendering note:** before the general host fix (`DM_VK_PUSH_DESC=0` on `qcom_old`), terrain and hill meshes flickered and disappeared when `DM_VK_PUSH_DESC=1` and `DM_VK_UB_DEFER=1` were both active. Fixed generally in the host; no per-game key is needed in `game.tsv`.
+- **Until that host rule lands** (pull request #907, held for a stock-driver measurement): on Qualcomm's own driver before 512.800, add `DM_VK_PUSH_DESC=0` in the game's page › Advanced › Extra environment; Turnip needs nothing. <!-- PEANUTS: landing #908 without #907 -->
 - **Not tested:** 2-player mode (no physical controllers available).
 
 ## Frame rate caps
