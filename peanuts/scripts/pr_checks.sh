@@ -57,5 +57,15 @@ else
     echo "skip  hunk markers: Banana Native's android branch could not be fetched"
 fi
 
+# 4. New-game rules (peanuts/docs/CONTRIBUTING.md, "A new-game pull request"): a vk_prewarm.bin the pull request adds fails it (we build seeds
+#    from the attached keys); a new profile without shader_files.tsv, or with frame-rate rows and no frame times in its note, is a warning
+for f in $(git diff --name-only --diff-filter=AM "$base" HEAD -- 'dm/games/*/vk_prewarm.bin'); do new=1; echo "NEW   $f: a prewarm seed in the pull request (attach the runs' .keys files instead)"; done
+for d in $(git diff --name-only --diff-filter=A "$base" HEAD -- 'dm/games/*/game.tsv' | sed 's,/game.tsv$,,'); do
+    [ -f "$d/shader_map.tsv" ] && [ ! -f "$d/shader_files.tsv" ] && echo "warn  $d: no shader_files.tsv, so the phone's Prepare scans every game file (CONTRIBUTING, Fast Prepare)"
+    if grep -qE '^(fps_limit|fps_target|fps_modes|fps_limit_present|fps_steps|fpslocker)' "$d/game.tsv" 2>/dev/null && ! grep -qE '[0-9] ?(ms|fps)' "$d/README.md" 2>/dev/null; then
+        echo "warn  $d: frame-rate rows in game.tsv but no frame times (ms) or rates (fps) in its note (CONTRIBUTING, Frame rate)"
+    fi
+done
+
 [ $new -eq 0 ] && echo "No new failures." || echo "This pull request adds the failures marked NEW above."
 exit $new
