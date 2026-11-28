@@ -3583,3 +3583,30 @@ Now:
 
 The generated index `docs/agents/symptoms.md` (`dm/tools/docs_symptoms.py`) has the new entry. Peanuts' own files, no marker: `peanuts/tests/test_rewrite_forks.py` (`patch_nso.py.e13378e630c8` is now `patch_nso.py.d98ba837b4c1` without `in_forks`;
 both stay until a rewriter change whose output differs), `peanuts/upstream-unmarked.txt`. Upstream candidate: yes, the whole `patch_nso.py` change.
+### Round 65, the shaders step's SPIR-V post-passes in C, the same libraries (2026-11-28)
+
+`vk_android_build.py` `finish` ran `vk_android_spv.py`'s ~50 passes in Python on every translated module: parsing it into lists, about nine re-indexes a
+shader, `promote_locals`, `value_uses`, `retype_outputs` and the words packed back through a generator. On a PC that was most of the shaders step that holds
+the GIL; on the phone, the step's Python half. `libdmsh_spvn` (`dm/gfx/tools/vk_android_spv_native/spvn.c`, Peanuts' own) is that module and those passes
+transliterated to C, loaded by `vk_android_spvn.py` through `ctypes`: each module is parsed once, every common pass runs in C, and its words come back once a
+stored variant. What it does not have (HMMA lowering, the GlobalToStorage raw helpers' rewrites, the viewport mask, a dynamic sample offset, per-primitive
+inputs, any shape the Python raises on) raises `Fallback`, and `finish` makes that shader with the Python. `DMSH_VK_SPVN=0` turns it off; without a library (no
+C compiler on a PC, an older stage) the Python runs. Both write the same bytes: full builds of Yoshi's Crafted World (23,497 shaders), Hyrule Warriors: Age of Calamity (40,729) and Trails in the Sky 1st
+Chapter (6,602 of 6,605, the package lacks 3) give `dmsh_vk.lib`, `index.json` and `_vk_build.json` byte for byte as before (and with `DMSH_VK_SPVN=0`), so the
+version stays `c1eff1d2d8c1` (`vk_android_same.tsv` row `8d875f5b323f`). Crafted World on Linux: 5 min 01 s → 1 min 29 s at `J=8`, 10 min 46 s → 6 min 53 s at
+`J=1`; the numbers and what stays in Python: `android/SHADERS.md`, Native post-passes. The phone's library builds with the NDK but has not run on a phone yet.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/gfx/tools/vk_android_build.py` | 19 | `import vk_android_spvn`; `VK_FILES` += the library's two sources (they make modules, so they are in the tools digest); `finish` → `finish_with(S, …)` with the library's module first, the Python on `Fallback`; `S.` for the passes in `finish_with`, `ps_variants`, `facts_of`, `drv_reads`; `m_atomic`, `m_writes`, `tess_modes_set` for the library's module; the header text names the files; the summary's `post-passes:` line | `# PEANUTS` per hunk, `PEANUTS begin`/`end` around `finish` |
+| `dm/gfx/tools/vk_android_spv.py` | 1 | `has_spec_id` (the mesh module's GL depth check, out of `finish`) | `# PEANUTS:` |
+| `dm/gfx/tools/vk_android_same.tsv` | 1 | `8d875f5b323f` → `c1eff1d2d8c1` after the full builds below | (a TSV row: the evidence column) |
+| `dm/gfx/nvn/dmsh_chain_vk.h` | 1 | regenerated: the comment names the new files; `DMSH_VK_CHAIN` stays `c1eff1d2d8c1`, `DMSH_VK_ABI` stays `288a138fa7d1` | generated |
+| `android/app/build.gradle` | 4 | the stage's `lib/libdmsh_spvn.so` into the APK's jniLibs (`need`, `nxPackJni`), `nxPackSpvnCheck` (the library carries this tree's `spvn.c` SHA-256), `spvn.c` into `tools.zip` (the phone computes the digest) | `// PEANUTS` per hunk |
+| `android/ondevice/build.sh` | 2 | `zbic` builds `libdmsh_spvn.so` with the NDK, as `libcra.so` | `# PEANUTS begin`/`end`, `# PEANUTS:` |
+| `android/SHADERS.md` | 2 | Native post-passes (2026-11-28); Versions names the files | `<!-- PEANUTS -->` |
+
+Peanuts' own files, no marker: `dm/gfx/tools/vk_android_spv_native/spvn.c`, `build.sh`, `dm/gfx/tools/vk_android_spvn.py` (new), `dm/tools/tests/test_vk_android_spvn.py`
+(new: every step of `finish` on 12 real modules of three games and a synthetic one, native against Python, byte for byte; the fallbacks; `DMSH_VK_SPVN=0`; a library
+of other sources refused), `peanuts/tests/fixtures/spvn/*.spv` (76 KB). Upstream candidate: yes (the same libraries, any machine), with the library's build in
+upstream's stage script.
