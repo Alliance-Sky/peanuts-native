@@ -463,3 +463,4 @@ dm/games/0100F43008C44000/shader_files.tsv	Generated shader-bearing file invento
 dm/games/0100000000010000/shader_files.tsv	Generated shader-bearing file inventory for the targeted split (shader_split.py with DM_SPLIT_FILES). Keep the inventory reproducible from the same input.
 dm/games/0100453019AA8000/shader_files.tsv	Generated shader-bearing file inventory for the targeted split (shader_split.py with DM_SPLIT_FILES). Keep the inventory reproducible from the same input.
 dm/games/010097F018538000/shader_files.tsv	Generated shader-bearing file inventory for the targeted split (shader_split.py with DM_SPLIT_FILES). Keep the inventory reproducible from the same input.
+dm/games/0100BA4026E94000/shader_files.tsv	Generated shader-bearing file inventory for the targeted split (shader_split.py with DM_SPLIT_FILES). Keep the inventory reproducible from the same input.
