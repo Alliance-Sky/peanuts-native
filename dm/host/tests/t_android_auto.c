@@ -61,9 +61,11 @@ int main(void) {
     CHECK(!val(r, n, "DM_VK_VIN_DYN"), "old Qualcomm without the extension: nothing to turn off");
     // PEANUTS begin: push descriptors off for layouts only with the profile's push_desc_qcom_old off (#888); a profile without it keeps them on, as before the switch
     CHECK(!val(r, n, "DM_VK_PUSH_DESC"), "old Qualcomm, profile without push_desc_qcom_old: push descriptors stay on");
+    CHECK(n == 5 && (v = val(r, n, "DM_VK_DEPTH_ONLY_BLEND")) && !strcmp(v, "1"), "old Qualcomm, empty profile: 5 rules with the depth-only blend, got %d", n);   // PEANUTS: DM_VK_DEPTH_ONLY_BLEND (prewarm, dynamic filter, depth-only blend, GS fill, push delta)
     int n0 = n;
     n = vka_auto_rules(&(vka_auto_in){.driver_id = VKA_DRV_QCOM, .qcom_old = 1, .memu = 1, .prof_push_desc_off = 1}, r, 16);
     CHECK((v = val(r, n, "DM_VK_PUSH_DESC")) && !strcmp(v, "0") && n == n0 + 1, "old Qualcomm, push_desc_qcom_old off: push descriptors off for layouts (%d rules, %d without)", n, n0);
+    CHECK(n == 6 && val(r, n, "DM_VK_DEPTH_ONLY_BLEND"), "old Qualcomm, push_desc_qcom_old off: the depth-only blend as well, 6 rules, got %d", n);   // PEANUTS: DM_VK_DEPTH_ONLY_BLEND does not depend on the key
     vka_auto_line(b0, sizeof b0, &r[n - 1], VKA_DRV_QCOM, "");
     CHECK(!strcmp(b0, "[auto] DM_VK_PUSH_DESC=0 because driver_id=8 (?), driver version before 512.800, the profile's push_desc_qcom_old off"), "push_desc line: %s", b0);
     // PEANUTS end
