@@ -8,7 +8,7 @@ Update 2.0.0 (v327680) over the base game, SDK 12.3.7. Unity 2020.3.18f1 IL2CPP 
 |---|---|---|
 | `QualitySettings.set_vSyncCount` argument → 1 | [`patches.py`](patches.py) `CUTS`, `main` `8c08b971…` at `main+0x32f92d4` | the game's own 60 fps path; see [Frame rate](#frame-rate) |
 | Node area cut 1 GB → 62 MiB and 2 MiB alignment for regions of 4 MiB and up | `dm/tools/sdk_patches.py`, SDK-wide rules matched on `56ec2474…` | gives Unity's allocator room in the alias region; see [Memory](#memory) | <!-- PEANUTS -->
-| 5 GB guest layout: `mem_reserve 0x140000000`, `mem_alias 0x118000000`, `mem_stack 0x10000000`, `app_pool 0xA0000000` | [`game.tsv`](game.tsv) | 256 MB in front + 4.375 GB alias region + 256 MB stack region + 128 MB heap region, with a 2.5 GB pool reported. 5 GB is the total proven on a phone |
+| Guest layout (Android, PEANUTS: a 16 GB alias region, address space only): `mem_reserve 0x428000000`, `mem_alias 0x400000000`, `mem_stack 0x10000000`, `app_pool 0xA0000000` | [`game.tsv`](game.tsv) | 256 MB in front + 4.375 GB alias region + 256 MB stack region + 128 MB heap region, with a 2.5 GB pool reported. 5 GB is the total proven on a phone |
 | `shader_groups` `engine` / `assets` | `game.tsv` | `data.unity3d` and `Resources/` are the engine's built-ins, `StreamingAssets/` the Addressables bundles |
 | `depth_mode zero` | `game.tsv` | the game sets the near = 0 depth mode, so the pipeline bases made before it runs (the NSP script's Mac prebuild, and a [pipeline archive made offline](../../../docs/development.md#the-pipeline-archive-made-offline) for the iPhone when one is built with `DM_PSO_GPUS`) take its vertex shaders' `main0_z` entries (the host itself follows the mode the game sets) |
 
