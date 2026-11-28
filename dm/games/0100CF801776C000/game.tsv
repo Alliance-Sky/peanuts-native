@@ -1,0 +1,39 @@
+# PEANUTS: Peanuts-only profile
+# LIVE A LIVE: Square Enix / historia, Unreal Engine 4, SDK 12.3.2, NVN, Wwise sound;
+# update 1.0.1 (v65536).
+# Format: see dm/games/README.md
+
+# ---- Identity ----
+title_id	0100CF801776C000
+program_id	0100CF801776C000
+
+# ---- App ----
+name	LIVE A LIVE
+ipa	LiveALive.ipa
+app_category	public.app-category.games
+
+# ---- Versions ----
+build	v65536	1.0.1	main=cf22083371ddacb2c707e3e12cc92e77	subsdk0=dade22cfe6f24efe62d76409522c850b	sdk=5bcf525f24eb28658a8d67ac27800d9b
+package	v65536
+shader_versions	v65536
+
+# ---- Files ----
+modules	main subsdk0 sdk
+romfs_marker	Richard/Content/Paks/Richard-Switch.pak
+zip_store	.bk2:.pak:.metallib
+
+# ---- Memory ----
+# Unreal Engine 4 + SDK 12.3.2 (same sdk/subsdk0 build IDs as OCTOPATH TRAVELER II):
+# rewriter cuts FMallocBinned3 (dm/tools/ue_malloc.py) and scales the engine region to the alias region (dm/tools/ue_region.py).
+mem_reserve	0xF0000000
+mem_alias	0xC8000000
+mem_stack	0x10000000
+app_pool	0xCD500000
+sys_resource	0x5000000
+
+# ---- Input ----
+pad_layout	full
+
+# ---- Shader split ----
+shader_groups	ShaderArchive-Global-=global ShaderArchive-=game
+shader_note	LIVE A LIVE shaders

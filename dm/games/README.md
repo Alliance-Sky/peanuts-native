@@ -459,3 +459,4 @@ inner screen). `GameActivity` reads the window's size at the start (`ScreenShape
 Settings › Screen rotation is Landscape on a phone; none of it passed when the window is within 4 % of 16:9) and passes `DM_VK_PICTURE_ASPECT=<w>:<h>` like a fixed shape. The host's camera code accepts
 shapes from 0.4 to 4.0 (a narrower window is clamped to 4:5, a wider one to 3.99, so a portrait phone gets a mild shape with bars above and below), so 2.17:1 (13:6) works. The shape is read once: a fold or a turn afterwards leaves the picture at the old shape (fitted, with bars)
 until the next start. Display › Stretch with Screen shape changes nothing visible (the picture already fills the window).
+| [LIVE A LIVE](0100CF801776C000/README.md) | `0100CF801776C000` | 1.0.1 | 12.3.2 | Unreal Engine 4, Wwise | NVN <!-- PEANUTS: Peanuts-only profile --> |
