@@ -61,6 +61,7 @@ class Service(unittest.TestCase):
         self.assertRegex(self.src, r'while \(\(i = nextStep\(j\)\) >= 0\)')
         self.assertIn('stopBeside(j);', self.src)
         self.assertIn('RewriteBeside.stopLeftover(besidePid(j));', self.src)
+        self.assertIn('PackEngine.setenv("PN_REWRITE_BESIDE_DONE", beside != null ? RewriteBeside.doneFile(besidePid(j)).getPath() : "")', self.src)
 
     def test_next_step_keeps_the_pack_after_the_rewrite(self):
         body = re.search(r'private int nextStep\(Job j\) \{(.*?)\n    \}', self.src, re.S).group(1)

@@ -39,6 +39,7 @@ final class RewriteBeside {
     static RewriteBeside start(File repo, String tool, String[] argv, File log, File pidFile) throws IOException {
         Map<String, String> tools;
         synchronized (PackEngine.ENV) { tools = new java.util.LinkedHashMap<>(PackEngine.ENV); }
+        Files.deleteIfExists(doneFile(pidFile).toPath());   // an earlier run's
         List<String> cmd = RewriteBesidePlan.command(tools.get("DM_SPLIT_WORKER"), pidFile.getPath(), new File(repo, tool).getPath(), argv);
         if (cmd == null) throw new IOException("no worker program");
         Files.deleteIfExists(pidFile.toPath());
@@ -58,6 +59,15 @@ final class RewriteBeside {
             }
         }
         if (pid < 0) { p.destroyForcibly(); throw new IOException("the rewrite process gave no pid (exit " + (p.isAlive() ? "-" : String.valueOf(p.exitValue())) + ")"); }
+        // the split waits on this file before it starts the game's own decoder from the rewritten modules (dm/gfx/tools/rewrite_wait.py, PN_REWRITE_BESIDE_DONE)
+        File done = doneFile(pidFile);
+        Thread w = new Thread(() -> {
+            int code;
+            try { code = p.waitFor(); } catch (InterruptedException e) { code = 130; }
+            try { Files.write(done.toPath(), (code + "\n").getBytes(StandardCharsets.UTF_8)); } catch (IOException e) { Log.w(TAG, "rewrite beside: " + done + ": " + e.getMessage()); }
+        }, "nxpack-rewrite-beside");
+        w.setDaemon(true);
+        w.start();
         return new RewriteBeside(p, pid, log, pidFile);
     }
 
@@ -96,6 +106,9 @@ final class RewriteBeside {
         }
         try { Files.deleteIfExists(pidFile.toPath()); } catch (IOException ignored) { }
     }
+
+    /** The file the rewrite's exit code is written to when its process ends, beside the pid file */
+    static File doneFile(File pidFile) { return new File(pidFile.getParentFile(), "rewrite-beside.done"); }
 
     private static int readPid(File f) {
         try {

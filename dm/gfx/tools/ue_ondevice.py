@@ -23,6 +23,7 @@ HOST_CODE = ("import ctypes, sys\n"
 class DeviceOodle(uepak.OodleHost):
     """uepak.OodleHost with the Android host: the worker command (DM_UE_HOST) runs HOST_CODE, which loads the title's host library and calls nxhost_main(modules)"""
     def __init__(self, cmd, lib, modules):
+        import rewrite_wait; rewrite_wait.wait()   # PEANUTS: the rewrite beside the split must have written the modules (#120)
         self.err = tempfile.TemporaryFile()
         self.p = subprocess.Popen(shlex.split(cmd) + ['-I', '-c', HOST_CODE, lib, modules], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=self.err,
                                   env=dict(os.environ, DM_OODLE_SERVE='1'))

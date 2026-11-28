@@ -1163,6 +1163,7 @@ public final class PackService extends Service {
             int eq = kv.indexOf('='); PackEngine.setenv(kv.substring(0, eq), kv.substring(eq + 1));
         }
         PackEngine.setenv("DM_UE_MODULES", pack.getPath());
+        PackEngine.setenv("PN_REWRITE_BESIDE_DONE", beside != null ? RewriteBeside.doneFile(besidePid(j)).getPath() : "");   // PEANUTS: the split waits on it before the game's own decoder needs the rewritten modules (rewrite_wait.py, #120)
         PackEngine.setenv("DM_SPLIT_DIRECT", "1");   // a targeted file whose map sources name their containers (#BNSH@ / #BAHS@ / #IDRK@ offsets) is read at those containers only, not whole // PEANUTS
         PackEngine.setenv("DM_PACKER_COMMIT", BuildConfig.NX_COMMIT);   // pack.tsv's packer: no repository on the phone to ask
         PackEngine.setenv("NX_PACK_WORK", od.getPath());

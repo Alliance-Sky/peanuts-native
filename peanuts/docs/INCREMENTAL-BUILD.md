@@ -238,6 +238,11 @@ Before the pack step it waits for that process; a rewrite that failed fails ther
   forks; a kill after 15 s) and the rewrite runs again at the next start. A process an earlier packer left (Android ended the packer, not its child) is ended
   before a job runs again (`rewrite-beside.pid` in the job's `ondevice` folder, checked against `/proc/<pid>/cmdline`).
 - The heat pause holds it as it holds the step in the packer (`PN_HOLD_FILE` is in its environment).
+- The split needs the rewritten modules in one case: a game whose files only the game's own decoder can read (an Unreal game's Oodle, `ue_ondevice.DeviceOodle`;
+  Oodle- or LZ5-compressed files, `shader_split.py`). Just before it starts that decoder, the split waits for the rewrite (`dm/gfx/tools/rewrite_wait.py`):
+  when the rewrite's process ends the app writes its exit code to `rewrite-beside.done` (`PN_REWRITE_BESIDE_DONE`), and a failed rewrite stops the split
+  with its words. A game that never needs the decoder never waits. Found on FINAL FANTASY RESONANCE (Thor, 2026-11-28): without the wait its split stopped at
+  its first Oodle stream, before the rewrite had written `main`.
 - Not measured on a phone yet: the rewrite's workers (`PN_REWRITE_J`) and the shader workers then share the cores, so the time saved is less than the
   rewrite's own time.
 

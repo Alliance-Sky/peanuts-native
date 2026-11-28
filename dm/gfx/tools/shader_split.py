@@ -2692,7 +2692,8 @@ def oodle_ask(comp, n):
         ooz = os.environ.get('DM_OODLE_OOZ', '')
         if ooz: argv = [ooz]
         elif (not host or not mods) and dev and lib and dmods:
-            import shlex, ue_ondevice
+            import shlex, ue_ondevice, rewrite_wait
+            rewrite_wait.wait()   # PEANUTS: the rewrite beside the split must have written the modules (#120)
             argv = shlex.split(dev) + ['-I', '-c', ue_ondevice.HOST_CODE, lib, dmods]
         elif not host or not mods: red('Oodle- or LZ5-compressed game files: set DM_OODLE_HOST (the Mac host, make -C dm/host GAME=<id> dmhost) and DM_OODLE_MODULES (the rewritten modules) to decode them with the game\'s own decoder')
         else: argv = [host, mods]
