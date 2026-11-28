@@ -409,6 +409,7 @@ static void qos_apply(thr_t *t) {   // on the thread itself, holding G (prio and
 // A host helper thread (audio notify / silent sink, vsync, movie decode) created from a guest thread inherits that thread's class; under DM_QOS_MAP it sets its own instead
 void dm_host_helper_qos(plat_qos_t q) { if (g_qos_map) plat_qos_set_self(q); }
 static const char *thr_name(thr_t *t, char *buf, size_t n);
+// PEANUTS: DM_CORE_LOCK (#641): the core lock, its preemption signal installed on first use
 static pthread_once_t g_preempt_once = PTHREAD_ONCE_INIT;
 static void preempt_install(void);
 static void core_lock_take(thr_t *t) {
@@ -419,6 +420,8 @@ static void core_lock_take(thr_t *t) {
     pthread_once(&g_preempt_once, preempt_install);
     pthread_mutex_lock(&g_core_lk[c].m); uint64_t my = g_core_lk[c].next++;
     uint64_t w0 = now_ns();
+    // Limits: a holder that blocks in host code without dm_thread_native_wait keeps this core's waiters waiting until it reaches an SVC (no known path does; documented
+    // limit). And after a native wait the thread runs without the lock until its next SVC exit, so the lock is weaker than Horizon's in that window
     while (g_core_lk[c].serving != my) {
         thr_t *o = g_core_lk[c].owner;
         // a higher priority preempts the holder at once; any waiter after a time slice (DM_CORE_SLICE_US, default 0: never): the core's threads stay exclusive, and a holder
@@ -446,7 +449,7 @@ static void *thread_main(void *p) {
     pthread_mutex_unlock(&G);
     crash_thread_init();
     guest_thread_init(); guest_thread_set_id(t->id);
-    t->clk = -1;
+    t->clk = -1;   // PEANUTS: DM_CORE_LOCK, no core lock held yet
     guest_gate_stack(1);   // the guest runs on its own stack from dm_thread_enter on: this pthread's stack below this frame is where its SVCs run
     pthread_mutex_lock(&G); while (!t->started) pthread_cond_wait(&t->cv, &G); t->entered = 1; pthread_mutex_unlock(&G);
     { char nb[48], hn[64]; snprintf(hn, sizeof hn, "%#x %s", t->handle, thr_name(t, nb, sizeof nb)); plat_thread_set_name(hn); }   // the guest's name (set before StartThread) for sample / Instruments

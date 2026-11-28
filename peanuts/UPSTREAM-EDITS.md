@@ -3290,6 +3290,30 @@ the generic profile field, `join_cap` cut from vka_mem.c with the profile at 0 a
 changes: `place_join_mb` is not a build row (`pack_android.py build_rows`), and `vka_mem.c` does not feed `DMSH_VK_CHAIN`. Upstream candidate: the key, if
 upstream wants a per-game join cap.
 
+### Xenoblade Chronicles: Definitive Edition: `core_preempt lock`, `fps_limit 30` (2026-11-28, #641, #642, tapionallanaire)
+
+About one boot in four crashed 1-4 s into `nnMain` on a corrupt heap: the game takes two threads of one core never to run at the same moment, as on Horizon.
+`core_preempt lock` (`DM_CORE_LOCK`): a guest thread whose affinity is one core holds that core's lock (a first-come ticket lock) while it runs guest code,
+gives it up at each SVC entry and native HLE wait, and takes it again at the SVC exit; a waiter of higher priority preempts the holder in guest code (SIGURG);
+threads that may run on several cores run free. For the first 20 s only (`DM_CORE_LOCK_SECS`): held for good it cost 2-3 hitches of 70-100 ms in 5 min.
+AYN Thor, Turnip v27.0.0-R1: 0 of 60 boots crashed. Only a profile with `core_preempt lock` (or `DM_CORE_LOCK=1`) takes the lock; `core_preempt on` / `off`
+keep their meaning (`DM_GAME_CORE_PREEMPT` 1 / 0, now 2 for `lock`). Limits, in a comment at the wait loop: a holder that blocks in host code without
+`dm_thread_native_wait` keeps its core's waiters waiting (no known path), and after a native wait the thread runs without the lock until its next SVC exit.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/host/hle_thread.c` | 12 | `thr_t.preempt_req`, `thr_t.clk`; the per-core ticket locks, `core_lock_on` / `core_lock_take` / `core_lock_give`, the SIGURG preemption handler; taken at thread start and SVC exit, given up at SVC entry, native wait entry and `dm_thread_mark_host`; `DM_PREEMPT`'s default is `DM_GAME_CORE_PREEMPT == 1` | `PEANUTS` in each hunk |
+| `dm/games/game.py` | 2 | `core_preempt` accepts `lock`; `DM_GAME_CORE_PREEMPT 2` for it | `PEANUTS` |
+| `dm/games/README.md` | 1 | the `core_preempt` row: `lock` | `PEANUTS:` (allow-listed table) |
+| `docs/env_switches.tsv`, `docs/advanced_settings.tsv` | 1 each | `DM_CORE_LOCK`, `DM_CORE_LOCK_SECS`, `DM_CORE_SLICE_US` | `[PEANUTS]` (allow-listed) |
+| `dm/tools/docs_patches.py` | 1 | the `core_preempt lock` binding entry (`game` → `host`) | `PEANUTS` |
+| `dm/games/0100FF500E34A000/game.tsv` | 1 | `fps_limit 30`, `core_preempt lock` | `# PEANUTS:` |
+| `dm/games/0100FF500E34A000/README.md` | 1 | the Android section: frame pacing, the boot crash, open items (the Colony 9 roads, fixed by #640, still open; black save thumbnails) | `<!-- PEANUTS begin/end -->` |
+| `docs/agents/game-patches.md` | generated | `dm/tools/docs_patches.py` | (generated) |
+
+No rewrite key or shader input changes. Every other game is unchanged: with `core_preempt` off (the default) `core_lock_on` is false and each hook returns at once.
+Upstream candidate: the lock, if upstream wants Horizon's one-thread-a-core rule for a game; a cheaper lock could make it every game's default.
+
 ### 0.1.10 release list: THE HOUSE OF THE DEAD: Remake and 2: Remake, and Trails through Daybreak II (2026-11-28)
 
 The owner put three profiles that landed for 0.1.10 on the release list: THE HOUSE OF THE DEAD: Remake (#790) and THE HOUSE OF THE DEAD 2: Remake (#792),

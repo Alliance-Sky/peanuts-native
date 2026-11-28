@@ -146,6 +146,8 @@ SWITCH_BINDING = [
      'why': "a game with graphics_scale rows whose start is not Phone 1080p keeps that start as its default (Mario Tennis Fever: console scale 1, 2048x1152), so adding the rows changes no player's picture"}),
     ('android_window', '', {'what': "the Android launcher's default Game resolution", 'now': 'game', 'goal': 'host', 'purpose': 'frame rate',
      'why': "a workaround while the game's upscaler is too slow on Adreno with Turnip at 1080p: the faster upscaler makes it unneeded"}),
+    ('core_preempt', 'lock', {'what': "one core's guest threads take turns, a core's lock held in guest code and given up at SVCs, for the first 20 s (DM_CORE_LOCK; hle_thread.c)", 'now': 'game', 'goal': 'host', 'purpose': 'runtime',   # PEANUTS: #641
+     'why': "Horizon's semantics (two threads of one core never run at the same moment), but the lock's waits cost hitches when held for good: a lock cheap enough for every game, checked with `regress.py check` on the games"}),
     ('mem_map_limit', '', {'what': 'MapPhysicalMemory limited to the application pool', 'now': 'game', 'goal': 'host', 'purpose': 'memory',
      'why': "Horizon's limit, on for every game; `off` only for a profile whose pool is too small (Switch 1 games, not supported)"}),
     ('alloc_big_align', '', {'what': "StandardAllocator blocks of 64 KB and more aligned to 64 KB", 'now': 'game', 'goal': 'host', 'purpose': 'memory',

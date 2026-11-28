@@ -12,24 +12,22 @@ the opening battle take about 33 ms. The unsigned 1.1.2 IPA builds successfully
 (13.2 GiB), with all 15,129 shader libraries and a complete CRC check. Further
 story progression, saving / reloading and iPhone validation remain open.
 
-
+<!-- PEANUTS begin: Android -->
 ## Android (AYN Thor, Turnip v27.0.0-R1, 2026-11-25)
 
 New Game → Sword Valley prologue (Mechon M72, the M82 boss) → Colony 9: Shulk and Reyn's
 first fights, the road into Colony 9 and the Commercial District, day to evening, save and load.
 
-- **Resolved: the Colony 9 roads drew black, then in black and grey blocks.** Four shaders
-  (`48b8ea8fad25398d`, `fe993ca274dfde1c`, `5119ea2c4c0a2211`, `efa9a20a7f820920`) read the
-  1280x720 A2B10G10R10 targets (NVN format `0x3d`) as uint shader images: their raw 32-bit
-  words. The replay had no uint view of that packed format, so the images read as unbound
-  (`[RED] ... has no view of shape 0x81 (storage)`): black roads. `class_twin` (`vka_tex.c`) now
-  gives packed 4-byte formats R32_UINT / R32_SINT twins. With the view, the roads came out in
-  blocks: Turnip on a7xx keeps UBWC for an image whatever its view formats
-  (`ubwc_all_formats_compatible`), and the R32_UINT view read compressed data. An image whose
-  format list holds a view of another texel layout (not its sRGB / raw UNORM twin) is now made
-  with `VK_IMAGE_COMPRESSION_DISABLED_EXT` (`VK_EXT_image_compression_control`, `vka_dev.c`;
-  `DM_VK_UBWC_RAWVIEW=0` turns it off). `TU_DEBUG=noubwc` drew the roads right; `sysmem`,
-  `nolrz`, `DM_VK_UBWC=0` and `DM_VK_ZSHARE=0` did not.
+- **Open: the Colony 9 roads draw black.** Four shaders (`48b8ea8fad25398d`, `fe993ca274dfde1c`,
+  `5119ea2c4c0a2211`, `efa9a20a7f820920`) read the 1280x720 A2B10G10R10 targets (NVN format
+  `0x3d`) as uint shader images: their raw 32-bit words. The replay has no uint view of that
+  packed format, so the images read as unbound (`[RED] ... has no view of shape 0x81 (storage)`).
+  A fix is proposed in [#640](https://github.com/igawa6/peanuts-native/pull/640), not yet landed:
+  `class_twin` (`vka_tex.c`) gives packed 4-byte formats R32_UINT / R32_SINT twins, and an image
+  with a view of another texel layout is made uncompressed (`VK_IMAGE_COMPRESSION_DISABLED_EXT`),
+  since Turnip on a7xx keeps UBWC for it whatever its view formats and the R32_UINT view alone drew
+  the roads in black and grey blocks. With it the roads drew right on the AYN Thor (Turnip
+  v27.0.0-R1); `TU_DEBUG=noubwc` did too, `sysmem`, `nolrz`, `DM_VK_UBWC=0` and `DM_VK_ZSHARE=0` did not.
 - **Frame pacing:** the game times its own 30 fps (33.23 ms a frame) and presents at interval 1,
   which beats against the Thor's 117.84 Hz panel (four refreshes are 33.94 ms): in SurfaceFlinger
   about one frame in seven stayed five refreshes. `fps_limit 30` makes the host's limiter tick in
@@ -49,6 +47,8 @@ first fights, the road into Colony 9 and the Commercial District, day to evening
   the main thread waited for core 0); with the 20 s window, 9,026 of 9,026 frames at four refreshes
   over the same 5 min route.
 - **Open: save thumbnails are black.** `bfsgame00.tmb` (240x180 RGBA) holds 12 non-zero bytes.
+<!-- PEANUTS end -->
+
 ## Memory
 
 The NPDM declares no system resource. The 4 GB guest reservation,
