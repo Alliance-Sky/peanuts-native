@@ -2199,6 +2199,9 @@ vka_img *vka_tex_get_src(const tex_t *t, VkCommandBuffer cb) {   // PEANUTS: vka
 }
 // PEANUTS begin: GL interop (hle_nvn.c, vka_gl.c). An NVN texture made from a GL texture has no storage: its image is the GL texture's AHardwareBuffer, imported (dedicated memory),
 // which GL draws into and the replay samples. Its content is GL's: img_first_use neither clears nor uploads it, and it is the GPU's (gpu_owned). NULL for any other texture
+// Known gap: VK_EXT_queue_family_foreign is enabled with the import, but no queue family ownership transfer is recorded: no acquire from VK_QUEUE_FAMILY_FOREIGN_EXT before the
+// replay samples what GL drew, and no release back before GL draws again. Ordering comes from the CPU waits on the fences (nvnQueueWaitSync, glWaitSync); the buffer is linear
+// (CPU_READ_RARELY), which Adreno's GL and Vulkan drivers (Turnip, Qualcomm's) read alike without one. A driver that keeps metadata or caches per queue family would need the barriers
 #include <android/hardware_buffer.h>
 static vka_img *img_create_gl(const tex_t *t, const vka_fmt *f) {
     if (t->mem || !V.gl_ahb) return NULL;

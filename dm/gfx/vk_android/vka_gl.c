@@ -7,6 +7,7 @@
 //     becomes the ES 3 bit, the context's desktop profile mask goes); a context the game makes current with no surface gets a 1x1 pbuffer (eglMakeCurrent below)
 //   GL: one wrapper per function the game calls, run on the thread's big host stack (hle_bigstack.c: glTexImage2D has nine arguments) with the host's FPCR (the driver's shader
 //     compiler runs inside these calls: vka_fpenv.h); every other name the system has goes to its function as it is, through a stub on the big host stack
+//     with the host's FPCR too (one with more than ten integer arguments gets a null pointer instead: fwd_wide)
 //   the shared image (nvn_gl_tex_desc): the GL texture an NVN texture names is given an AHardwareBuffer: a GL texture over it (an EGLImage) takes the game's texture name in the
 //     calls that take one (glBindTexture, glFramebufferTexture2D, glDeleteTextures), with the game's current content copied in once, and the replay imports the same buffer as
 //     the NVN texture's image (vka_tex.c img_create_gl). No copy per frame
@@ -92,7 +93,8 @@ HOOK(eglInitialize, EGLBoolean, EGLDisplay d, EGLint *major, EGLint *minor) {
     if (minor) *minor = mi;
     return ok;
 }
-HOOK(eglTerminate, EGLBoolean, EGLDisplay d) { REAL(eglTerminate); if (!r_) return EGL_FALSE; FP_IN; EGLBoolean ok = r_(d); FP_OUT; return ok; }
+static _Atomic unsigned g_egl_gen;   // eglTerminate's count: a thread's 1x1 pbuffer (eglMakeCurrent) made before the last one is gone with the display's other surfaces
+HOOK(eglTerminate, EGLBoolean, EGLDisplay d) { REAL(eglTerminate); if (!r_) return EGL_FALSE; FP_IN; EGLBoolean ok = r_(d); FP_OUT; if (ok) atomic_fetch_add(&g_egl_gen, 1); return ok; }
 HOOK(eglReleaseThread, EGLBoolean, void) { REAL(eglReleaseThread); if (!r_) return EGL_FALSE; FP_IN; EGLBoolean ok = r_(); FP_OUT; return ok; }
 HOOK(eglGetError, EGLint, void) { REAL(eglGetError); return r_ ? r_() : EGL_NOT_INITIALIZED; }
 // NVIDIA's driver takes the desktop GL API with ES shaders; the system's takes ES
@@ -116,7 +118,13 @@ HOOK(eglCreateContext, EGLContext, EGLDisplay d, EGLConfig cfg, EGLContext share
     if (c == EGL_NO_CONTEXT) GRED("eglCreateContext failed (%#x)", h_eglGetError());
     return c;
 }
-HOOK(eglDestroyContext, EGLBoolean, EGLDisplay d, EGLContext c) { REAL(eglDestroyContext); if (!r_) return EGL_FALSE; FP_IN; EGLBoolean ok = r_(d, c); FP_OUT; return ok; }
+static void fba_forget(EGLContext c);
+HOOK(eglDestroyContext, EGLBoolean, EGLDisplay d, EGLContext c) {
+    REAL(eglDestroyContext); if (!r_) return EGL_FALSE;
+    FP_IN; EGLBoolean ok = r_(d, c); FP_OUT;
+    if (ok) fba_forget(c);   // its framebuffers go with it: a later context of the same handle must not find them
+    return ok;
+}
 // A context made current with no surface (the game's way: it draws only into framebuffer objects) gets a 1x1 pbuffer of its configuration on this thread. Qualcomm's OpenGL ES takes
 // surfaceless contexts but faults reading the default framebuffer's state without one: Scaleform's glGetIntegerv(GL_RED_BITS) (main+0xd87ad4) read address 0x38 in
 // libGLESv2_adreno.so (Adreno 740, V@0676.32). With the pbuffer the query answers the configuration's sizes, as the console's driver does for its surfaceless contexts
@@ -124,15 +132,21 @@ HOOK(eglMakeCurrent, EGLBoolean, EGLDisplay d, EGLSurface dr, EGLSurface rd, EGL
     REAL(eglMakeCurrent); if (!r_) return EGL_FALSE;
     FP_IN;
     if (c != EGL_NO_CONTEXT && dr == EGL_NO_SURFACE && rd == EGL_NO_SURFACE) {
-        static _Thread_local EGLSurface pb = EGL_NO_SURFACE; static _Thread_local EGLint pb_id = -1;
+        static _Thread_local EGLSurface pb = EGL_NO_SURFACE; static _Thread_local EGLint pb_id = -1; static _Thread_local unsigned pb_gen;
+        if (pb != EGL_NO_SURFACE && pb_gen != atomic_load(&g_egl_gen)) { pb = EGL_NO_SURFACE; pb_id = -1; }   // (eglTerminate destroyed it)
         __typeof__(&eglQueryContext) qc = (__typeof__(&eglQueryContext))sym("eglQueryContext");
         __typeof__(&eglChooseConfig) choose = (__typeof__(&eglChooseConfig))sym("eglChooseConfig");
         __typeof__(&eglCreatePbufferSurface) mk = (__typeof__(&eglCreatePbufferSurface))sym("eglCreatePbufferSurface");
         EGLint id = -1, n = 0; EGLConfig cfg = NULL;
-        if (qc && choose && mk && qc(d, c, EGL_CONFIG_ID, &id) && (pb == EGL_NO_SURFACE || id != pb_id)) {   // (a pbuffer of another configuration is kept: contexts of one thread share it otherwise)
+        if (qc && choose && mk && qc(d, c, EGL_CONFIG_ID, &id) && (pb == EGL_NO_SURFACE || id != pb_id)) {   // (one pbuffer a thread: the contexts of one configuration share it)
             const EGLint q[] = {EGL_CONFIG_ID, id, EGL_NONE}, one[] = {EGL_WIDTH, 1, EGL_HEIGHT, 1, EGL_NONE};
+            unsigned gen = atomic_load(&g_egl_gen);   // (read before the pbuffer is made: an eglTerminate in between leaves it stamped stale)
             EGLSurface s = choose(d, q, &cfg, 1, &n) && n ? mk(d, cfg, one) : EGL_NO_SURFACE;
-            if (s != EGL_NO_SURFACE) { pb = s; pb_id = id; }
+            if (s != EGL_NO_SURFACE) {   // the previous configuration's pbuffer goes (EGL keeps it until it is no longer current on this thread)
+                __typeof__(&eglDestroySurface) ds = (__typeof__(&eglDestroySurface))sym("eglDestroySurface");
+                if (pb != EGL_NO_SURFACE && ds) ds(d, pb);
+                pb = s; pb_id = id; pb_gen = gen;
+            }
             else GRED("no 1x1 pbuffer for configuration %d (%#x): the context is made current without a surface", id, h_eglGetError());
         }
         if (pb != EGL_NO_SURFACE && id == pb_id) dr = rd = pb;
@@ -157,7 +171,14 @@ static share_t g_sh[8]; static int g_nsh;
 static bind_t g_bind[32]; static int g_nbind;
 static fbatt_t g_fba[64]; static int g_nfba;
 static _Atomic int g_any_share;   // a share exists: the name-taking calls look names up
+static _Atomic int g_any_bind;    // an NVN texture of a GL texture was made: nvn_gl_tex_release looks serials up (other games never take g_mu there)
+static _Thread_local GLenum g_pend_err;   // an error this layer's own check took from the driver, given to the game's next glGetError
 
+static void fba_forget(EGLContext c) {
+    pthread_mutex_lock(&g_mu);
+    for (int i = 0; i < g_nfba; i++) if (g_fba[i].ctx == c) g_fba[i--] = g_fba[--g_nfba];
+    pthread_mutex_unlock(&g_mu);
+}
 static GLuint ours_of(GLuint game) {   // caller holds g_mu
     for (int i = 0; i < g_nsh; i++) if (g_sh[i].game == game) return g_sh[i].ours;
     return game;
@@ -258,6 +279,8 @@ static int tex_desc(uint32_t name, nvn_texdesc *d) {
     share_t *s = NULL; for (int i = 0; i < g_nsh; i++) if (g_sh[i].game == name) s = &g_sh[i];
     GLint w = 0, h = 0, fmt = 0, lv = 1, was = 0;
     if (!s) {
+        // errors the game has pending stay the game's (its next glGetError gets the first), and this layer's checks below see only their own
+        for (int k = 0; k < 8 && G.GetError; k++) { GLenum pre = G.GetError(); if (!pre) break; if (!g_pend_err) g_pend_err = pre; }
         G.GetIntegerv(GL_TEXTURE_BINDING_2D, &was); G.BindTexture(GL_TEXTURE_2D, name);
         G.GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w); G.GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
         G.GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &fmt); G.GetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_LEVELS, &lv);
@@ -275,12 +298,13 @@ static int tex_desc(uint32_t name, nvn_texdesc *d) {
 void nvn_gl_tex_bind(uint64_t serial, uint32_t name) {
     pthread_mutex_lock(&g_mu);
     share_t *s = NULL; for (int i = 0; i < g_nsh; i++) if (g_sh[i].game == name) s = &g_sh[i];
-    if (s && g_nbind < (int)(sizeof g_bind / sizeof *g_bind)) { AHardwareBuffer_acquire(s->ahb); g_bind[g_nbind++] = (bind_t){serial, s->ahb}; }
+    if (s && g_nbind < (int)(sizeof g_bind / sizeof *g_bind)) { AHardwareBuffer_acquire(s->ahb); g_bind[g_nbind++] = (bind_t){serial, s->ahb}; atomic_store(&g_any_bind, 1); }
     else if (s) GRED("more than %d NVN textures of GL textures: serial %llu stays empty", g_nbind, (unsigned long long)serial);
     pthread_mutex_unlock(&g_mu);
     if (s && !V.gl_ahb) GRED("the Vulkan driver cannot import AHardwareBuffers (VK_ANDROID_external_memory_android_hardware_buffer): NVN shows nothing of GL texture %u", name);
 }
 void nvn_gl_tex_release(uint64_t serial) {
+    if (!atomic_load_explicit(&g_any_bind, memory_order_acquire)) return;   // (every TextureFinalize of every game comes here)
     pthread_mutex_lock(&g_mu);
     for (int i = 0; i < g_nbind; i++) if (g_bind[i].serial == serial) { AHardwareBuffer_release(g_bind[i].ahb); g_bind[i--] = g_bind[--g_nbind]; }
     pthread_mutex_unlock(&g_mu);
@@ -331,7 +355,6 @@ uint64_t nvn_gl_sync_to_gl(uint64_t fence, uint32_t fenced) {
 static int ns_wait(const nsync_t *s, uint64_t timeout_ns) { return s->fenced == 2 ? mtl_wait_acq(s->fence, timeout_ns) : mtl_wait(s->fence, timeout_ns); }
 
 // ---------- GL ----------
-static _Thread_local GLenum g_pend_err;   // an error this layer's own check took from the driver, given to the game's next glGetError
 HOOK(glGetError, GLenum, void) {
     if (g_pend_err) { GLenum e = g_pend_err; g_pend_err = 0; return e; }
     REAL(glGetError); if (!r_) return GL_NO_ERROR;
@@ -495,21 +518,48 @@ FWDV(glViewport, (GLint x, GLint y, GLsizei w, GLsizei h), (x, y, w, h))
 // Every other GL name the game asks for that the system's OpenGL ES has: a stub of its own that runs the system's function as it is, on the big host stack (the registers and two
 // stack slots carried over). The functions the code reaches through its GOT (loader_census.py) are wrapped above; Scaleform also keeps pointers in objects of its own and calls
 // them from there (glGetStringi at main+0xdb497c, through a table at +0x258), which no census of GOT loads sees, so a name left null crashed the first frame (strlen of NULL).
-// These run with the game's FPCR: none of them compiles shaders (glCompileShader, glLinkProgram and the draws are wrapped above)
+// They run with the host's FPCR, as the wrapped ones do: the driver may compile shader variants inside draws and dispatches that come this way (glDrawElementsInstanced,
+// glDrawRangeElements, glDispatchCompute) and inside glProgramBinary. The entry keeps the caller's two stack slots at its own sp for dm_bigstack_enter (a 9th and 10th integer
+// argument), sets FPCR 0 unless DM_VK_GUEST_FPCR=1 (vka_gl_fwd_fp), calls the function through the big host stack and puts the caller's FPCR back; x0 / d0-d3 come back untouched.
+// A function with more than two stack-passed arguments cannot come this way (fwd_wide below)
 #define NFWD 512
 void *vka_gl_fwd[NFWD] __attribute__((visibility("hidden")));
+int vka_gl_fwd_fp __attribute__((visibility("hidden")));   // 1: the stubs set the host's FPCR around the call (set before the first stub is handed out)
 extern const char vka_gl_fwd_stubs[];   // 8 bytes a stub: mov x9, #k; b vka_gl_fwd_entry
 __asm__(".text\n.p2align 2\n" PLAT_ASM_SYM(vka_gl_fwd_entry) ":\n"
-        "    adrp x16, " PLAT_ASM_PAGE(vka_gl_fwd) "\n    add x16, x16, " PLAT_ASM_PAGEOFF(vka_gl_fwd) "\n    ldr x16, [x16, x9, lsl #3]\n    b " PLAT_ASM_SYM(dm_bigstack_enter) "\n"
+        "    adrp x16, " PLAT_ASM_PAGE(vka_gl_fwd) "\n    add x16, x16, " PLAT_ASM_PAGEOFF(vka_gl_fwd) "\n    ldr x16, [x16, x9, lsl #3]\n"
+        "    sub sp, sp, #48\n    stp x29, x30, [sp, #32]\n    add x29, sp, #32\n    str x19, [sp, #16]\n"
+        "    ldp x9, x10, [sp, #48]\n    stp x9, x10, [sp, #0]\n"   // the caller's two stack slots, at the sp dm_bigstack_enter sees
+        "    mrs x19, fpcr\n"
+        "    adrp x9, " PLAT_ASM_PAGE(vka_gl_fwd_fp) "\n    add x9, x9, " PLAT_ASM_PAGEOFF(vka_gl_fwd_fp) "\n    ldr w9, [x9]\n"
+        "    cbz w9, 1f\n    cbz x19, 1f\n    msr fpcr, xzr\n"
+        "1:  bl " PLAT_ASM_SYM(dm_bigstack_enter) "\n"
+        "    mrs x9, fpcr\n    cmp x9, x19\n    b.eq 2f\n    msr fpcr, x19\n"
+        "2:  ldr x19, [sp, #16]\n    ldp x29, x30, [sp, #32]\n    add sp, sp, #48\n    ret\n"
         ".p2align 3\n.globl " PLAT_ASM_SYM(vka_gl_fwd_stubs) "\n" PLAT_ASM_HIDDEN " " PLAT_ASM_SYM(vka_gl_fwd_stubs) "\n" PLAT_ASM_SYM(vka_gl_fwd_stubs) ":\n"
         ".set vka_gl_fwd_k, 0\n.rept 512\n    mov x9, #vka_gl_fwd_k\n    b " PLAT_ASM_SYM(vka_gl_fwd_entry) "\n.set vka_gl_fwd_k, vka_gl_fwd_k + 1\n.endr\n");
-static const char *g_fwd_name[NFWD]; static int g_nfwd;
+// The OpenGL ES 3.2 functions and extensions (the NDK's gl32.h and gl2ext.h) with more than two stack-passed arguments, which the stub cannot carry (AAPCS64: integers and
+// pointers in x0-x7, floats in s0-s7 apart; glDrawVkImageNV's ninth float is one stack slot and fits). Their 11th and later integer arguments would be garbage, so they get a null
+// pointer unless wrapped above
+static const char *const g_fwd_wide[] = {
+    "glTexSubImage3D", "glTexSubImage3DOES",                             // 11
+    "glCompressedTexSubImage3D", "glCompressedTexSubImage3DOES",         // 11
+    "glCopyImageSubData", "glCopyImageSubDataEXT", "glCopyImageSubDataOES", "glCopyImageSubDataNV",   // 15
+    "glExtGetTexSubImageQCOM",                                           // 11
+    "glClearTexSubImageEXT",                                             // 11
+    "glGetPerfCounterInfoINTEL",                                         // 11
+};
+static int fwd_wide(const char *name) { for (size_t i = 0; i < sizeof g_fwd_wide / sizeof *g_fwd_wide; i++) if (!strcmp(g_fwd_wide[i], name)) return 1; return 0; }
+static char g_fwd_name[NFWD][64]; static int g_nfwd;   // copies: a game may build the names it asks for in a buffer it reuses
 static void *fwd_of(const char *name) {   // caller holds g_mu
+    if (strlen(name) >= sizeof *g_fwd_name) { LOG("[RED] [gl] eglGetProcAddress(%.60s...): name too long to forward: a null pointer", name); return NULL; }
     for (int i = 0; i < g_nfwd; i++) if (!strcmp(g_fwd_name[i], name)) return (void *)(vka_gl_fwd_stubs + 8 * i);
+    vka_gl_fwd_fp = !vka_fp_guest();   // (before any stub is handed out)
+    if (fwd_wide(name)) { LOG("[RED] [gl] eglGetProcAddress(%s): more than ten integer arguments, which the plain forward cannot carry: a null pointer", name); return NULL; }
     void *f = sym(name);
     if (!f) return NULL;
     if (g_nfwd == NFWD) { GRED("more than %d GL names forwarded as they are: %s gets a null pointer", NFWD, name); return NULL; }
-    g_fwd_name[g_nfwd] = name; vka_gl_fwd[g_nfwd] = f;   // (the game's own string: its loader's name table)
+    strcpy(g_fwd_name[g_nfwd], name); vka_gl_fwd[g_nfwd] = f;
     return (void *)(vka_gl_fwd_stubs + 8 * g_nfwd++);
 }
 
