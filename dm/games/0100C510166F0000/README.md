@@ -56,4 +56,4 @@ This profile was written from a survey of the game files. With it the game was p
 
 <!-- PEANUTS end -->
 
-- <!-- PEANUTS --> The [targeted shader split](../../../android/SHADERS.md#targeted-split) uses [12 observed RomFS files](shader_files.tsv) out of 661 on ?. A full split took 6.1 s and the targeted one 4.5 s on a PC; the targeted tables match the full scan's and the profile's byte for byte.
+- <!-- PEANUTS --> The [targeted shader split](../../../android/SHADERS.md#targeted-split) uses [12 observed RomFS files](shader_files.tsv) out of 661 on the profile's build. A full split took 6.1 s and the targeted one 4.5 s on a PC; the targeted tables match the full scan's and the profile's byte for byte.
