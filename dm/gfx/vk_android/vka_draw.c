@@ -1981,9 +1981,10 @@ static int bc_sync_sampled_ids(vka_shader *const sh[VKA_NSTAGE], int *ids) {
     }
     return n;
 }
-// The open pass goes on for this draw: rp_begin's test for keeping it (same targets, area fits)
+// The open pass goes on for this draw: rp_begin's test for keeping it (same targets, area fits). rp_area_fits without targets counts no miss (g_miss_n):
+// rp_begin counts the draw's miss once, as before
 static int rp_keeps(const p_set_rt *rt, int has_rt, const p_scissor *sc, int has_sc, const vka_dstate *d) {
-    return R.on && (!g_pass_keep || (rt_same(rt, has_rt, &R.rt, R.has_rt) && rp_area_fits(sc, has_sc, d, rt, has_rt)));
+    return R.on && (!g_pass_keep || (rt_same(rt, has_rt, &R.rt, R.has_rt) && rp_area_fits(sc, has_sc, d, NULL, 0)));
 }
 // Pending BC alias copies this draw or dispatch reads, made before it. While the pass stays open for the draw, its own colour targets stay queued until it ends
 // (bc_sync_kept_locked): sampling one of them through its compressed view does not end the pass. Any other match ends it and is copied (with the targets, as the pass is then over).
@@ -2869,7 +2870,7 @@ static void draw_body(vka_dstate *d, const p_set_rt *rt, int has_rt, const p_sci
             if (R.on) vka_rp_end();   // sampled images that need first-use work are prepared outside the pass
             make_sampled_images(sh, 0);
         }
-        bc_sync_reads(sh, rp_keeps(rt, has_rt, sc, has_sc, d), "draw sampled texture");
+        bc_sync_reads(sh, !images_pending && rp_keeps(rt, has_rt, sc, has_sc, d), "draw sampled texture");   // (images_pending: the pass ends below anyway, so its targets are copied too)
     }
     if (images_pending) { vka_rp_end(); make_images(d, sh, 0); }
     // PEANUTS end
