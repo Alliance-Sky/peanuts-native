@@ -588,8 +588,8 @@ public final class PackService extends Service {
         if (besideTail != null) besideTail.finish();
         Tail tail = besideTail;
         besideTail = null;
-        long sec = (SystemClock.elapsedRealtime() - b.began) / 1000;
-        stepLog(j, "rewrite: the tool ended with code " + code + " after " + sec / 60 + " min " + sec % 60 + " s, beside the split and the shaders");
+        long end = b.ended > 0 ? b.ended : SystemClock.elapsedRealtime(), sec = (end - b.began) / 1000, waited = (SystemClock.elapsedRealtime() - end) / 1000;
+        stepLog(j, "rewrite: the tool ended with code " + code + " after " + sec / 60 + " min " + sec % 60 + " s, beside the split and the shaders" + (waited > 1 ? " (" + waited / 60 + " min " + waited % 60 + " s before they were done)" : ""));
         try { Files.deleteIfExists(b.pidFile.toPath()); } catch (IOException ignored) { }
         if (code == 0) return null;
         String why = tail != null ? tail.reason() : null;

@@ -27,6 +27,7 @@ final class RewriteBeside {
     final int pid;
     final File log, pidFile;
     final long began = SystemClock.elapsedRealtime();
+    volatile long ended;   // when its process ended (elapsedRealtime), 0 while it runs: the log's duration is the rewrite's own, not the wait for the pack step
 
     private RewriteBeside(Process process, int pid, File log, File pidFile) {
         this.process = process;
@@ -61,14 +62,16 @@ final class RewriteBeside {
         if (pid < 0) { p.destroyForcibly(); throw new IOException("the rewrite process gave no pid (exit " + (p.isAlive() ? "-" : String.valueOf(p.exitValue())) + ")"); }
         // the split waits on this file before it starts the game's own decoder from the rewritten modules (dm/gfx/tools/rewrite_wait.py, PN_REWRITE_BESIDE_DONE)
         File done = doneFile(pidFile);
+        RewriteBeside b = new RewriteBeside(p, pid, log, pidFile);
         Thread w = new Thread(() -> {
             int code;
             try { code = p.waitFor(); } catch (InterruptedException e) { code = 130; }
+            b.ended = SystemClock.elapsedRealtime();
             try { Files.write(done.toPath(), (code + "\n").getBytes(StandardCharsets.UTF_8)); } catch (IOException e) { Log.w(TAG, "rewrite beside: " + done + ": " + e.getMessage()); }
         }, "nxpack-rewrite-beside");
         w.setDaemon(true);
         w.start();
-        return new RewriteBeside(p, pid, log, pidFile);
+        return b;
     }
 
     /** Waits for the end: its exit code, or -1 when stop() said to stop first (the process is still there then) */
