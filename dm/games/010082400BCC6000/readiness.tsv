@@ -1,5 +1,5 @@
 # PEANUTS: Untitled Goose Game (010082400BCC6000) Android readiness requirements.
-# Playable on OnePlus 13R (Snapdragon 8 Gen 3, 11.0 GiB totalMem) on both Qualcomm 512.762.41 (with host DM_VK_PUSH_DESC=0 rule for Qualcomm < 512.800) and Turnip Mr. Purple T30 at ~60 fps.
+# Playable on OnePlus 13R (Snapdragon 8 Gen 3, 11.0 GiB totalMem) on both Qualcomm 512.762.41 (with the host rule of #907, push descriptors off on Qualcomm < 512.800, not landed yet) and Turnip Mr. Purple T30 at ~60 fps.
 status	playable
 
 # Memory: tested on a 12 GB phone (11.0 GiB totalMem); smaller phones are untested.
