@@ -1,7 +1,7 @@
 """patch_nso.py's search for test-and-set lock acquires without acquire ordering (acquire_lock_sites), on hand-assembled words, without game files."""
 import ast
 from pathlib import Path
-import re
+import re   # PEANUTS(upstream-candidate): for LDXR_B (#120)
 import struct
 from typing import Any
 import unittest

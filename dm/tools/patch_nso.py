@@ -21,7 +21,7 @@ if capstone.cs_version()[0] != 5:   # the rewriter uses Capstone 5's names (CS_A
     sys.exit(f'[RED] Capstone {capstone.__version__} is unsupported; the rewriter requires Capstone 5.x. Run: {shlex.join([sys.executable, "-m", "pip", "install", "capstone>=5,<6"])}')
 from capstone import *
 from capstone.arm64 import ARM64_OP_IMM, ARM64_OP_MEM, ARM64_OP_REG
-from array import array
+from array import array   # PEANUTS(upstream-candidate): spin_word and spin_rw_at (#120)
 import nso, nso_asm
 from nso_asm import *   # the instruction encoders (B, ADRP, LDRX, ...), shared with the per-build patch files
 
@@ -1847,7 +1847,7 @@ def spin_rw(ins):
     as read by cbz / tbz, and leaves out the destination of adds (sdk+0x31033c in Paper Mario: The Thousand-Year Door, adds w9,w9,#8; b.ne: a counted loop). So every register
     operand counts as well: operand 0 written and the others read, or for a load all of them written (its address registers are in capstone's reads)"""
     m = ins.mnemonic
-    regs = [spin_rn(ins, o.reg) for o in ins.operands if o.type == ARM64_OP_REG]
+    regs = [spin_rn(ins, o.reg) for o in ins.operands if o.type == ARM64_OP_REG]   # PEANUTS(upstream-candidate): spin_rn, names cached (#120)
     ops = set(regs) - {None}
     if m in ('cbz', 'cbnz', 'tbz', 'tbnz'): return ops, set()
     if m.startswith('b.'): return {'nzcv'}, set()
@@ -1855,7 +1855,7 @@ def spin_rw(ins):
     if m in ('cmp', 'cmn', 'tst', 'fcmp', 'fcmpe'): return ops, {'nzcv'}
     if m in ('ccmp', 'ccmn', 'fccmp', 'fccmpe'): return ops | {'nzcv'}, {'nzcv'}
     r, w = ins.regs_access()
-    r, w = {spin_rn(ins, x) for x in r} - {None}, {spin_rn(ins, x) for x in w} - {None}
+    r, w = {spin_rn(ins, x) for x in r} - {None}, {spin_rn(ins, x) for x in w} - {None}   # PEANUTS(upstream-candidate): spin_rn (#120)
     if m.startswith(('ld', 'prfm', 'prfum')): return r, w | ops
     return r | (set(regs[1:]) - {None}), w | (set(regs[:1]) - {None})
 def spin_kind(ins):
@@ -1964,6 +1964,7 @@ def spin_lock(a):
     r = lambda x, i: x.reg_name(x.operands[i].reg)
     plain = lambda x, i: x.operands[i].type == ARM64_OP_MEM and not x.operands[i].mem.index and not x.operands[i].mem.disp
     m0 = l[0].mnemonic
+    # PEANUTS(upstream-candidate): the later words decoded only where the bits allow the sequence (#120)
     if m0 in ('ldxr', 'ldaxr'): l += [spin_ins(a + 4 * i) for i in range(1, 6)]
     elif m0 in ('ldr', 'ldrb', 'ldrh') and IMG[a + 4] & 0x1F == 0x1F and IMG[a + 11] == 0x54: l += [spin_ins(a + 4), spin_ins(a + 8), None, None, None]   # cmp: Rd is zr
     else: l += [None] * 5   # (read below only for a stlr, which looks at its own word alone)
@@ -2140,7 +2141,7 @@ def spin_region1(T, bes, ban, stores):
             new = n['uses'] | (out - n['defs'])
             if new != live[a]: live[a] = new; more = True
     defs = set().union(*(nodes[a]['defs'] for a in R))
-    if any(nodes[a]['kind'] == 'stc' for a in R) and not any(nodes[a]['kind'] in ('rmw', 'acq', 'rel', 'tst') or nodes[a].get('ld') for a in R): return None   # stores and nothing polled
+    if any(nodes[a]['kind'] == 'stc' for a in R) and not any(nodes[a]['kind'] in ('rmw', 'acq', 'rel', 'tst') or nodes[a].get('ld') for a in R): return None   # stores and nothing polled; PEANUTS(upstream-candidate): 'ld' kept by spin_word (#120)
     vary = {a for a in R if nodes[a]['kind'] == 'stc' and nodes[a]['uses'] & defs}   # a store's value and address must come from registers no pass writes
     if vary: return vary
     if sum(nodes[a]['kind'] == 'stc' for a in R) > SPIN_STORES: return None

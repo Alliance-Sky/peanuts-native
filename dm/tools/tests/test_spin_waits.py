@@ -1,6 +1,6 @@
 """The rewriter's spin wait search (patch_nso.py "Spin waits") on hand-assembled AArch64 loops, without game files."""
 import ast
-from array import array
+from array import array   # PEANUTS(upstream-candidate): spin_word (#120)
 from pathlib import Path
 import re
 import struct
