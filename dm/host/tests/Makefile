@@ -34,6 +34,7 @@ run: $(B)/t_language $(B)/t_motion $(B)/t_heap_size $(B)/t_touch $(B)/t_gesture 
 	$(B)/t_audio_spsc
 	$(B)/t_audio_stats
 	$(B)/t_fpslock
+	$(B)/t_fps_pace
 	$(B)/t_uecvar # PEANUTS: t_oot_wide, t_dkb_wide, t_mkw_wide, t_mtf_size and t_pkp_aspect (Switch 2 games' gates) removed: Switch 1 only
 	$(B)/t_ue_heap_alignment # PEANUTS: #236
 	$(B)/t_audren_work
@@ -232,9 +233,11 @@ audio-device: $(B)/t_audio_device
 run: audio-device
 $(B)/t_audio_spsc_tsan: t_audio_spsc.c ../hle_audio.c ../hle_bigstack.c ../hle.h ../dm.h $(GAME_H) | $(B)
 	$(CLANG) -O1 -g -O1 -fsanitize=thread -Wno-unused-function -I.. $(GINC) -o $@ t_audio_spsc.c ../hle_bigstack.c -framework AudioToolbox
-run: $(B)/t_fpslock
+run: $(B)/t_fpslock $(B)/t_fps_pace
 $(B)/t_fpslock: t_fpslock.c ../hle_fpslock.c ../hle.h ../dm.h $(GAME_H) | $(B)
 	$(CLANG) -O1 -g -Wno-unused-function $(GINC) -o $@ t_fpslock.c
+$(B)/t_fps_pace: t_fps_pace.c ../fps_pace.h | $(B)
+	$(CLANG) -O1 -Wall -o $@ t_fps_pace.c
 run: $(B)/t_uecvar
 $(B)/t_uecvar: t_uecvar.c ../hle_uecvar.c ../hle.h ../dm.h $(GAME_H) | $(B)
 	$(CLANG) -O1 -g -Wno-unused-function $(GINC) -o $@ t_uecvar.c
