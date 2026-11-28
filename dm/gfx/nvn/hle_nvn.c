@@ -641,34 +641,33 @@ static int dpool_add(nvn_dpool_tab *t, const void *pool, int n, const void *stor
         LOG("[nvn] %s pools: %u older ones given up for newer ones (%d live, %d slots, table %d of %d: the game makes new pools without finalizing the old)", kind, ev, live, slots, next, t->limit);
     return b;
 }
-// The host ID of a pool's ID; -1 to skip it: a reserved ID (below 256) of a small pool (nvn_dpool.h). A pool with no slot (given up for a newer one) reads the first pool's numbering
-static int dpool_id(nvn_dpool_tab *t, const void *pool, int id) {
+// The host ID of a pool's ID; -1 to skip it: a reserved ID (below 256) of a small pool, or a pool given up for a newer one (nvn_dpool.h nvn_dpool_id: its IDs would
+// overwrite the first pool's). A pool never placed (no pool given up yet) reads the first pool's numbering. *small (may be NULL): whether the pool is small
+static int dpool_lookup(nvn_dpool_tab *t, const void *pool, int id, int *small) {
     static int lost_said, res_said;
     pthread_mutex_lock(&g_dpool_mu);
-    int small = 0, b = nvn_dpool_touch(t, pool, &small); unsigned ev = t->evicted;
+    int why = 0, h = nvn_dpool_id(t, pool, id, &why, small); unsigned ev = t->evicted;
     pthread_mutex_unlock(&g_dpool_mu);
     const char *kind = t == &g_tpt ? "texture" : "sampler";
-    if (b < 0) {
-        if (ev && pow10_hit(__atomic_add_fetch(&lost_said, 1, __ATOMIC_RELAXED)))
-            LOG("[RED] a %s pool given up for a newer one is used again (%d times so far, %u given up): it reads the first pool's numbering", kind, lost_said, ev);
-        return id;
-    }
-    if (small && id < NVN_DPOOL_RESERVED) {
-        if (pow10_hit(__atomic_add_fetch(&res_said, 1, __ATOMIC_RELAXED))) LOG("[RED] the game uses reserved %s ID %d of a small pool (%d times so far): skipped", kind, id, res_said);
-        return -1;
-    }
-    return b + id;
+    if (why == 2 && pow10_hit(__atomic_add_fetch(&lost_said, 1, __ATOMIC_RELAXED)))
+        LOG("[RED] a %s pool given up for a newer one is used again (%d times so far, %u given up): its registrations are skipped, binds read the first pool's numbering", kind, lost_said, ev);
+    if (why == 1 && pow10_hit(__atomic_add_fetch(&res_said, 1, __ATOMIC_RELAXED))) LOG("[RED] the game uses reserved %s ID %d of a small pool (%d times so far): skipped", kind, id, res_said);
+    return h;
 }
-static int dpool_base(nvn_dpool_tab *t, const void *pool) { return dpool_id(t, pool, NVN_DPOOL_RESERVED) - NVN_DPOOL_RESERVED; }   // what a bound pool's IDs are added to
+static int dpool_id(nvn_dpool_tab *t, const void *pool, int id) { return dpool_lookup(t, pool, id, 0); }
+// What a bound pool's IDs are added to: 0 (the first pool's numbering) for a pool with no slot. *first (may be NULL): its lowest ID with host entries, 256 for a small
+// pool (whose reserved IDs below it would land in the previous pool's range through base + ID), else 0. Both from one look under the lock
+static int dpool_base_first(nvn_dpool_tab *t, const void *pool, int *first) {
+    int small = 0, h = dpool_lookup(t, pool, NVN_DPOOL_RESERVED, &small);
+    if (first) *first = h >= 0 && small ? NVN_DPOOL_RESERVED : 0;
+    return h < 0 ? 0 : h - NVN_DPOOL_RESERVED;
+}
+static int dpool_base(nvn_dpool_tab *t, const void *pool) { return dpool_base_first(t, pool, 0); }
 static void dpool_release(nvn_dpool_tab *t, const void *pool) { pthread_mutex_lock(&g_dpool_mu); nvn_dpool_release(t, pool); pthread_mutex_unlock(&g_dpool_mu); }
 int nvn_dpool_base(const void *pool, int tex) { return dpool_base(tex ? &g_tpt : &g_spt, pool); }   // the replay's bound pools (nvn_mtl.m state_op)
-// PEANUTS(upstream-candidate): the lowest of a pool's IDs that has host entries: 256 for a small pool (nvn_dpool.h), whose reserved IDs below it would land in the previous
-// pool's range through base + ID; 0 for any other. The Android replay reads a handle's ID below it as no descriptor (vka_draw.c, vka_bind.c ubo_tex_id / ubo_samp_id)
-int nvn_dpool_first_id(const void *pool, int tex) {
-    nvn_dpool_tab *t = tex ? &g_tpt : &g_spt;
-    pthread_mutex_lock(&g_dpool_mu); int i = nvn_dpool_slot(t, pool), r = i >= 0 && t->e[i].small ? NVN_DPOOL_RESERVED : 0; pthread_mutex_unlock(&g_dpool_mu);
-    return r;
-}
+// PEANUTS(upstream-candidate): the bound pool's base and its first ID with host entries, read together (the Android replay, vka_draw.c: vka_bind.c ubo_tex_id / ubo_samp_id
+// read a handle's ID below it as no descriptor)
+int nvn_dpool_base_first(const void *pool, int tex, int *first) { return dpool_base_first(tex ? &g_tpt : &g_spt, pool, first); }
 // The Android frame replayer (dm/gfx/vk_android/vka_replay.c), which runs in the host library without the game: a captured descriptor pool's bases, as its Initialize gave them
 void nvn_dpool_base_set(const void *pool, int tex_base, int samp_base) {
     pthread_mutex_lock(&g_dpool_mu);
@@ -709,7 +708,7 @@ static void texpool_init(const NVNtexturePool *tp, int n, int r) {   // tex_pool
     if (i >= 0) LOG("[nvn] texture pool #%d: %d entries, IDs 0-%d from host ID %d (tex_pool_range)%s", i + 1, n, lim - 1, base, base + lim > TEXPOOL_TABLE ? ": past the 2^20 IDs Vulkan's set 1 addresses" : "");
 }
 static int texpool_reg_id(const NVNtexturePool *tp, int id) {   // the host table ID of a registration, -1: dropped
-    int h = dpool_id(&g_tpt, tp, id);   // the descriptor pools' own answer (nvn_dpool.h): -1 skips a reserved ID of a small pool
+    int h = dpool_id(&g_tpt, tp, id);   // the descriptor pools' own answer (dpool_lookup): -1 skips a reserved ID of a small pool or a pool given up
     if (!texpool_range() || h < 0) return h;   // without the key: that answer, with no line of tex_pool_range's
     pthread_mutex_lock(&g_dpool_mu); int i = texpool_slot(tp), base = i >= 0 ? g_tpt.e[i].base : 0, lim = i >= 0 && i < NVN_NDPOOL ? g_texpool_lim[i] : 0; pthread_mutex_unlock(&g_dpool_mu);
     if (i >= 0) {   // usage (diagnostic, with the key only): a line at each power of two of a pool's registrations from 64, with its highest ID so far

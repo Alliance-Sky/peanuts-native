@@ -114,6 +114,22 @@ int main(void) {
         int a = nvn_dpool_add2(&tt, &t0, 12544, &t0), b = nvn_dpool_add2(&tt, &t1, 4096, &t1), c = nvn_dpool_add2(&ss, &s0, 3856, &s0), d = nvn_dpool_add2(&ss, &s1, 4096, &s1);
         CHECK(a == 0 && b == 12544 && c == 0 && d == 4096, "Fire Emblem: Three Houses' pools got %d, %d (textures) and %d, %d (samplers), not 0, 12544, 0, 4096", a, b, c, d);
     }
+    {   // a registration into a pool given up for a newer one is skipped: read from 0 it would overwrite the scene pool's descriptor (hle_nvn.c dpool_id)
+        static nvn_dpool_tab tt = {.limit = NVN_DPOOL_TEX_IDS}; static char scene, sm[1100], smem[1100];
+        nvn_dpool_add2(&tt, &scene, 4096, &scene);
+        for (int i = 0; i < 1100; i++) nvn_dpool_add2(&tt, &sm[i], 272, &smem[i]);
+        int why = -1, h = nvn_dpool_id(&tt, &sm[0], 256, &why, 0);
+        CHECK(tt.evicted && nvn_dpool_slot(&tt, &sm[0]) < 0 && h == -1 && why == 2, "a given-up pool's ID 256 maps to host %d (why %d), not skipped", h, why);
+        h = nvn_dpool_id(&tt, &scene, 256, &why, 0);
+        CHECK(h == 256 && why == 0, "the scene pool's ID 256 maps to %d", h);
+        h = nvn_dpool_id(&tt, &sm[1099], 10, &why, 0);
+        CHECK(h == -1 && why == 1, "a small pool's reserved ID 10 maps to %d (why %d), not skipped", h, why);
+        // nothing given up yet (a pool never placed: every slot taken by large pools): numbered from 0, as before the small pools
+        static nvn_dpool_tab lt = {.limit = NVN_DPOOL_TEX_IDS}; static char lp[NVN_NDPOOL + 1];
+        for (int i = 0; i <= NVN_NDPOOL; i++) nvn_dpool_add2(&lt, &lp[i], 256, &lp[i]);
+        h = nvn_dpool_id(&lt, &lp[NVN_NDPOOL], 300, &why, 0);
+        CHECK(!lt.evicted && h == 300 && why == 3, "a never-placed pool's ID 300 maps to %d (why %d), not 300", h, why);
+    }
     printf("%s: %s\n", __FILE__, fails ? "FAILED" : "ok");
     return fails != 0;
 }

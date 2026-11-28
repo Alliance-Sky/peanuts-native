@@ -9,15 +9,17 @@
 // - A small pool (NVN_DPOOL_SMALL entries or fewer) gets a range for its IDs past the reserved ones only (NVN_DPOOL_RESERVED: nvnDeviceGetInteger 0x11 / 0x12):
 //   16 host entries for a 272-entry pool instead of 512. Applications never register into the reserved IDs (Fire Emblem: Three Houses' pools fill from 256 up)
 //   Registrations into them are skipped (hle_nvn.c dpool_id), and the Android replay reads a bound handle's ID below 256 of a small pool as no descriptor
-//   (nvn_dpool_first_id: vka_bind.c ubo_tex_id / ubo_samp_id) instead of base + ID, which is in the previous pool's range.
+//   (hle_nvn.c nvn_dpool_base_first: vka_bind.c ubo_tex_id / ubo_samp_id) instead of base + ID, which is in the previous pool's range.
 //   TODO: macOS (nvn_mtl.m ubo_tex_id / pool_gpu, hle_nvn.c bind_handles / DrawTexture / BindTexture at recording) still adds base + ID there
 // - limit: the IDs the host table can address (textures NVN_DPOOL_TEX_IDS, the registry vka_treg.h holds; the sampler table holds 16,384); 0 for none.
 //   Only small pools are held to it: a large pool always gets a range at the table's end, as before the small pools, and its IDs past the table are dropped where
 //   they are registered (vka_tex.c mtl_reg_samp, vka_treg.h treg). Trails through Daybreak II keeps three 1,048,576-entry texture pools live: bases 0, 1 M and 2 M
 // - When every slot or the table is taken, the small pool least recently initialized, registered into or bound gives its slot up to a new small pool (evicted
 //   counts them). Only small pools take part: a large pool is never given up and never takes a range given up, so the first pool and the scenes' pools keep
-//   their numbering. A command buffer recorded against a small pool that is given up later reads, when it is replayed, the newer pool's descriptors in that
-//   range (vka_draw.c resolves the bound pool's base at replay; macOS bind_handles adds CB(c)->tex_base / samp_base at recording)
+//   their numbering. A pool given up registers nothing more (nvn_dpool_id: its IDs would be the first pool's). A command buffer recorded against a small
+//   pool that is given up later reads, when it is replayed: on Android the first pool's numbering (base 0, first ID 0: vka_draw.c resolves the bound pool at
+//   replay, with the "[RED] ... given up for a newer one is used again" line); on macOS the newer pool's descriptors in that range (bind_handles adds
+//   CB(c)->tex_base / samp_base at recording)
 #define NVN_NDPOOL 1024
 #define NVN_DPOOL_TEX_IDS (16 << 20)
 #define NVN_DPOOL_RESERVED 256
@@ -29,11 +31,6 @@
 typedef struct { const void *pool; int base, lo, cap, small; const void *store; unsigned use; } nvn_dpool_ent;
 typedef struct { nvn_dpool_ent e[NVN_NDPOOL]; int n, next, limit, hint; unsigned clock, evicted; } nvn_dpool_tab;   // n slots made, next: where a new range starts
 
-static inline int nvn_dpool_store_live(const nvn_dpool_tab *t, const void *store) {   // a live pool object uses this storage
-    if (!store) return 0;
-    for (int i = 0; i < t->n; i++) if (t->e[i].pool && t->e[i].store == store) return 1;
-    return 0;
-}
 static inline int nvn_dpool_range_live(const nvn_dpool_tab *t, int skip, int lo) {   // another live object uses the range starting at lo
     for (int i = 0; i < t->n; i++) if (i != skip && t->e[i].pool && t->e[i].lo == lo) return 1;
     return 0;
@@ -121,6 +118,16 @@ static inline int nvn_dpool_touch(nvn_dpool_tab *t, const void *pool, int *small
     t->e[i].use = ++t->clock; t->hint = i;
     if (small) *small = t->e[i].small;
     return t->e[i].base;
+}
+// The host ID of a pool's ID for a registration or a bind (marks the pool used), -1 to skip it. *why: 0 placed; 1 a reserved ID (below 256) of a small pool, skipped;
+// 2 the pool was given up for a newer one (evicted), skipped: its IDs would overwrite the first pool's; 3 a pool never placed (nothing given up yet: the table
+// was full of large pools), numbered from 0 as before the small pools. *small (may be NULL): whether the pool is small
+static inline int nvn_dpool_id(nvn_dpool_tab *t, const void *pool, int id, int *why, int *small) {
+    int sm = 0, b = nvn_dpool_touch(t, pool, &sm);
+    if (small) *small = sm;
+    if (b < 0) { *why = t->evicted ? 2 : 3; return t->evicted ? -1 : id; }
+    if (sm && id < NVN_DPOOL_RESERVED) { *why = 1; return -1; }
+    *why = 0; return b + id;
 }
 static inline int nvn_dpool_live(const nvn_dpool_tab *t) { int k = 0; for (int i = 0; i < t->n; i++) k += t->e[i].pool != 0; return k; }
 // nvnTexturePoolFinalize / nvnSamplerPoolFinalize: the pool's range is free for a later pool (kept at its place: the table does not shrink)
