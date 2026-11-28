@@ -35,7 +35,7 @@ if WORKERS < 1: sys.exit('[RED] DM_REWRITE_J must be a positive integer')
 # Prepare's bar. Each phase has a fixed share of the 1000 (PHASES: start, width), measured with one worker on large modules (docs/reference/packing.md
 # "Prepare stays at 1 % while it rewrites the code"); a phase reports its own count inside its share. At most one line a second, plus each phase's start.
 import time
-# PEANUTS(upstream-candidate): measured again after dev 0.2.0's speed round (one worker, Super Mario Bros. Wonder's and Animal Crossing's main); before:
+# PEANUTS(upstream-candidate): measured again after dev 0.1.10's speed round (one worker, Super Mario Bros. Wonder's and Animal Crossing's main); before:
 # load 30, x18 250, scan 80, functions 125, sites 15, spin 490, write 10
 PHASES = {'load': (0, 125), 'x18': (125, 23), 'scan': (148, 31), 'functions': (179, 207), 'sites': (386, 37), 'spin': (423, 555), 'write': (978, 22)}
 _progress_at = [0.0, -1]

@@ -263,7 +263,7 @@ class Wiring(unittest.TestCase):
         # A later rewriter change of the same output (a rewrite census) keeps the file before it as its own equivalent (CHAIN, oldest first): e13378e6's
         # file is then the first of them without in_forks, and each of them has the current file's in_forks spans, byte for byte
         name = 'patch_nso.py.e13378e630c8'   # dev 0.1.8's file (e13378e6, #481); 0.1.7's, patch_nso.py.54b9ce16465e, is #481's equivalent and stays
-        last = 'patch_nso.py.d98ba837b4c1'   # the file with the forks before dev 0.2.0's speed round (d98ba837)
+        last = 'patch_nso.py.d98ba837b4c1'   # the file with the forks before dev 0.1.10's speed round (d98ba837)
         equiv = REPO / 'dm/tools/rewriter_equiv' / name
         self.assertTrue(equiv.is_file())
         for before in ('6bc30f06074b', 'eaf706b807d5', '2590f2d24457'):   # the files before #164, before #177 and before #290
