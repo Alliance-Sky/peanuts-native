@@ -3435,3 +3435,11 @@ NCA through the check too), `CMakeLists.txt`, `HOOKS.md`, `tests/nsp_fixture.h` 
 `test_compressed.py` (the damaged cases beside #697's cut-off ones), `test_nup_icon.py` (its build of `nup_meta_test` takes `nx_verify.c`).
 The host's copy of `nx_nca.c` never sets a check (`nx_verify.c` is not in `android/host/CMakeLists.txt`'s `NSP_C`). Upstream candidate: the split's bounds
 checks (general: any FlatBuffers index); the rest is Peanuts' importer.
+
+### LIVE A LIVE (`0100CF801776C000`) profile (2026-11-28)
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/0100CF801776C000/game.tsv` | 1 | New Switch 1 UE4 profile (`v65536` / `1.0.1`), `fps_target 60`, Turnip `recommend` on Qualcomm `< 512.800` | `# PEANUTS` |
+| `dm/games/0100CF801776C000/README.md` | 1 | Android bring-up notes (Turnip T30 & Qualcomm `512.762.41`) | `<!-- PEANUTS -->` |
+| `dm/games/README.md` | 1 | Add LIVE A LIVE row to games table | `<!-- PEANUTS -->` |

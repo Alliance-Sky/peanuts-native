@@ -37,3 +37,15 @@ pad_layout	full
 # ---- Shader split ----
 shader_groups	ShaderArchive-Global-=global ShaderArchive-=game
 shader_note	LIVE A LIVE shaders
+
+# PEANUTS begin: 60 fps (30 on Switch). Host patches Unreal t.MaxFPS=60 and rhi.SyncInterval=1.
+# Verified on OnePlus 13R (Turnip T30 and Qualcomm 512.762.41 with DM_VK_PSO_ASYNC=0): locked 60 fps at 1x speed.
+fps_target	60
+# PEANUTS end
+
+# PEANUTS begin: prefer installed Turnip on Qualcomm drivers before 512.800 (driverID 8, major 512, minor < 800).
+# Measured on OnePlus 13R (Adreno 750, Qualcomm 512.762.41 / 0x802fa029): with DM_VK_PREWARM=0 forced on < 512.800,
+# default DM_VK_PSO_ASYNC=2 washes out title lighting on both cold and warm starts and hit SIGSEGV in vulkan.adreno.so+0x1f3a48
+# entering Twilight of Edo Japan. Turnip T30 runs 60 fps cleanly once warm (or with DM_VK_PSO_ASYNC=0 on cold start); see README.md.
+recommend	driver.id=8,driver.version&0xffc00000=0x80000000,driver.version&0x3ff000<0x320000	driver=18
+# PEANUTS end
