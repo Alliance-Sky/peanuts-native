@@ -478,3 +478,9 @@ dm/games/0100B63016916000/shader_files.tsv	Generated shader-bearing file invento
 dm/games/01008CF01BAAC000/shader_files.tsv	Generated shader-bearing file inventory for the targeted split (shader_split.py with DM_SPLIT_FILES). Keep the inventory reproducible from the same input.
 dm/games/010028600EBDA000/shader_files.tsv	Generated shader-bearing file inventory for the targeted split (shader_split.py with DM_SPLIT_FILES). Keep the inventory reproducible from the same input.
 dm/games/0100C2901153C000/shader_files.tsv	Generated shader-bearing file inventory for the targeted split (shader_split.py with DM_SPLIT_FILES). Keep the inventory reproducible from the same input.
+dm/third_party/ooz/README.md	the folder's own notice, written by Peanuts Native when ooz was added (licence, where unoodle is built and listed, "On the phone"); prose throughout, where a marker per paragraph adds nothing
+dm/gfx/tools/vk_android_spvn.py	Peanuts' own file (#120, Round 67): the SPIR-V post-passes from libdmsh_spvn through ctypes; the shaders step's tool files are hashed for vk_android_same.tsv (DMSH_VK_CHAIN c1eff1d2d8c1), where a marker would change the hash
+dm/gfx/tools/vk_android_spv_native/spvn.c	Peanuts' own file (#120, Round 67): vk_android_spv.py's module and post-passes in C; hashed with the shaders step's tools (vk_android_same.tsv), where a marker would change the hash
+dm/gfx/tools/vk_android_spv_native/build.sh	Peanuts' own file (#120, Round 67): builds libdmsh_spvn from spvn.c; kept with spvn.c, its header names Peanuts Native
+dm/tools/rwspin_native/rwspin.c	Peanuts' own file (#120, Round 68): patch_nso.py's spin wait search in C; its SHA-256 is patch_nso.py's RWSPIN_SHA, so a marker would change the rewriter file
+dm/tools/rwspin_native/build.sh	Peanuts' own file (#120, Round 68): builds libdmsh_rwspin from rwspin.c; kept with rwspin.c, its header names Peanuts Native
