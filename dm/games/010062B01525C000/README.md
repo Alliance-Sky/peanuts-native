@@ -49,6 +49,15 @@ iPhone: no IPA was built, and the touch layout is untested.
 - Resident memory was 1370 MB with 1672 MB of Metal allocations at the end of a
   long run, after the game had loaded its opening scenes.
 
+<!-- PEANUTS begin: Android results -->
+## Android
+
+- 2026-11-28, OnePlus 13R (Snapdragon 8 Gen 3, Adreno 750, 11 GiB, Android 16), test APK; 1.0.2 (`v131072`, `main=66b2b6d53549a6364a43f69e282e3882`) built on the phone by the app (26 shaders, `PASS` readiness, `stubs=0`). Played across cold and 4-6 minute warm runs on both drivers with no crashes, no failed pipelines, no graphics issues, and clean VP9 movie playback.
+- **Turnip** (Mr Purple T30, Vulkan 1.4.359): locked 60 fps (p50 16.61-16.79 ms, 0.071% dropped frames over 14,082 frames); warm run prewarmed 38/38 keys in 0.0 s with 0 skipped draws; footprint 1688-1838 MiB.
+- **Qualcomm system driver** (`512.762.41`, Vulkan 1.3.128): locked 60 fps (p50 16.48-16.76 ms, 0.035% dropped frames over 22,782 frames); `DM_VK_PREWARM=0` and `DM_VK_VIN_DYN=0` auto-applied on Qualcomm `< 512.800` (38 async compiles, 1,619 skipped draws before cache save); footprint 827-1026 MiB.
+- Not checked: Qualcomm drivers from 512.800 on, a dual-screen handheld, later dungeons and full playthrough.
+<!-- PEANUTS end -->
+
 ## Open
 
 - The memory keys are the provisional ones; they hold through the tested route

@@ -3751,3 +3751,11 @@ Two profiles of the game that the OpenGL UI and no-colour draw sections above we
 | `dm/games/01005A20190A6000/shader_map.tsv`, `shader_facts.tsv`, `shader_pairs.tsv`, `shader_files.tsv`, and the same four in `dm/games/0100D2D0190A4000/` | new | the generated tables (the US ones copies of the EU ones) | allow-listed in `peanuts/upstream-unmarked.txt` |
 | `dm/games/README.md` | 2 | the two table rows | `<!-- PEANUTS: ... -->` in the row's last cell |
 | `docs/reference/rendering.md` | 3 | the Found on lines of the BGR5A1, no-colour draw and OpenGL UI entries link the EU profile | `<!-- PEANUTS -->` at the line's end |
+
+### Persona 4 Golden: Android results in its note (2026-11-28)
+
+Recorded Android test results for Persona 4 Golden (`010062B01525C000`, update 1.0.2 / `v131072`) on OnePlus 13R (Turnip Mr Purple T30 and Qualcomm 512.762.41); upstream `game.tsv` is unchanged.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/games/010062B01525C000/README.md` | 1 | Android test results section | `PEANUTS begin`/`end` |
