@@ -38,7 +38,7 @@ int main(void) {
     n = vka_auto_rules(&(vka_auto_in){.driver_id = VKA_DRV_QCOM, .mesh_ext = 1, .memu = 1, .vin_dyn_ext = 1, .prof_one_lane = 2, .prof_prepass_cut = 3, .prof_oq_split = 1, .prof_push_desc_off = 1}, r, 16);   // PEANUTS: push_desc_qcom_old
     CHECK((v = val(r, n, "DM_VK_MESH")) && !strcmp(v, "0"), "Qualcomm: mesh extension off");
     CHECK((v = val(r, n, "DM_VK_GS_FILL")) && !strcmp(v, "1"), "Qualcomm: GS fill");
-    CHECK((v = val(r, n, "DM_VK_DEPTH_ONLY_BLEND")) && !strcmp(v, "1"), "Qualcomm: draws that write no colour blend their targets");   // PEANUTS
+    CHECK(!val(r, n, "DM_VK_DEPTH_ONLY_BLEND"), "Qualcomm 512.800 or later: draws that write no colour drawn as asked");   // PEANUTS: DM_VK_DEPTH_ONLY_BLEND before 512.800 only
     CHECK((v = val(r, n, "DM_VK_ONE_LANE")) && !strcmp(v, "1"), "Qualcomm: profile's one-lane shaders");
     CHECK((v = val(r, n, "DM_VK_OQ_SPLIT_PASS")) && !strcmp(v, "1"), "Qualcomm: profile's occlusion split pass");
     CHECK(!val(r, n, "DM_VK_MESH_PREPASS_SKIP"), "Qualcomm through compute: the prepass cut does not apply");
@@ -47,15 +47,16 @@ int main(void) {
     // ... with its mesh shaders (DM_VK_MESH=1): the prepass cut is on
     n = vka_auto_rules(&(vka_auto_in){.driver_id = VKA_DRV_QCOM, .mesh_ext = 1, .prof_prepass_cut = 3}, r, 16);
     CHECK((v = val(r, n, "DM_VK_MESH_PREPASS_SKIP")) && !strcmp(v, "1"), "Qualcomm with mesh shaders: prepass cut");
-    // ... a profile without those keys and a device without the mesh extension: only GS fill (and partial pushes, PEANUTS: #503; DM_VK_DEPTH_ONLY_BLEND)
+    // ... a profile without those keys and a device without the mesh extension: only GS fill (and partial pushes, PEANUTS: #503)
     n = vka_auto_rules(&(vka_auto_in){.driver_id = VKA_DRV_QCOM, .memu = 1}, r, 16);
-    CHECK(n == 3 && val(r, n, "DM_VK_GS_FILL") && (v = val(r, n, "DM_VK_PUSH_DELTA")) && !strcmp(v, "1") && val(r, n, "DM_VK_DEPTH_ONLY_BLEND"), "Qualcomm, no mesh extension, empty profile: GS fill, push delta and DEPTH_ONLY_BLEND only (%d)", n);   // PEANUTS: #503, DM_VK_DEPTH_ONLY_BLEND
+    CHECK(n == 2 && val(r, n, "DM_VK_GS_FILL") && (v = val(r, n, "DM_VK_PUSH_DELTA")) && !strcmp(v, "1"), "Qualcomm, no mesh extension, empty profile: GS fill and push delta only (%d)", n);   // PEANUTS: #503
 
     // Qualcomm before 512.800: prewarm off, vertex input in the pipeline (only where the device has the dynamic state)
     n = vka_auto_rules(&(vka_auto_in){.driver_id = VKA_DRV_QCOM, .qcom_old = 1, .vin_dyn_ext = 1, .memu = 1}, r, 16);
     CHECK((v = val(r, n, "DM_VK_PREWARM")) && !strcmp(v, "0"), "old Qualcomm: no prewarm");
     CHECK((v = val(r, n, "DM_VK_VIN_DYN")) && !strcmp(v, "0"), "old Qualcomm: vertex input dynamic state off");
     CHECK((v = val(r, n, "DM_VK_DYN_FILTER")) && !strcmp(v, "0"), "old Qualcomm: dynamic state filter off");   // PEANUTS(upstream-candidate)
+    CHECK((v = val(r, n, "DM_VK_DEPTH_ONLY_BLEND")) && !strcmp(v, "1"), "old Qualcomm: draws that write no colour blend their targets");   // PEANUTS
     n = vka_auto_rules(&(vka_auto_in){.driver_id = VKA_DRV_QCOM, .qcom_old = 1, .memu = 1}, r, 16);
     CHECK(!val(r, n, "DM_VK_VIN_DYN"), "old Qualcomm without the extension: nothing to turn off");
     // PEANUTS begin: push descriptors off for layouts only with the profile's push_desc_qcom_old off (#888); a profile without it keeps them on, as before the switch

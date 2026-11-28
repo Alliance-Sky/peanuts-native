@@ -36,6 +36,7 @@ static inline int vka_auto_rules(const vka_auto_in *in, vka_auto_rule *o, int ma
     VKA_AUTO_ADD(in->qcom_old && in->vin_dyn_ext, "DM_VK_VIN_DYN", 0, "driver version before 512.800");     // vka_dev.c
     VKA_AUTO_ADD(in->qcom_old, "DM_VK_PREWARM", 0, "driver version before 512.800");                         // vka_pso.c prewarm
     VKA_AUTO_ADD(in->qcom_old, "DM_VK_DYN_FILTER", 0, "driver version before 512.800");                      // vka_draw.c; PEANUTS(upstream-candidate)
+    VKA_AUTO_ADD(in->qcom_old, "DM_VK_DEPTH_ONLY_BLEND", 1, "driver version before 512.800");                // vka_pso.c pstate_fill, vka_zonly.h (PEANUTS)
     VKA_AUTO_ADD(t, "DM_VK_PSO_SLOTS", vkpg_cap_default(1), NULL);                                           // vka_pso.c gate_cap
     VKA_AUTO_ADD(t, "DM_VK_PRESENT_GATE_WAIT", 30, NULL);                                                    // vka_present.c
     VKA_AUTO_ADD(t, "DM_VK_ZSHARE_MAX_MB", 0, NULL);                                                         // vka_tex.c, vka_zshare.h vkz_max
@@ -46,7 +47,6 @@ static inline int vka_auto_rules(const vka_auto_in *in, vka_auto_rule *o, int ma
     VKA_AUTO_ADD(t, "DM_VK_CS_WARM", 1, NULL);                                                               // vka_pso.c cw_start (PEANUTS)
     VKA_AUTO_ADD(t || q, "DM_VK_PUSH_DELTA", 1, NULL);                                                    // vka_draw.c partial pushes (PEANUTS: #503)
     VKA_AUTO_ADD(q && in->prof_one_lane, "DM_VK_ONE_LANE", 1, "the profile's subgroup_one_lane");            // vka_shader.c one_lane_env
-    VKA_AUTO_ADD(q, "DM_VK_DEPTH_ONLY_BLEND", 1, "pixel shader inputs lost in draws that write no colour");   // vka_pso.c pstate_fill, vka_zonly.h (PEANUTS)
     VKA_AUTO_ADD(q, "DM_VK_GS_FILL", 1, NULL);                                                               // vka_shader.c gs_fill
     VKA_AUTO_ADD(q && !in->memu && in->prof_prepass_cut, "DM_VK_MESH_PREPASS_SKIP", 1, "the profile's mesh_prepass_cut, mesh shaders on");   // vka_draw.c mesh_cut
     VKA_AUTO_ADD(q && in->prof_oq_split, "DM_VK_OQ_SPLIT_PASS", 1, "the profile's occlusion_split_pass");   // vka_exec.c oq_report

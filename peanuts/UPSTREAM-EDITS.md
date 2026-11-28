@@ -3720,8 +3720,10 @@ Qualcomm's own driver gives a draw that writes no colour channel wrong pixel sha
 
 | File | Hunks | What | Marker |
 |---|---|---|---|
-| `dm/gfx/vk_android/vka_pso.c`, `vka_auto.h` | 2, 1 | `DM_VK_DEPTH_ONLY_BLEND` (`pstate_fill`): on Qualcomm's own driver (by driver ID) a pipeline that writes no colour channel writes its fixed-point targets that its pixel shader writes through blend ZERO, ONE, because the driver gives such a draw wrong pixel shader inputs; its `[auto]` rule | `PEANUTS` |
+| `dm/gfx/vk_android/vka_pso.c`, `vka_auto.h` | 3, 1 | `DM_VK_DEPTH_ONLY_BLEND` (`pstate_fill`): on Qualcomm's own driver before 512.800 (`V.qcom_old`) a pipeline that writes no colour channel writes its fixed-point targets that its pixel shader writes through blend ZERO, ONE, because the driver gives such a draw wrong pixel shader inputs (format features queried only for such a pipeline); `gpl_link` keys the fragment output library on the edited blend state (`P->cb`), not `k->att`; its `[auto]` rule | `PEANUTS` |
 | `dm/gfx/vk_android/vka_zonly.h`, `dm/host/tests/t_android_zonly.c` | new files | which colour targets that rule writes, and its test | `PEANUTS` |
-| `dm/host/tests/Makefile`, `dm/host/tests/t_android_auto.c` | 1, 2 | `t_android_zonly`; the `DM_VK_DEPTH_ONLY_BLEND` rule in the automatic defaults' test | `PEANUTS` |
+| `dm/host/tests/Makefile`, `dm/host/tests/t_android_auto.c` | 1, 4 | `t_android_zonly`; the `DM_VK_DEPTH_ONLY_BLEND` rule in the automatic defaults' test (on with Qualcomm before 512.800, off with 512.800 or later and Turnip) | `PEANUTS` |
 | `docs/env_switches.tsv`, `docs/advanced_settings.tsv` | 1, 1 | the `DM_VK_DEPTH_ONLY_BLEND` rows | rows |
 | `docs/reference/rendering.md`, `docs/agents/symptoms.md` | 1, 1 | the entry "Effects in 32x32 cells on Qualcomm's driver: a draw that writes no colour gets wrong pixel shader inputs", and its line in the generated index | `PEANUTS` / generated |
+
+Taken from #850 without #845 (`DM_VK_DYN_PASS`, not landed: `ds_forget` and `DM_VK_DYN_FILTER=0` on Qualcomm before 512.800 cover it). The rule is on only before 512.800 (only 512.676 was measured). The prewarm list's keys (`vka_gkey`, `vka_pwlist.h`) are unchanged, so existing lists and seeds still match. Held for a Thor A/B before landing.
