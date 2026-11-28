@@ -44,7 +44,7 @@ Update **1.70 (`v655360`)**, SDK 14.3.0. CyberConnect2's NUCC engine on NVN, Sca
 
 One build row, `v655360` (1.70; `main`'s own build path names `MasterV170`, the dump has no control data). `subsdk0` is `NintendoSDK_movie`. `subsdk1` (GLSLC) and `subsdk2` (NVIDIA's OpenGL and EGL driver) are never loaded: `main` takes only its 10 EGL imports from `subsdk2`, which the host answers, and nothing from `subsdk1`.
 
-The US release (`0100FA10190A0000`) 1.70 has the same three build IDs, so it needs a launcher mapping by build ID, not a profile of its own.
+The US release (`0100D2D0190A4000`) has a profile of its own, [0100D2D0190A4000](../0100D2D0190A4000/README.md), with this build row: its 1.70 `main` has the same build ID.
 
 ## Graphics
 
@@ -61,14 +61,15 @@ The US release (`0100FA10190A0000`) 1.70 has the same three build IDs, so it nee
 ## Found on this game
 
 - [A material's body invisible or black: NVN_FORMAT_BGR5A1 had no Vulkan format](../../../docs/reference/rendering.md#a-materials-body-invisible-or-black-nvn_format_bgr5a1-had-no-vulkan-format)
-- The EGL and GL forwarding with the shared UI texture (#847), the depth-only blend on Qualcomm's driver (#850) and the two stack-passed arguments of the big host stack (#843) have their entries in those pull requests.
+- [An NVN game whose UI draws with OpenGL through EGL (Android)](../../../docs/reference/rendering.md#an-nvn-game-whose-ui-draws-with-opengl-through-egl-android) (#847)
+- [Effects in 32x32 cells on Qualcomm's driver: a draw that writes no colour gets wrong pixel shader inputs](../../../docs/reference/rendering.md#effects-in-32x32-cells-on-qualcomms-driver-a-draw-that-writes-no-colour-gets-wrong-pixel-shader-inputs) (#850)
+- [Host calls on small guest stacks](../../../docs/reference/memory.md#host-calls-on-small-guest-stacks): the 9th and 10th arguments of the GL wrappers (#843)
 
 ## Open
 
 - Story mode, and play outside Free Battle's Practice (the 11 minutes on Turnip are Practice fights).
 - The first launch of the Turnip fresh-cache run was killed by the kernel after 1.3 s: three GPU faults (`CP: AHB bus error`, `gpu fault threshold exceeded`) while the shader parts were made, then `kgsl: out of memory`. The next launch, identical, ran clean, and the Qualcomm run had no fault. Seen once in three launches; not investigated.
 - A warm-cache launch with the seed built from the attached keys.
-- The US release (above): the build-ID mapping is not done and the US dump was not run.
 - The alias region's size; other phones and other Adreno GPUs.
 - A crash in Android's own UI rendering (`libhwui.so` `ClipStack`, the game process's RenderThread) seen once at the character select on the Qualcomm driver; not seen again in the later runs. Its cause is not known.
 - A 60 fps option: an FPSLocker plan held 60 at real game speed in a fight on this phone, but it is not in this profile. It comes as its own pull request.
