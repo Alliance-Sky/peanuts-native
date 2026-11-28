@@ -182,6 +182,9 @@ static size_t fx_hashes(const uint8_t *p, size_t n, size_t bs, int pad, uint8_t 
     size_t k = 0; for (size_t at = 0; at < n; at += bs, k += 32) fx_block_hash(p + at, n - at < bs ? n - at : bs, pad ? bs : (n - at < bs ? n - at : bs), out + k);
     return k;
 }
+// fx_ivfc_slack set: the IVFC hash levels are sized for fx_ivfc_slack times the data (as a compressed section's are, for its decompressed data: Echoes of
+// Wisdom's RomFS), the hashes past the data's zeros, and a level's hash for a block of the level below that holds none of the data's zeros too
+static int fx_ivfc_slack;
 static void fx_layers(FxBuf *img, int fs_type, size_t data_off, uint8_t info[0xF8]) {
     size_t dn = img->n - data_off; memset(info, 0, 0xF8);
     if (fs_type == NX_FS_PFS0) {
@@ -192,15 +195,17 @@ static void fx_layers(FxBuf *img, int fs_type, size_t data_off, uint8_t info[0xF
         return;
     }
     for (uint32_t order = 9; order < 24; order++) {
-        size_t off[6], sz[6]; uint8_t *lv[6]; size_t at = 0;   // [0, 5): the hash levels 1 to 5, [5]: the data
-        sz[5] = dn; sz[4] = 32 * ((dn + ((size_t)1 << order) - 1) >> order);
+        size_t off[6], sz[6]; uint8_t *lv[6]; size_t at = 0, used = dn;   // [0, 5): the hash levels 1 to 5, [5]: the data
+        size_t sized = fx_ivfc_slack ? dn * (size_t)fx_ivfc_slack : dn;
+        sz[5] = dn; sz[4] = 32 * ((sized + ((size_t)1 << order) - 1) >> order);
         for (int i = 4; i > 0; i--) sz[i - 1] = 32 * ((sz[i] + 511) / 512);
         for (int i = 0; i < 5; i++) { off[i] = at; at = (at + sz[i] + 15) & ~(size_t)15; }
         if (at > data_off || sz[0] > 512) continue;
         lv[5] = img->p + data_off;
         for (int i = 4; i >= 0; i--) {   // level i holds the hashes of level i + 1 (the data for i = 4)
-            size_t n = i == 4 ? dn : sz[i + 1], bs = i == 4 ? (size_t)1 << order : 512;
-            lv[i] = img->p + off[i]; fx_hashes(lv[i + 1], n, bs, 1, lv[i]);
+            size_t bs = i == 4 ? (size_t)1 << order : 512, n = i == 4 ? dn : (used + bs - 1) / bs * bs;   // the used blocks of level i + 1
+            if (n > sz[i + 1]) n = sz[i + 1];
+            lv[i] = img->p + off[i]; memset(lv[i], 0, sz[i]); used = fx_hashes(lv[i + 1], n, bs, 1, lv[i]);
         }
         memcpy(info, "IVFC", 4); fx_w32(info + 4, 0x20000); fx_w32(info + 8, 0x20); fx_w32(info + 0xC, 7);
         for (int i = 0; i < 6; i++) { uint8_t *r = info + 0x10 + 0x18 * i; fx_w64(r, i < 5 ? off[i] : data_off); fx_w64(r + 8, i < 5 ? sz[i] : dn); fx_w32(r + 16, i < 5 ? 9 : order); }

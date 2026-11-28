@@ -3,7 +3,8 @@
 // an add-on) import as before, and every block of the update's patched RomFS is checked on the way. Then damaged copies, each refused with the file and its
 // role named, no .nup written: a file cut short, a container entry shorter than its NCA, a byte flipped in the base's RomFS (read through the update, and
 // read for the base's own package), in the update's RomFS (its header and a file it carries), in its ExeFS, in a hash level, in an fs header, and in an LZ4
-// section's stored bytes. A byte the update no longer reads from the base does not stop the import.
+// section's stored bytes. A byte the update no longer reads from the base does not stop the import. An LZ4 base whose hash levels are sized for more than
+// its stored data (the unused hashes zeros, as Echoes of Wisdom's) imports, and a byte of its data or its used hashes is still refused.
 #define _GNU_SOURCE
 #include "nximport.h"
 #include "nsp_fixture.h"
@@ -17,7 +18,7 @@
 static int fails, checks;
 #define CHECK(c, ...) do { checks++; if (!(c)) { fails++; printf("  FAIL "); } else printf("  ok   "); printf(__VA_ARGS__); printf("\n"); fflush(stdout); } while (0)
 
-static const uint64_t TID = 0x0100CCCC0000C000ull, TID_LZ4 = 0x0100CCCC0000D000ull;
+static const uint64_t TID = 0x0100CCCC0000C000ull, TID_LZ4 = 0x0100CCCC0000D000ull, TID_SLACK = 0x0100CCCC0000E000ull;
 static char dir[500];
 
 static uint8_t *slurp(const char *p, size_t *n) {
@@ -90,19 +91,28 @@ static int read_all(NxNode *d) {
 }
 
 int main(void) {
-    const char *td = getenv("TMPDIR"); char keys[600], p[700]; FxKeys k; FxGame g, gl; FxAddon a;
+    const char *td = getenv("TMPDIR"); char keys[600], p[700]; FxKeys k; FxGame g, gl, gs; FxAddon a;
     snprintf(dir, sizeof dir, "%s/verify_test-XXXXXX", td && *td ? td : "/tmp");
     if (!mkdtemp(dir)) { perror(dir); return 2; }
     snprintf(keys, sizeof keys, "%s/prod.keys", dir); fx_keys_make(&k, keys);
     if (nximport_keys(keys)) { printf("the fixture's keys do not load: %s\n", nximport_last_error()); return 2; }
     fx_game(&k, dir, "plain", TID, 0, 0, &g); fx_game(&k, dir, "lz4", TID_LZ4, 1, 0, &gl); fx_addon(&k, dir, "dlc", TID, 1, 0, 3, &a);
+    fx_ivfc_slack = 3; fx_game(&k, dir, "slack", TID_SLACK, 1, 0, &gs); fx_ivfc_slack = 0;   // hash levels sized for the decompressed data (Echoes of Wisdom)
 
     // ---- good dumps
     { const char *in[] = { g.base, g.upd, a.path }; good("a plain base, its update and an add-on", in, 3, TID); }
     { const char *in[] = { gl.base, gl.upd }; good("an LZ4-compressed base and its update", in, 2, TID_LZ4); }
+    // an LZ4 base whose last hash level has whole blocks past the hashes its stored data uses (zeros, with zeros for their hashes one level up): those
+    // blocks are never read, so they are not checked (the console does not either). Before this the import called a good Echoes of Wisdom damaged
+    { Loc l; locate(gs.base, &l); const uint8_t *r = l.n.hdr + 0x400 + 0x200 * 1 + 8 + 0x10; uint64_t s4, s5; uint32_t o5;
+      memcpy(&s4, r + 0x18 * 4 + 8, 8); memcpy(&s5, r + 0x18 * 5 + 8, 8); memcpy(&o5, r + 0x18 * 5 + 16, 4);
+      uint64_t used = ((s5 + (1ull << o5) - 1) >> o5) * 32; unlocate(&l);
+      CHECK(s4 >= used + 2 * 512, "the slack fixture's level 5 has whole unused blocks (%llu bytes, %llu used)", (unsigned long long)s4, (unsigned long long)used); }
+    { const char *in[] = { gs.base, gs.upd }; good("an LZ4 base and update with hash levels longer than their data needs", in, 2, TID_SLACK); }
     nximport_set_keep_base(1);
     { const char *in[] = { g.base, g.upd }; good("the same with the base's own package kept", in, 2, TID); }
     { const char *in[] = { gl.base, gl.upd }; good("the LZ4 one with the base kept", in, 2, TID_LZ4); }
+    { const char *in[] = { gs.base, gs.upd }; good("the long-levels one with the base kept", in, 2, TID_SLACK); }
     nximport_set_keep_base(0);
     // every block of the update's patched RomFS and ExeFS is checked as its files are read
     { Loc b, u; locate(g.base, &b); locate(g.upd, &u);
@@ -163,6 +173,14 @@ int main(void) {
       copy_file(gl.base, bp); copy_file(gl.upd, up); flip(bp, at_sec(&l, 1, mid)); unlocate(&l);
       const char *e[] = { what_base, "of its RomFS do not match their checksum", NULL };
       nximport_set_keep_base(1); refused("a byte of an LZ4 base's stored data", in, 2, TID_LZ4, e); nximport_set_keep_base(0); }
+    // the long-levels base: a byte of its stored data, and a byte of a level 5 block that holds hashes, are still refused
+    { Loc l; locate(gs.base, &l); uint64_t mid = FX_HASH + (l.n.sec[1].size - FX_HASH) / 3, l5 = 0; memcpy(&l5, l.n.hdr + 0x400 + 0x200 + 8 + 0x10 + 0x18 * 4, 8);
+      const char *sin[] = { bp, up }; copy_file(gs.base, bp); copy_file(gs.upd, up); flip(bp, at_sec(&l, 1, mid));
+      const char *e[] = { what_base, "of its RomFS do not match their checksum", NULL };
+      nximport_set_keep_base(1); refused("a byte of the long-levels base's stored data", sin, 2, TID_SLACK, e);
+      copy_file(gs.base, bp); flip(bp, at_sec(&l, 1, l5 + 7)); unlocate(&l);
+      const char *e5[] = { what_base, "hash level 5 of its RomFS does not match its checksum", NULL };
+      refused("a byte of the long-levels base's level 5", sin, 2, TID_SLACK, e5); nximport_set_keep_base(0); }
     // the add-on's own data
     { Loc l; locate(a.path, &l); snprintf(p, sizeof p, "%s/dlcbad.nsp", dir); copy_file(a.path, p);
       flip(p, at_sec(&l, 0, FX_HASH + 0x60)); unlocate(&l);

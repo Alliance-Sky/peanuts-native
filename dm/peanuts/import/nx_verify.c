@@ -11,8 +11,11 @@
 // - A PFS0 section (hash type 2, HierarchicalSha256) has at fs header + 8 the master hash (the SHA-256 of the hash table), the block size (u32 @ + 0x20), the
 //   layer count (2, @ + 0x24), the hash table's offset and size (@ + 0x28) and the PFS0's (@ + 0x38). Each PFS0 block's SHA-256 is in the hash table; a short
 //   last block is hashed as it is.
-// The hashes cover the section's raw bytes: decrypted, a BKTR section's patched image, a compressed data level as it is stored. So the check sits below the
-// decompression, in nx_sec_read_raw: the hash levels are read and checked here once, and the data level as the writer reads it, every block once.
+// The hashes cover the section's raw bytes: decrypted, a BKTR section's patched image, a compressed data level as it is stored (Echoes of Wisdom's RomFS:
+// its first data blocks match level 5 as stored, not decompressed). So the check sits below the decompression, in nx_sec_read_raw: the hash levels are read
+// and checked here once, and the data level as the writer reads it, every block once. A hash level can be longer than the level below it needs (a compressed
+// section's are sized for its decompressed data, its unused hashes zeros, with zeros one level up for them): only a level's blocks that hold hashes the next
+// level uses are checked, as the console's integrity storage checks only the blocks a read needs.
 // The cost on a phone is CPU only: the writer reads every byte anyway, and a read that covers a block only in part reads the rest of that block (from the
 // page cache, as a rule: its neighbour was just read).
 #define _FILE_OFFSET_BITS 64
@@ -93,9 +96,8 @@ static uint8_t *level_read(NxNca *n, int s, const Verify *v, uint64_t off, uint6
     return b;
 }
 
-// the blocks of data (size bytes, blocks of bs) against nh hashes; -1 naming the level when one does not match
-static int level_check(const Verify *v, const uint8_t *data, uint64_t size, uint32_t bs, int pad, const uint8_t *hash, uint64_t nh, int level) {
-    uint64_t nb = (size + bs - 1) / bs;
+// the first nb blocks of data (size bytes, blocks of bs) against nh hashes; -1 naming the level when one does not match
+static int level_check(const Verify *v, const uint8_t *data, uint64_t size, uint64_t nb, uint32_t bs, int pad, const uint8_t *hash, uint64_t nh, int level) {
     if (nb > nh) return damaged(v->what, "level %d of its %s has %llu blocks and only %llu checksums", level, v->part, (unsigned long long)nb, (unsigned long long)nh);
     for (uint64_t b = 0; b < nb; b++) {
         size_t bl = (size_t)(size - b * bs < bs ? size - b * bs : bs); uint8_t h[32];
@@ -131,10 +133,16 @@ int nx_sec_verify(NxNca *n, int s, const char *what) {
             if (off[i] > size || sz[i] > size - off[i]) { damaged(what, "level %d of its %s lies outside it", i + 1, v->part); v_free(&v->k); return -1; }
             if (i < 5 && sz[i] > (256ull << 20)) { damaged(what, "hash level %d of its %s is %llu bytes", i + 1, v->part, (unsigned long long)sz[i]); v_free(&v->k); return -1; }
         }
+        // A hash level can be longer than the level below it needs: a compressed section's levels are sized for its decompressed data, while they hold
+        // the hashes of the stored data, which is shorter (Echoes of Wisdom's RomFS: level 5 has 958 blocks, the stored data needs the hashes in its first
+        // 686; the other 272 are zeros, and level 4 holds zeros for them, not their hashes). The console's integrity storage checks a block only when a
+        // read needs it, so nothing ever reads those; here too only the blocks that hold hashes the next level uses are checked.
         const uint8_t *hash = hi + 0xC0; uint64_t nh = 1;   // the master hash: level 1's one block
         for (int i = 0; i < 5; i++) {
+            uint64_t used = (sz[i + 1] + bs[i + 1] - 1) / bs[i + 1] * 32;   // the bytes of this level that hold the next level's hashes
+            uint64_t nb = ((used < sz[i] ? used : sz[i]) + bs[i] - 1) / bs[i];
             uint8_t *lv = level_read(n, s, v, off[i], sz[i], i + 1);
-            if (!lv || level_check(v, lv, sz[i], bs[i], 1, hash, nh, i + 1)) { free(lv); free(prev); v_free(&v->k); return -1; }
+            if (!lv || level_check(v, lv, sz[i], nb, bs[i], 1, hash, nh, i + 1)) { free(lv); free(prev); v_free(&v->k); return -1; }
             free(prev); prev = lv; hash = lv; nh = sz[i] / 32;
         }
         v->doff = off[5]; v->dsize = sz[5]; v->bs = bs[5]; v->pad = 1; v->nblocks = (sz[5] + bs[5] - 1) / bs[5];

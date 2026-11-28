@@ -466,3 +466,5 @@ The script fetches, rebases `peanuts` onto the target, then checks that every `P
   `dm/peanuts/import/tests/verify_test.c`, `peanuts/tests/test_damaged_game_files.py`, `PrepareTextJvmTest`. `peanuts/UPSTREAM-EDITS.md` Round 64.
   On an AYN Thor (2026-11-25): Z-A base + 2.0.2 + DLC imports in about a second more (11.6/12.7 s against 10.9/11.7 s, the same `.nup`), and a copy of
   2.0.2 with one byte changed stops with its name, where upstream main wrote a `.nup` from it. Numbers: `dm/peanuts/import/HOOKS.md`.
+  2026-11-28: a compressed RomFS's hash levels are sized for its decompressed data, the hashes past its stored data zeros; only a level's blocks that hold
+  hashes in use are checked now (a good Echoes of Wisdom base was refused as damaged at level 5). Round 64's follow-up.

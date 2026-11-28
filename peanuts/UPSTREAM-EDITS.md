@@ -3520,6 +3520,14 @@ NCA through the check too), `CMakeLists.txt`, `HOOKS.md`, `tests/nsp_fixture.h` 
 `test_compressed.py` (the damaged cases beside #697's cut-off ones), `test_nup_icon.py` (its build of `nup_meta_test` takes `nx_verify.c`).
 The host's copy of `nx_nca.c` never sets a check (`nx_verify.c` is not in `android/host/CMakeLists.txt`'s `NSP_C`). Upstream candidate: the split's bounds
 checks (general: any FlatBuffers index); the rest is Peanuts' importer.
+
+Follow-up (2026-11-28, before 0.1.10): a good The Legend of Zelda: Echoes of Wisdom base was refused ("hash level 5 of its RomFS does not match its
+checksum"). Its RomFS is compressed, and its IVFC levels are sized for the decompressed data (8.0 GB: level 5 has 958 blocks of 16 KiB), while they hold the
+hashes of the data as stored (5.4 GB: 350,822 blocks, whose hashes fill 686 of level 5's blocks). The other 272 blocks are zeros, and level 4 holds zeros for
+them, not their hashes; the console never reads them. `nx_verify.c` checked every block of every hash level; now only the blocks that hold hashes the next
+level uses (the data level's check was already right: the stored bytes match level 5). `tests/nsp_fixture.h` can size the IVFC levels for more than the data
+(`fx_ivfc_slack`), and `verify_test.c` imports such an LZ4 base and its update (the unfixed check refuses them with Echoes of Wisdom's message) and still
+refuses a byte flipped in its stored data or in a used level 5 block. Peanuts' own files, no marker.
 ## NVN BGR5A1 on Android (2026-11-26)
 
 NVN_FORMAT_BGR5A1 (0x97) had no Vulkan format; NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS samples one such texture. Found while taking over the draft igawa6/peanuts-native#637 (codetz7).
