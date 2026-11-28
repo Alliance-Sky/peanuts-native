@@ -1,3 +1,4 @@
+// PEANUTS: the frame limiter keeps a deadline within one period (fps_pace.h, GitHub issue #887)
 // The frame limiter's schedule (fps_pace.h) on a simulated clock: a frame takes `work` of CPU time, then the limiter says when to wake.
 // A cap raised while the game runs (30 to 45, 60 to 45 after a faster stretch) or a 30 fps movie ending must hold the new rate (issue: the cap was lost for good)
 #include "../fps_pace.h"

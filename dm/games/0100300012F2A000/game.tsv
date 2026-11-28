@@ -44,6 +44,7 @@ mem_stack	0x10000000
 # StandardAllocator's reservation of almost all of it took the alias region's high-water mark to +4.26 of its 4.38 GB in 100 s: 2.5 GB keeps the maps and the address space
 # PEANUTS: #231 found the opening movie exhausts a 2 GiB pool and set the retail pool (0xCD500000); #382 then measured that the retail pool took the alias
 # region to 4.26 of its 4.38 GB in battle, so the pool is 2.5 GB, above the 2 GiB the movie ran out in. (The movie at 2.5 GB is not yet checked on Android.)
+# PEANUTS: the retail application pool (GitHub issue #927)
 app_pool	0xCD500000
 sys_resource	0x1000000
 
