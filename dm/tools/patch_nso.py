@@ -899,6 +899,7 @@ def func_of(a):
     return (max((e for s, e in DATA_BLOCKS if e <= a), default=0), starts[0]) if starts else (a, a + 4)
 done = set(); windows = []; jumps = {}; tabjumps = {}; tailcalls = set(); retries = []
 def check_before_copy(insl, ctx, ld, idx, rb=None):   # PEANUTS(upstream-candidate): allow table-base adrp/add between b.hi and ldrsw (Crash N. Sane Trilogy)
+    # PEANUTS(upstream-candidate) begin: the table base (adrp rb, #page; add rb, rb, #imm) may come between the b.hi and the load (Crash Bandicoot N. Sane Trilogy)
     """The index copied from the checked register before the check, far back (DRAGON QUEST XI S main+0x2dd8cd0: mov w0,w18, then 41 instructions with two other jump tables on x0, then
     cmp w18,#4; b.hi; ldrsw x18,[x11,x0,lsl #2]; add x18,x18,x11; br x18). Accepted when the cmp and its b.hi come right before the load (or table-base adrp/add) and the mov is the last writer of the index and of the
     checked register before them. Kingdom Battle's GLSLC (subsdk0+0x7340b8) copies w17 into w18 71 instructions before the load, across two switches that preserve both registers: an arbitrary
@@ -907,7 +908,10 @@ def check_before_copy(insl, ctx, ld, idx, rb=None):   # PEANUTS(upstream-candida
     the one br x18 of its kind among the 25,508 x18 sites of that main. → the cmp, or None"""
     k = ctx.index(ld)
     b_idx = k - 1
-    while b_idx >= 1 and rb and ctx[b_idx].mnemonic in ('adrp', 'add') and ctx[b_idx].op_str.startswith(rb + ','):
+    def table_base(p):   # adrp rb, #page or add rb, rb, #imm: nothing else that writes rb (add x9, x9, x10 is not a table base)
+        if p.mnemonic == 'adrp': return re.fullmatch(rf'{rb}, #(0x[0-9a-f]+|\d+)', p.op_str)
+        return p.mnemonic == 'add' and re.fullmatch(rf'{rb}, {rb}, #(0x[0-9a-f]+|\d+)', p.op_str)
+    while b_idx >= 1 and rb and table_base(ctx[b_idx]):
         b_idx -= 1
     if b_idx < 1 or ctx[b_idx].mnemonic != 'b.hi' or ctx[b_idx - 1].mnemonic != 'cmp': return None
     m = re.fullmatch(r'(w\d+), #(0x[0-9a-f]+|\d+)', ctx[b_idx - 1].op_str)
@@ -924,6 +928,7 @@ def check_before_copy(insl, ctx, ld, idx, rb=None):   # PEANUTS(upstream-candida
         if writes(p) & (idx | {src}): return None
     else: return None
     return ctx[b_idx - 1]
+    # PEANUTS end
 def jump_offsets(insl, j, copy_first=False, far_base=False, forward_base=False):
     """The br x18 is preceded by the offset-table form (Engage main+0x12eec94): cmp w18,#N; b.hi; ldrsw x18,[xB,x18,lsl #2]; add x18,x18,xB.
     The index may be another register, and the bounds check may be on a register copied into it: Link's Awakening's GLSLC (subsdk0+0x1be6e8) has

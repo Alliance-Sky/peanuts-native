@@ -161,7 +161,7 @@ not edited (see table above).
 | `dm/games/0100EB100AB42000/` (new: `game.tsv`, `README.md`, the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be, once it plays: Banana Native has no profile for FINAL FANTASY XII THE ZODIAC AGE (plays on the Android test app on Turnip; the system driver shows the texture issues known from other games) |
 | `dm/games/010088401495E000/` (new: `game.tsv`, `README.md`, and the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for THE HOUSE OF THE DEAD: Remake |
 | `dm/games/01007A3024D10000/` (new: `game.tsv`, `README.md`, and the shader tables) + its row in `dm/games/README.md` | marked (`game.tsv`, the note, the row); tables allow-listed in `peanuts/upstream-unmarked.txt` | could be: Banana Native has no profile for THE HOUSE OF THE DEAD 2: Remake |
-| `dm/tools/patch_nso.py` (`check_before_copy` table-base `adrp`/`add`) + `dm/tools/tests/test_jump_copies.py` | marked (`PEANUTS(upstream-candidate)`); `dm/tools/rewriter_equiv/patch_nso.py.291a52143477` allow-listed in `peanuts/upstream-unmarked.txt` | **yes** — fallback-only jump-table recognition fix (Crash Bandicoot N. Sane Trilogy) |
+| `dm/tools/patch_nso.py` (`check_before_copy` table-base `adrp`/`add`) + `dm/tools/tests/test_jump_copies.py` | marked (`PEANUTS(upstream-candidate)`); `dm/tools/rewriter_equiv/patch_nso.py.aa0f78aee5ab` (the file after #654) allow-listed in `peanuts/upstream-unmarked.txt` | **yes** — fallback-only jump-table recognition fix (Crash Bandicoot N. Sane Trilogy) |
 
 ## Generic host runtime-profile sites
 
@@ -3381,6 +3381,22 @@ resolved table and no direct branch anywhere may enter one.
 | `docs/agents/symptoms.md` | generated | `dm/tools/docs_symptoms.py` | (generated) |
 
 Rewrite key: `patch_nso.py` changes, and the file before it is kept as `rewriter_equiv/patch_nso.py.d98ba837b4c1` after a rewrite census (11 games, 13
+builds, 39 modules byte-identical; the commit lists them), so existing packs stay up to date. Upstream candidate: yes.
+
+### The table base between the check and the load in `check_before_copy` (2026-11-28, #863, Sed-El)
+
+Crash Bandicoot N. Sane Trilogy puts the table base (`adrp rb, #page; add rb, rb, #imm`) between the `b.hi` and the `ldrsw` of a jump table whose index is
+copied before the check. `check_before_copy`, tried only after every other form has failed, steps back over those two forms only (no other write of `rb`,
+`add x9, x9, x10` for one) to the `cmp; b.hi`, and follows the writers back from the `cmp`.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/tools/patch_nso.py` | 2 | `check_before_copy(…, rb)`: the table base steps; `jump_offsets` passes `rb` | `PEANUTS(upstream-candidate) begin`/`end` on the body, a `PEANUTS(upstream-candidate)` comment on the call |
+| `dm/tools/tests/test_jump_copies.py` | 1 | the table base between the check and the load; other writes of `rb` refused | `PEANUTS(upstream-candidate)` |
+| `dm/tools/rewriter_equiv/patch_nso.py.aa0f78aee5ab` | file | the rewriter after #654 (aa0f78ae), byte for byte | allow-listed in `peanuts/upstream-unmarked.txt` |
+| `peanuts/tests/test_rewrite_forks.py` | 1 | `Wiring.CHAIN`: the file after #654 | Peanuts-owned test |
+
+Rewrite key: `patch_nso.py` changes, and the file before it is kept as `rewriter_equiv/patch_nso.py.aa0f78aee5ab` after a rewrite census (11 games, 13
 builds, 39 modules byte-identical; the commit lists them), so existing packs stay up to date. Upstream candidate: yes.
 
 ### 0.1.10 release list: THE HOUSE OF THE DEAD: Remake and 2: Remake, and Trails through Daybreak II (2026-11-28)

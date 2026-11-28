@@ -201,6 +201,13 @@ class IndexCopiedBeforeCheck(unittest.TestCase):
         ins = [p for i, w in enumerate(words) for p in md.disasm(struct.pack('<I', w), 4 * i)]
         j = next(i for i, p in enumerate(ins) if p.mnemonic == 'br')
         self.assertEqual(scope['jump_offsets'](ins, j, copy_first=True, far_base=True), [at + 28] * 5)
+        # PEANUTS(upstream-candidate): only adrp rb, #page and add rb, rb, #imm come between the check and the load; another write of rb does not
+        for slot, word in ((8, ADDR(9, 9, 10)), (8, ADDI(9, 10, table & 0xfff)), (7, mov(9, 10)), (8, ADDI(9, 9, 1, sh=1))):   # add x9,x9,x10; add x9,x10,#imm; mov x9,x10; add x9,x9,#1,lsl #12
+            with self.subTest(slot=slot, word=hex(word)):
+                changed = list(words); changed[slot] = word
+                ins = [p for i, w in enumerate(changed) for p in md.disasm(struct.pack('<I', w), 4 * i)]
+                self.assertIsNone(scope['check_before_copy'](ins, ins, ins[9], {'w18'}, 'x9'))
+        self.assertIs(scope['check_before_copy'](ins := [p for i, w in enumerate(words) for p in md.disasm(struct.pack('<I', w), 4 * i)], ins, ins[9], {'w18'}, 'x9'), ins[5])
 
     def test_source_and_index_must_remain_unchanged(self):
         for reg in (17, 18):

@@ -279,8 +279,9 @@ class Wiring(unittest.TestCase):
                          'rewriter changed on the branch this is on; if a rewrite census shows the same output, keep the file before the change '
                          '(git show <its last commit>:dm/tools/patch_nso.py) and add it to CHAIN')
 
-    # the files before each later rewriter change of the same output, oldest first: #654 (scheduled offset jump tables through x18)
-    CHAIN = ('d98ba837b4c1',)
+    # the files before each later rewriter change of the same output, oldest first: #654 (scheduled offset jump tables through x18), #863 (the table base
+    # between the check and the load in check_before_copy)
+    CHAIN = ('d98ba837b4c1', 'aa0f78aee5ab')
 
     def test_the_pack_script_runs_it_in_the_worker(self):
         pack = (REPO / 'scripts/pack_android.py').read_text(encoding='utf-8')
