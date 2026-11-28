@@ -102,6 +102,7 @@ Fast Prepare (targeted shader split)
 - So that a phone's Prepare reads only the game files that hold shaders, add `shader_files.tsv`: run one full split with `DM_SPLIT_FILES=dm/games/<title ID>/shader_files.tsv` (`android/SHADERS.md`). Then run a targeted split (`DM_SPLIT_TARGETED=1`) of the same build into a separate output folder, and check that its `shader_map.tsv`, `shader_facts.tsv`, `shader_pairs.tsv` and `pso_pairs.tsv` match the full split's. Give both times in the pull request.
 - If the shader map is far larger than what play reaches (tens of MB), open an issue first. A `shader_seen.tsv` of the keys real play uses may be the answer, and we decide that together.
 - A game with several builds lists the pairs a build may lack in `pso_pairs_optional.tsv`, so a targeted split of each build still matches.
+- A game whose shaders are all compiled at run time has no game file to target, so it needs no `shader_files.tsv`. Say so in the note, and give the run-time shader capture's count and, if its empty save waits on a screen, the `capture_keys` row it needs.
 
 Checks (paste the result lines)
 - `python3 dm/tools/docs_patches.py`, and commit its output.
