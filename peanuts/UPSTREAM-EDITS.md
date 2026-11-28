@@ -3610,3 +3610,33 @@ Peanuts' own files, no marker: `dm/gfx/tools/vk_android_spv_native/spvn.c`, `bui
 (new: every step of `finish` on 12 real modules of three games and a synthetic one, native against Python, byte for byte; the fallbacks; `DMSH_VK_SPVN=0`; a library
 of other sources refused), `peanuts/tests/fixtures/spvn/*.spv` (76 KB). Upstream candidate: yes (the same libraries, any machine), with the library's build in
 upstream's stage script.
+### Round 68, the spin wait search in C, the same output (2026-11-28, issue #120)
+
+After Round 66 the spin wait search was still the largest phase of a large `main`'s rewrite with one worker, which is how the phone rewrites (and on an AYN
+Thor the rewrite is the build's critical path): Super Mario Bros. Wonder's `main` 18 of 29 s, in capstone's Python wrapper and the Python search over about
+200,000 heads. `libdmsh_rwspin` (`dm/tools/rwspin_native/rwspin.c`, Peanuts' own) answers for each head whether `spin_region` finds a region: `spin_quick`,
+`spin_region` and `spin_region1` transliterated, the words decoded from their bits for the classes that give capstone's values, `spin_rmw` and `spin_lock`
+decided where their words have checked encodings, anything else asked from `patch_nso.py` through a `ctypes` callback. The regions of the heads that have one
+are built by `spin_region` in Python as before. `DM_REWRITE_NATIVE=0` turns it off; without a library (no C compiler on a PC, an older stage) the Python
+search runs. `patch_nso.py` names `rwspin.c`'s SHA-256 (`RWSPIN_SHA`) and refuses a library of other sources, so a change to `rwspin.c` changes the rewrite
+key through `patch_nso.py` (no new `REWRITER` file, which the launcher's `RewriteKey` would also need).
+
+- The output is byte-identical: Wonder's `main` and `sdk`, Animal Crossing's and Mario Kart 8 Deluxe's `main`, with the library and with
+  `DM_REWRITE_NATIVE=0`, one, four and eight workers and through `in_forks`. The decoder matches capstone on every text word of those modules it decodes
+  (96-97 %) and on 12 million random words; `spin_rmw` / `spin_lock` at every address the C decides and on 6 million generated lock-sequence words.
+- One worker: Wonder `main` 27 to 12 s, Animal Crossing `main` 55 to 22 s, Mario Kart 8 Deluxe `main` 6.6 to 2.6 s (four: 11 to 7, 20 to 13, 3.1 to 1.9 s);
+  the spin phase of Wonder's `main` 18 s to 0.7 s. Peak memory the same. `PHASES` measured again. docs/reference/rewriter.md "The spin wait search in C".
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/tools/patch_nso.py` | 5 | `PHASES`; `RWSPIN_SHA`, `spin_native_lib`, `spin_native_ask`, `spin_native` and helpers (one `PEANUTS begin/end` block); `spin_heads_with_region` (the library first); `find_spin_regions` (the state made before the workers fork, freed after) | `PEANUTS(upstream-candidate)` per hunk |
+| `android/app/build.gradle` | 4 | the stage's `lib/libdmsh_rwspin.so` into the APK's jniLibs (`need`, `nxPackJni`), `nxPackRwspinCheck` (the library carries this tree's `rwspin.c` SHA-256), `rwspin.c` into `tools.zip` | `// PEANUTS` per hunk |
+| `android/ondevice/build.sh` | 2 | `zbic` builds `libdmsh_rwspin.so` with the NDK, as `libdmsh_spvn.so` | `# PEANUTS begin`/`end`, `# PEANUTS:` |
+| `docs/reference/rewriter.md`, `docs/reference/packing.md` | 2 | "The spin wait search in C"; the new `PHASES` shares | `<!-- PEANUTS(upstream-candidate) -->`, in the entry Round 66 changed |
+| `docs/env_switches.tsv`, `docs/advanced_settings.tsv` | 4 | `DM_REWRITE_NATIVE`, `DM_REWRITE_NATIVE_CACHE` | `[PEANUTS]` |
+| `dm/tools/rewriter_equiv/patch_nso.py.5b7e6a2af704` (new) | file | the rewriter before this round (5b7e6a2a), byte for byte: packs made with it count as up to date | allow-listed in `peanuts/upstream-unmarked.txt` |
+
+The generated index `docs/agents/symptoms.md` has the new entry. Peanuts' own files, no marker: `dm/tools/rwspin_native/rwspin.c`, `build.sh` (new),
+`dm/tools/tests/test_rwspin.py` (new: the decoder against capstone on generated words, `spin_rmw` / `spin_lock` on generated lock sequences, the same heads
+with a region on generated loops, `RWSPIN_SHA`), `peanuts/tests/test_rewrite_forks.py` (the third equivalent), `peanuts/upstream-unmarked.txt`. Upstream
+candidate: yes, with the library's build in upstream's stage script.

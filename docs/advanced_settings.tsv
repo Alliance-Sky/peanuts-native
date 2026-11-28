@@ -381,6 +381,8 @@ DM_RES_CHECK	developer	Diagnostics			text			both
 DM_RES_SCALE	developer	Game			text			both						
 DM_RES_SCALE_POT	developer	Diagnostics			text			both						
 DM_REWRITE_J	developer	Game			text			both						
+DM_REWRITE_NATIVE	developer	Game			text			both						
+DM_REWRITE_NATIVE_CACHE	internal	Game			text			both						PC-only compile cache of the rewriter library [PEANUTS]
 DM_ROMFS	internal	Diagnostics			text			both						Mac or iOS only
 DM_ROMFS_OVERLAY	developer	Diagnostics			text			both						
 DM_ROMFS_PROGRAM_<n>	internal	Diagnostics			text			both						numbered family

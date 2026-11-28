@@ -36,8 +36,9 @@ if WORKERS < 1: sys.exit('[RED] DM_REWRITE_J must be a positive integer')
 # "Prepare stays at 1 % while it rewrites the code"); a phase reports its own count inside its share. At most one line a second, plus each phase's start.
 import time
 # PEANUTS(upstream-candidate): measured again after dev 0.1.10's speed round (one worker, Super Mario Bros. Wonder's and Animal Crossing's main); before:
-# load 30, x18 250, scan 80, functions 125, sites 15, spin 490, write 10
-PHASES = {'load': (0, 125), 'x18': (125, 23), 'scan': (148, 31), 'functions': (179, 207), 'sites': (386, 37), 'spin': (423, 555), 'write': (978, 22)}
+# load 30, x18 250, scan 80, functions 125, sites 15, spin 490, write 10. PEANUTS(upstream-candidate): and again with the spin wait search in C (spin_native); before:
+# load 125, x18 23, scan 31, functions 207, sites 37, spin 555, write 22
+PHASES = {'load': (0, 277), 'x18': (277, 45), 'scan': (322, 62), 'functions': (384, 437), 'sites': (821, 79), 'spin': (900, 51), 'write': (951, 49)}
 _progress_at = [0.0, -1]
 def progress(phase, done=0, total=1):
     start, width = PHASES[phase]
@@ -2191,7 +2192,126 @@ def spin_emit(g):
     stat('spin')
 spin_heads = sorted(spin_cand)
 
+# PEANUTS(upstream-candidate) begin: the search over the heads in C (rwspin_native/rwspin.c, libdmsh_rwspin through ctypes; docs/reference/rewriter.md "The spin
+# wait search in C"). It tells which heads have a region, as spin_region would (the same nodes, prune, walk and live registers, transliterated); the regions
+# of those heads are then built here by spin_region, as before, so the output is the Python's. Words are decoded there from their bits for the classes that
+# give capstone's values (every text word of Super Mario Bros. Wonder's main and sdk, Animal Crossing's and Mario Kart 8 Deluxe's main, and millions of random
+# words: dm/tools/tests/test_rwspin.py); any other word, spin_rmw and spin_lock are asked from here (spin_native_ask). Which library (DM_REWRITE_NATIVE):
+# unset, on Android libdmsh_rwspin.so (the APK's lib/), elsewhere one built from rwspin.c with the C compiler into a cache folder named after the source's
+# SHA-256 (DM_REWRITE_NATIVE_CACHE, default ~/.cache/dmsh_rwspin; built once, by cc or CC); 0 = none (the Python search below); a path = that library. The
+# library must carry RWSPIN_SHA, rwspin.c's SHA-256 written here: rwspin.c decides which heads have a region, so a change to it changes this file and with
+# it the rewrite key (scripts/pack_android.py rewrite_keys). Without a library, or when the Python cannot answer a question, the Python search runs: the same output
+RWSPIN_SHA = '4df593054538f5ade627a76180627035d19d43b967281cd31493774865c1e6ff'
+RWSPIN_C = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'rwspin_native', 'rwspin.c')
+spin_nat = {}
+def spin_native_lib():
+    """(the library through ctypes or None, why not)"""
+    import ctypes, hashlib, subprocess, tempfile
+    want = os.environ.get('DM_REWRITE_NATIVE')
+    if want == '0': return None, 'DM_REWRITE_NATIVE=0'
+    if want: path = want
+    elif sys.platform == 'android': path = 'libdmsh_rwspin.so'
+    else:
+        try:
+            with open(RWSPIN_C, 'rb') as f: sha = hashlib.sha256(f.read()).hexdigest()
+        except OSError: return None, 'no rwspin.c'
+        if sha != RWSPIN_SHA: return None, 'rwspin.c is not the one patch_nso.py names (RWSPIN_SHA)'
+        ext = '.dylib' if sys.platform == 'darwin' else '.dll' if sys.platform == 'win32' else '.so'
+        cache = os.environ.get('DM_REWRITE_NATIVE_CACHE') or os.path.join(os.path.expanduser('~'), '.cache', 'dmsh_rwspin')
+        path = os.path.join(cache, sha[:16], 'libdmsh_rwspin' + ext)
+        if not os.path.exists(path):   # as rwspin_native/build.sh does
+            flags = ['-shared', '-fPIC', '-O2', '-std=gnu11', '-fvisibility=hidden', f'-DRWS_SOURCE="{sha}"'] + (['-undefined', 'dynamic_lookup'] if sys.platform == 'darwin' else [])
+            try:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), suffix='.tmp'); os.close(fd)
+                try:
+                    subprocess.run([os.environ.get('CC') or 'cc', *flags, '-o', tmp, RWSPIN_C], check=True, capture_output=True)
+                    os.replace(tmp, path)
+                finally:
+                    if os.path.exists(tmp): os.unlink(tmp)
+            except (OSError, subprocess.CalledProcessError) as e: return None, f'no C compiler build ({type(e).__name__})'
+    try: L = ctypes.CDLL(path)
+    except OSError as e: return None, f'{path}: {e}'
+    L.rws_source.restype = ctypes.c_char_p
+    if L.rws_source().decode() != RWSPIN_SHA: return None, f'{path} was not built from the rwspin.c patch_nso.py names (RWSPIN_SHA)'
+    L.ask_t = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.c_int, ctypes.c_int64, ctypes.POINTER(ctypes.c_int64))
+    P = ctypes.POINTER(ctypes.c_int64)
+    L.rws_new.argtypes = [ctypes.c_char_p, ctypes.c_int64, ctypes.c_int64, P, ctypes.c_int64, P, ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, L.ask_t]
+    L.rws_new.restype = ctypes.c_void_p
+    L.rws_free.argtypes, L.rws_free.restype = [ctypes.c_void_p], None
+    L.rws_heads.argtypes, L.rws_heads.restype = [ctypes.c_void_p, P, ctypes.c_int64, P, P, P], ctypes.c_int64
+    L.rws_asked.argtypes, L.rws_asked.restype = [ctypes.c_void_p, P], None
+    L.rws_word.argtypes, L.rws_word.restype = [ctypes.c_uint32, P], ctypes.c_int
+    return L, ''
+SPIN_NREG = {**{f'x{i}': i for i in range(31)}, 'sp': 31, **{f'v{i}': 32 + i for i in range(32)}, 'nzcv': 64}   # rwspin.c's register bits
+def spin_native_reg(r):
+    """r's bit (a name beyond rwspin.c's gets the next one; past 127, OverflowError: the job is searched here)"""
+    if r not in SPIN_NREG:
+        if len(SPIN_NREG) >= 128: raise OverflowError('more than 128 register names')
+        SPIN_NREG[r] = len(SPIN_NREG)
+    return SPIN_NREG[r]
+def spin_native_mask(rs, out, at):
+    """the register set rs (names, None left out) as two 64-bit words at out[at], out[at + 1]"""
+    m = 0
+    for r in rs:
+        if r is not None: m |= 1 << spin_native_reg(r)
+    for i in (0, 1): v = m >> 64 * i & 0xFFFFFFFFFFFFFFFF; out[at + i] = v - (v >> 63 << 64)
+def spin_native_ask(mode, a, out):
+    """rwspin.c's question about the word at a, answered with this file's functions: 0 spin_word, 1 spin_rw_at, 2 spin_rmw, 3 spin_lock → 0, or 1 (no answer)"""
+    try:
+        if len(spin_dec) >= 4096: spin_dec.clear()   # (as spin_region)
+        if mode == 0:
+            k, tgt, b, st, ld, l0 = spin_word(a)
+            if tgt is not None and not -1 << 63 <= tgt < 1 << 63: raise OverflowError('a branch target beyond 64 bits')
+            out[0] = {None: 0, 'br': 1, 'pc': 2, 'ok': 3}[k]; out[1] = tgt is not None; out[2] = tgt or 0; out[3] = bool(b)
+            out[4] = st is not None; out[5] = -1 if st is None or st[0] is None else spin_native_reg(st[0]); out[6] = -1 if st is None else spin_native_reg(st[1])
+            out[7] = bool(ld); out[8] = l0
+        elif mode == 1:
+            r, w = spin_rw_at(a); spin_native_mask(r, out, 0); spin_native_mask(w, out, 2)
+        elif mode == 2:
+            m = spin_rmw(a); out[0] = m is not None
+            if m: out[1] = spin_native_reg(m[0]); out[2] = m[1]; spin_native_mask(m[2], out, 3)
+        else:
+            lk = spin_lock(a); out[0] = lk is not None
+            if lk:
+                out[1] = {'acq': 1, 'rel': 2, 'tst': 3}[lk[0]]; out[2] = spin_native_reg(lk[1]); out[3] = len(lk[2]); out[4] = lk[3]; out[5] = lk[4]
+                spin_native_mask(lk[5], out, 6); spin_native_mask(lk[6], out, 8)
+        return 0
+    except BaseException as e:   # (a callback cannot raise: kept for spin_heads_with_region, which raises it again when it is no error of the answer)
+        spin_nat['raised'] = e
+        return 1
+def spin_native():
+    """this process's library state (made on the first call: the text, the touched words, the data blocks), or None"""
+    if 'st' not in spin_nat:
+        import ctypes
+        spin_nat['st'] = None
+        L, spin_nat['why'] = spin_native_lib()
+        if L is not None:
+            n = min(len(IMG), TEXT_END + 64); t = sorted(o for o in spin_touched if 0 <= o < n)
+            P = lambda v: (ctypes.c_int64 * max(1, len(v)))(*v)
+            spin_nat['ask'] = L.ask_t(spin_native_ask)   # (kept: the library calls it)
+            st = L.rws_new(bytes(IMG[:n]), n, TEXT_END, P(t), len(t), P([x for b in DATA_BLOCKS for x in b]), len(DATA_BLOCKS), SPIN_QK, SPIN_PATHS, SPIN_STEPS, SPIN_STORES, spin_nat['ask'])
+            if st: spin_nat['lib'], spin_nat['st'] = L, st
+            else: spin_nat['why'] = 'rws_new failed'
+        if spin_nat['st'] is None and os.environ.get('DM_REWRITE_NATIVE') != '0': print(f'spin wait search: in Python ({spin_nat["why"]})', flush=True)
+    return spin_nat['st']
+def spin_native_free():
+    if spin_nat.get('st'): spin_nat['lib'].rws_free(spin_nat['st'])
+    spin_nat.clear(); spin_nat['st'] = None; spin_nat['why'] = 'freed'
+# PEANUTS end
+
 def spin_heads_with_region(lo, hi):
+    st = spin_native()   # PEANUTS(upstream-candidate): in C (above) when the library is there
+    if st:
+        import ctypes
+        heads = spin_heads[lo:hi]; off = [0]; bes = []
+        for T in heads: bes += spin_cand[T]; off.append(len(bes))
+        A = lambda v: (ctypes.c_int64 * max(1, len(v)))(*v)
+        out = A(heads); spin_nat.pop('raised', None)
+        n = spin_nat['lib'].rws_heads(st, A(heads), len(heads), A(bes), A(off), out)
+        if n >= 0: return list(out[:n])
+        e = spin_nat.pop('raised', None)
+        if e is not None and not isinstance(e, Exception): raise e   # a stop (SIGTERM's SystemExit, KeyboardInterrupt) during a question
     return [T for T in spin_heads[lo:hi] if spin_region(T, spin_cand[T])]
 
 def find_spin_regions():
@@ -2203,8 +2323,10 @@ def find_spin_regions():
     step = min(32 * WORKERS if WORKERS > 1 else 64, len(spin_heads))   # one worker: 64 jobs only for finer progress lines (the regions are sorted below either way)
     heads = []
     cut = [len(spin_heads) * k // step for k in range(step + 1)] if step else []
+    spin_native()   # PEANUTS(upstream-candidate): the library's state made before the workers fork, which share it
     for found in in_parallel(spin_heads_with_region, list(zip(cut, cut[1:])), 'spin'):
         heads += found
+    spin_native_free()   # PEANUTS(upstream-candidate)
     return [spin_region(T, spin_cand[T]) for T in sorted(heads)]
 
 progress('spin')

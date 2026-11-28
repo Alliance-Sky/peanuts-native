@@ -8,6 +8,7 @@
 # → <work dir>/stage/
 #     lib/libpython3.14.so, libnxpack.so, libzbicdec.so, libcra.so, libdmsh_xlate.so, libSPIRV-Tools-shared.so   the app's jniLibs (arm64-v8a)
 #     lib/libdmsh_spvn.so                      PEANUTS: the shader build's SPIR-V post-passes in C (dm/gfx/tools/vk_android_spv_native; made by zbic, as libcra.so)
+#     lib/libdmsh_rwspin.so                    PEANUTS: the rewriter's spin wait search in C (dm/tools/rwspin_native; made by zbic, as libcra.so)
 #     python/lib/python3.14/                   the Python home: the standard library with lib-dynload/, site-packages/capstone (+ lib/libcapstone.so), site-packages/lz4
 #     bin/dm_pack_cli                          the adb shell test runner (dm_pack_cli.c)
 # The sources are pinned by version and SHA-256 (below; SPIRV-Tools by its Vulkan SDK tag); a mismatch stops the build. "python" makes the stage afresh, so run
@@ -83,6 +84,12 @@ if [[ $WHAT == all || $WHAT == python || $WHAT == zbic ]]; then
   sh $HERE/../../dm/gfx/tools/vk_android_spv_native/build.sh $S/lib/libdmsh_spvn.so $=CC
   $BIN/llvm-strip --strip-debug $S/lib/libdmsh_spvn.so
   if grep -qaF "$HOME" $S/lib/libdmsh_spvn.so; then echo "[RED] $S/lib/libdmsh_spvn.so names this machine's home folder"; exit 1; fi
+  # PEANUTS end
+  # PEANUTS begin: libdmsh_rwspin.so (dm/tools/rwspin_native/rwspin.c): the rewriter's spin wait search in C, which patch_nso.py loads through ctypes by its bare
+  # name; without it the phone runs the same search in Python (docs/reference/rewriter.md, "The spin wait search in C")
+  sh $HERE/../../dm/tools/rwspin_native/build.sh $S/lib/libdmsh_rwspin.so $=CC
+  $BIN/llvm-strip --strip-debug $S/lib/libdmsh_rwspin.so
+  if grep -qaF "$HOME" $S/lib/libdmsh_rwspin.so; then echo "[RED] $S/lib/libdmsh_rwspin.so names this machine's home folder"; exit 1; fi
   # PEANUTS end
 fi
 if [[ $WHAT == all || $WHAT == tools ]]; then

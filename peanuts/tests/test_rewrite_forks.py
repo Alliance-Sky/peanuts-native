@@ -281,8 +281,9 @@ class Wiring(unittest.TestCase):
                          '(git show <its last commit>:dm/tools/patch_nso.py) and add it to CHAIN')
 
     # the files before each later rewriter change of the same output, oldest first: #654 (scheduled offset jump tables through x18), #863 (the table base
-    # between the check and the load in check_before_copy), #120's Round 65 (the spin wait search and the x18 scan decode each word once)
-    CHAIN = ('d98ba837b4c1', 'aa0f78aee5ab', '8e3599f57768')
+    # between the check and the load in check_before_copy), #120's Round 65 (the spin wait search and the x18 scan decode each word once), Round 68 (the spin wait search
+    # in C through rwspin_native)
+    CHAIN = ('d98ba837b4c1', 'aa0f78aee5ab', '8e3599f57768', '5b7e6a2af704')
 
     def test_the_pack_script_runs_it_in_the_worker(self):
         pack = (REPO / 'scripts/pack_android.py').read_text(encoding='utf-8')
