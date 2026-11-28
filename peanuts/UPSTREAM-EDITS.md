@@ -3344,6 +3344,23 @@ keep their meaning (`DM_GAME_CORE_PREEMPT` 1 / 0, now 2 for `lock`). Limits, in 
 No rewrite key or shader input changes. Every other game is unchanged: with `core_preempt` off (the default) `core_lock_on` is false and each hook returns at once.
 Upstream candidate: the lock, if upstream wants Horizon's one-thread-a-core rule for a game; a cheaper lock could make it every game's default.
 
+### MT Framework ARC v7 archives with 64-byte paths (2026-11-28, #653, aldotms89)
+
+Resident Evil 6's ARC v7 archives keep 0x50-byte entries (a 64-byte path); The Great Ace Attorney Chronicles' 447 keep 0x90-byte ones (a 128-byte path), and
+no dump of it is here to split again. So its archives keep the reading they had: a consistent 0x90 table (printable, non-empty paths, entries in order and inside
+the file) is taken at once, and any other 0x90 table is decoded the old way first (entries out of order or overlapping, as before); only an archive that reading
+cannot decode (a struct, zlib or length error, each of which stopped the split before) is read as 0x50, and only if that table is consistent. SPK records are
+yielded one at a time, so `mtarc_shaders` adds them to its list without a second list of the package.
+
+| File | Hunks | Change | Marker |
+|---|---|---|---|
+| `dm/gfx/tools/shader_split.py` | 1 | `mtarc_members`: the strict table check at either width, the old 0x90 reading, the 0x50 fallback; `mtspk_shaders` yields | `PEANUTS(upstream-candidate) begin`/`end` |
+| `dm/tools/tests/test_split_targeted.py` | 2 | `MtFramework`: both widths, malformed 0x50 tables refused, a 0x90 table out of order or overlapping still read | `PEANUTS(upstream-candidate)` |
+| `docs/reference/shaders.md` | 1 | ARC v7 archives with short paths | `<!-- PEANUTS(upstream-candidate) -->` |
+| `docs/agents/symptoms.md` | generated | `dm/tools/docs_symptoms.py` | (generated) |
+
+No rewrite key or shader input changes (`shader_split.py` is not hashed into a library's stamp). Upstream candidate: yes.
+
 ### 0.1.10 release list: THE HOUSE OF THE DEAD: Remake and 2: Remake, and Trails through Daybreak II (2026-11-28)
 
 The owner put three profiles that landed for 0.1.10 on the release list: THE HOUSE OF THE DEAD: Remake (#790) and THE HOUSE OF THE DEAD 2: Remake (#792),

@@ -1555,7 +1555,8 @@ def mtarc_members(d, label):
     if ver != 7: red(f'{label}: ARC version {ver}: only version 7 is known')
     if not n: return
 
-    def entries(path_size):
+    def strict(path_size):
+        """The table at this width, or None unless every path is printable and non-empty and every entry lies inside the file, after the table and after the entry before it"""
         stride = path_size + 16
         end = 8 + stride * n
         if end > len(d): return None
@@ -1570,11 +1571,35 @@ def mtarc_members(d, label):
             end = off + csz
         return rows
 
-    # Prefer the original wide layout if both tables are consistent.
-    rows = entries(128) or entries(64)
+    def wide():
+        """The 0x90 table read the way the reader always has, with no order or bounds checks of its own: entries may be out of order or overlap"""
+        rows = []
+        for i in range(n):
+            o = 8 + 0x90 * i
+            path = d[o:o + 0x80].split(b'\0')[0].decode('latin-1')
+            csz, usz, off = struct.unpack_from('<3I', d, o + 0x84)
+            rows.append((path, csz, usz & 0x1fffffff, off))
+        return rows
+
+    def member(path, csz, usz, off):
+        return d[off:off + csz] if csz == usz else zlib.decompress(memoryview(d)[off:off + csz])
+
+    def wide_reads():
+        """Whether every 0x90 entry decodes to its stated length (what failed with a struct, zlib or [RED] length error before the 0x50 layout was known)"""
+        try:
+            return all(len(member(*r)) == r[2] for r in wide())
+        except (struct.error, zlib.error):
+            return False
+
+    # The Great Ace Attorney Chronicles' 0x90 archives keep the reading they always had: the strict checks only decide whether an archive the 0x90 reading
+    # cannot decode is a 0x50 one (Resident Evil 6). A consistent 0x90 table is taken at once; any other is decoded once to check it first.
+    rows = strict(128)
+    if rows is None:
+        if wide_reads(): rows = wide()
+        else: rows = strict(64)
     if rows is None: red(f'{label}: no consistent ARC v7 entry layout (0x90 or 0x50)')
     for path, csz, usz, off in rows:
-        data = d[off:off + csz] if csz == usz else zlib.decompress(memoryview(d)[off:off + csz])
+        data = member(path, csz, usz, off)
         if len(data) != usz: red(f'{label}#{path}: {len(data):#x} bytes, the entry says {usz:#x}')
         yield path.replace('\\', '/'), data
 
@@ -1584,8 +1609,8 @@ def mtspk_shaders(d, label):
     so the code area is the bytes right before it, and every block must start where the previous one ended. The tables that say which vertex and pixel shaders the engine combines are not
     read, so the shaders are paired as single-stage programs (separable_pairs).
     Resident Evil 6 (SDK 6.5.0) uses the same control and code layout in its four
-    packages. Yield records one at a time so the caller can deduplicate them
-    without keeping a second copy of the entire package (GameStage is 424 MB).
+    packages. Records are yielded one at a time, so mtarc_shaders adds them to its
+    list without first building a second list of the package (GameStage is 424 MB).
     """
     end, c = None, d.find(CTL_MAGIC)
     while c >= 0:

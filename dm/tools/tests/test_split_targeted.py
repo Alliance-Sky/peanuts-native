@@ -107,6 +107,21 @@ class MtFramework(unittest.TestCase):
                 with self.assertRaisesRegex(SystemExit, r'\[RED\] test.arc: no consistent ARC v7 entry layout'):
                     list(ss.mtarc_members(malformed, 'test.arc'))
 
+    def test_arc_v7_wide_table_keeps_its_old_reading(self):
+        # The 0x90 reading never checked entry order or overlap, so such an archive still reads as 0x90: the strict checks
+        # only choose the 0x50 layout for an archive the 0x90 reading cannot decode.
+        def wide(payload, rows):
+            d = bytearray(ss.MTARC + struct.pack('<HH', 7, len(rows)))
+            base = len(d) + 0x90 * len(rows)
+            for path, csz, usz, at in rows:
+                d += path.ljust(0x80, b'\0') + struct.pack('<4I', 0x12345678, csz, 0x40000000 | usz, base + at)
+            return bytes(d + payload)
+        two = zlib.compress(b'two')
+        out_of_order = wide(b'one' + two, [(b'first', len(two), 3, 3), (b'second', 3, 3, 0)])
+        self.assertEqual(list(ss.mtarc_members(out_of_order, 'test.arc')), [('first', b'two'), ('second', b'one')])
+        overlapping = wide(b'abcdef', [(b'whole', 6, 6, 0), (b'tail', 3, 3, 3)])
+        self.assertEqual(list(ss.mtarc_members(overlapping, 'test.arc')), [('whole', b'abcdef'), ('tail', b'def')])
+
 
 class Targeted(unittest.TestCase):
     def setUp(self):
