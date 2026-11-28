@@ -65,6 +65,38 @@ re-translation on every device. **Never change `vk_android_build.py`, `vk_androi
 available, say), leave the row out; an under-justified row is worse than a missing one, because the next person
 trusts it without re-checking.
 
+## A new-game pull request
+
+A new-game pull request adds one game's profile and nothing else. Read NEW-GAME.md for the steps.
+
+Before you open it
+- Base it on the `dev` branch, never on `main`. Rebase on it; do not merge it in.
+- One game per pull request. A host, renderer, rewriter, shader-tool or launcher change goes in its own pull request first. If your profile needs it, write "Depends on: #<n>" and keep the profile a draft until that one lands.
+- Touch only `dm/games/<title ID>/` and the game's row in `dm/games/README.md`.
+- Switch 1 games only. A game that needs a network sign-in to reach play cannot be supported, since Peanuts is always offline.
+
+Never in the pull request
+- Binaries of any kind, `vk_prewarm.bin` included. Attach your runs' `.keys` files instead; we build the seed.
+- `peanuts/release-titles.txt`, `peanuts/games.tsv`, `nxGames`, `readiness.tsv`, the Supported games tables, `games.json` or the issue forms. We add the game after our own device runs and credit you as its contributor.
+- A file over 10 MB. If your shader tables are larger, open an issue first.
+- Game files, keys, or anything extracted from a game.
+
+The profile
+- `game.tsv`: `name`, a `build` row per version with its display version filled in, `package` equal to the highest build, `shader_note`, `# PEANUTS:` on the lines you add. Only keys Android reads: no `pad_layout`, no `zip_store .metallib`.
+- Shader tables exactly as the current `shader_split.py` wrote them, with LF line endings.
+- A `recommend` row needs a comment above it naming the note section or `docs/reference` page where the fact was measured.
+- The note from the template: Status, Tested on, Builds, Open. Status says only what you ran, Open lists what you did not, and they must not disagree. Memory values you did not measure are marked as the survey's guess.
+
+Checks (paste the result lines)
+- `python3 dm/tools/docs_patches.py`, and commit its output.
+- `python3 -m unittest discover -s dm/tools/tests`: give the failure count at your head and at its merge-base. A pull request adds none.
+- `check-profiles.sh <title ID>`, `gen_runtime_profile.py check-all`.
+
+Device evidence
+- To land as a profile: a named phone (model, chip, RAM, Android version), the driver and its exact version, a log attached (Settings > Share log), and what you played.
+- To be considered for the release list: an Adreno phone with 12 GB or more. A run on Qualcomm's own driver and on a named Turnip build (not 27.0.0-R3). At least 10 minutes of play past the first scene, with logs from both drivers. The median and slowest frame times and the game speed at each cap the profile offers (10 game seconds should take 10 s). The memory peak. Runs on Mali, Xclipse or PowerVR phones, or only in menus, do not count.
+- Say what you did not check.
+
 ## Adding a supported game
 
 For a game that has no profile yet, in Peanuts or in Banana Native, [NEW-GAME.md](NEW-GAME.md) has the steps, commands and pitfalls end to end.
@@ -199,9 +231,8 @@ If you hit this symptom on a new title, look for it before assuming the pack is 
   you're done with it rather than letting it accumulate — this is a disk-budget practice, not a licensing one, but it
   also makes "did I accidentally stage game data" much easier to answer by inspection (there's nothing there to
   stage).
-- **One change per branch**, rebased on the current overlay branch (which itself is rebased onto Banana Native's
-  current `android` branch tip) — never merged in, since `upstream-update.sh` rewrites this branch's history on
-  every upstream update.
+- **One change per branch**, based on the stable `dev` branch and rebased on it, never merged in. `dev` follows each
+  release cycle's line (today `dev-0.1.10`); `main` moves only at a release, so a pull request never targets `main`.
 - **Commit messages** say what changed and why: the symptom, the cause, the fix, what was measured or checked on the
   device. No secrets, no local paths, no device serials, no personal identifiers in a committed file.
 - **No binaries.** No `.so`, no APK, no GPU driver, no shader library, no prewarm seed, no pack. Everything is built
@@ -271,6 +302,5 @@ applies to every change however it was produced. See `peanuts/docs/AGENTS.md` fo
 
 ## How changes get in
 
-There is no public CI for this project yet (it mirrors Banana Native's own stance: there's no CI on its public repo
-either).
-Run the checks yourself and say in the PR description what ran, on what device and driver, and what was not checked.
+CI runs on every pull request (`.github/workflows/peanuts.yml`): the Peanuts tests, the catalog and issue-form checks,
+the profile checks and the docs checks, reporting what your change makes fail. Still run the checks yourself and say in the PR description what ran, on what device and driver, and what was not checked.
