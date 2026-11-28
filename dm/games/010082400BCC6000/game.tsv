@@ -1,4 +1,4 @@
-# Game profile of Untitled Goose Game (Switch, update v458752 / ), Unity 2018.4.1f1 IL2CPP with FMOD, SDK 8.2.0, NVN.
+# Game profile of Untitled Goose Game (Switch, update v458752; its display version is not recorded yet), Unity 2018.4.1f1 IL2CPP with FMOD, SDK 8.2.0, NVN.
 # PEANUTS: a Peanuts Native profile (Banana Native has none for this title); whole file Peanuts' own
 # Format: see dm/games/README.md
 
@@ -32,6 +32,8 @@ sys_resource	0x1000000
 # ---- Shader split ----
 shader_groups	/Data/=data
 shader_note	Untitled Goose Game shaders
+
+# ---- Frame rate ----
 present_interval	display
 fps_limit	60
 fps_limit_max	120
